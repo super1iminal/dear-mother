@@ -14,6 +14,7 @@
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
+	, player_health(0)
 	, next_eel_spawn(0.f)
 	, next_fish_spawn(0.f) {
 	// Seeding rng with random device
@@ -126,7 +127,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
+	player_health = registry.healthComponents.get(registry.players.entities[0]).max_health;
 	title_ss << "Points: " << points;
+	title_ss << " Health: " << player_health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step

@@ -51,6 +51,9 @@ private:
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
 
+	// Player health displayed on window
+	unsigned int player_health;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
