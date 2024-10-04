@@ -16,6 +16,3 @@ Entity createEnemy(RenderSystem* renderer, vec2 position);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
-
-// a egg
-Entity createEgg(vec2 pos, vec2 size);

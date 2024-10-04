@@ -80,26 +80,3 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.debugComponents.emplace(entity);
 	return entity;
 }
-
-Entity createEgg(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// create an empty component for our eggs
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity, {
-			TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG
-		});
-
-	return entity;
-}
