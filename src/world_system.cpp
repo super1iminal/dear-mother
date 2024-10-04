@@ -150,21 +150,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// spawn new eels
-	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_NUM_EELS && next_eel_spawn < 0.f) {
-		// reset timer
-		next_eel_spawn = (EEL_SPAWN_DELAY_MS / 2) + uniform_dist(rng) * (EEL_SPAWN_DELAY_MS / 2);
-
-		// create Eel with random initial position
-        createEel(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-	}
-
-	// spawn fish
-	next_fish_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_NUM_FISH && next_fish_spawn < 0.f) {
-		// !!!  TODO A1: create new fish with createFish({0,0}), see eels above
-	}
+	// spawn two enemies
+	createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
+	createEnemy(renderer, vec2(200.f, 200.f));
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: HANDLE EGG SPAWN HERE
@@ -217,9 +205,8 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// create a new Salmon
-	player_salmon = createSalmon(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(player_salmon, {1, 0.8f, 0.8f});
+	// create a new Player entity
+	player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 
 	// !! TODO A2: Enable static eggs on the ground, for reference
 	// Create eggs on the floor, use this for reference
