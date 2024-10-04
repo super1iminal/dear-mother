@@ -24,6 +24,11 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+struct Projectile
+{
+	bool friendly = true;
+};
+
 // Stucture to store collision information
 struct Collision
 {
