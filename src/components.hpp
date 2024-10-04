@@ -16,12 +16,6 @@ struct Deadly
 
 };
 
-// anything the player can eat
-struct Eatable
-{
-
-};
-
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -112,8 +106,8 @@ struct Mesh
 
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
-	EEL = FISH + 1,
-	TEXTURE_COUNT = EEL + 1
+	BOUNDBOX = FISH + 1,
+	TEXTURE_COUNT = BOUNDBOX + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
