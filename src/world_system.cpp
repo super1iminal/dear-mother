@@ -148,8 +148,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// spawn two enemies
-	createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
-	createEnemy(renderer, vec2(200.f, 200.f));
+	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
+		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
+		createEnemy(renderer, vec2(200.f, 200.f));
+	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -243,8 +246,44 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
+	Entity& player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+	int speed = 150;
+	
+	switch (key)
+	{
+	case GLFW_KEY_W:
+		player_motion.velocity.y = -speed;
+		if (action == GLFW_RELEASE) {
+			player_motion.velocity.y = 0;
+		}
+		break;
+	case GLFW_KEY_A:
+		player_motion.velocity.x = -speed;
+		if (action == GLFW_RELEASE) {
+			player_motion.velocity.x = 0;
+		}
+		break;
+	case GLFW_KEY_S:
+		player_motion.velocity.y = speed;
+		if (action == GLFW_RELEASE) {
+			player_motion.velocity.y = 0;
+		}
+		break;
+	case GLFW_KEY_D:
+		player_motion.velocity.x = speed;
+		if (action == GLFW_RELEASE) {
+			player_motion.velocity.x = 0;
+		}
+		break;
+	default:
+		player_motion.velocity.y = 0;
+		player_motion.velocity.x = 0;
+		break;
+	}
+
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_X) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
