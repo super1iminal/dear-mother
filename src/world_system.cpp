@@ -260,36 +260,36 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	bool top_left_w_a = up_w_key && left_a_key;
 
 	if (top_right_w_d) {
-		player_motion.velocity = vec2(speed * (sqrt(2.0) / 2.0),-speed * (sqrt(2.0) / 2.0)) ;
+		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0),-speed * (sqrt(2.0) / 2.0)) ;
 	} 
 	else if (bot_right_s_d) {
-		player_motion.velocity = vec2(speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
 	}
 	else if (top_left_w_a) {
-		player_motion.velocity = vec2(-speed * (sqrt(2.0) / 2.0), -speed * (sqrt(2.0) / 2.0));
+		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), -speed * (sqrt(2.0) / 2.0));
 	}
 	else if (bot_left_s_a) {
-		player_motion.velocity = vec2(-speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
 	}
 	else if (up_w_key) {
-		player_motion.velocity.x = 0;
-		player_motion.velocity.y = -speed;
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = -speed;
 	}
 	else if (down_s_key) {
-		player_motion.velocity.x = 0;
-		player_motion.velocity.y = speed;
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = speed;
 	}
 	else if (right_d_key) {
-		player_motion.velocity.y = 0;
-		player_motion.velocity.x = speed;
+		player_motion.input_velocity.y = 0;
+		player_motion.input_velocity.x = speed;
 	}
 	else if (left_a_key) {
-		player_motion.velocity.y = 0;
-		player_motion.velocity.x = -speed;
+		player_motion.input_velocity.y = 0;
+		player_motion.input_velocity.x = -speed;
 	}
 	else {
-		player_motion.velocity.x = 0;
-		player_motion.velocity.y = 0;
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = 0;
 	}
 
 	// Debugging

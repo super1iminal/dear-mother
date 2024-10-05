@@ -38,8 +38,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		float step_seconds = elapsed_ms / 1000.f;
 
 		if (registry.players.has(entity)) {
-			motion.position.x += motion.velocity.x * step_seconds;
-			motion.position.y += motion.velocity.y * step_seconds;
+			motion.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
+			motion.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
 		}
 		
 	}
