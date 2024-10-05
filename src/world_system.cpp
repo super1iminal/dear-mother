@@ -127,7 +127,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
-	player_health = registry.healthComponents.get(registry.players.entities[0]).max_health;
+	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());

@@ -21,6 +21,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.players.emplace(entity);
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
+	health.curr_health = 5;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::FISH,
@@ -51,6 +52,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	registry.deadlys.emplace(entity);
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
+	health.curr_health = 5;
 	registry.renderRequests.insert(
 		entity,
 		{
