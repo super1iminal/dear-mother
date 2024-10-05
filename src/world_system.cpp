@@ -150,8 +150,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// spawn two enemies
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
-		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
-		createEnemy(renderer, vec2(200.f, 200.f));
+		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f), 100);
+		createEnemy(renderer, vec2(200.f, 200.f), 100);
 	}
 
 	// Processing the salmon state
@@ -248,38 +248,48 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	Entity& player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
-	int speed = 150;
-	
-	switch (key)
-	{
-	case GLFW_KEY_W:
-		player_motion.velocity.y = -speed;
-		if (action == GLFW_RELEASE) {
-			player_motion.velocity.y = 0;
-		}
-		break;
-	case GLFW_KEY_A:
-		player_motion.velocity.x = -speed;
-		if (action == GLFW_RELEASE) {
-			player_motion.velocity.x = 0;
-		}
-		break;
-	case GLFW_KEY_S:
-		player_motion.velocity.y = speed;
-		if (action == GLFW_RELEASE) {
-			player_motion.velocity.y = 0;
-		}
-		break;
-	case GLFW_KEY_D:
-		player_motion.velocity.x = speed;
-		if (action == GLFW_RELEASE) {
-			player_motion.velocity.x = 0;
-		}
-		break;
-	default:
-		player_motion.velocity.y = 0;
+	int speed = player_motion.max_velocity;
+
+	bool up_w_key = glfwGetKey(window, GLFW_KEY_W) == (GLFW_PRESS || GLFW_REPEAT);
+	bool left_a_key = glfwGetKey(window, GLFW_KEY_A) == (GLFW_PRESS || GLFW_REPEAT);
+	bool down_s_key = glfwGetKey(window, GLFW_KEY_S) == (GLFW_PRESS || GLFW_REPEAT);
+	bool right_d_key = glfwGetKey(window, GLFW_KEY_D) == (GLFW_PRESS || GLFW_REPEAT);
+	bool top_right_w_d = up_w_key && right_d_key;
+	bool bot_right_s_d = down_s_key && right_d_key;
+	bool bot_left_s_a = down_s_key && left_a_key;
+	bool top_left_w_a = up_w_key && left_a_key;
+
+	if (top_right_w_d) {
+		player_motion.velocity = vec2(speed * (sqrt(2.0) / 2.0),-speed * (sqrt(2.0) / 2.0)) ;
+	} 
+	else if (bot_right_s_d) {
+		player_motion.velocity = vec2(speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+	}
+	else if (top_left_w_a) {
+		player_motion.velocity = vec2(-speed * (sqrt(2.0) / 2.0), -speed * (sqrt(2.0) / 2.0));
+	}
+	else if (bot_left_s_a) {
+		player_motion.velocity = vec2(-speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+	}
+	else if (up_w_key) {
 		player_motion.velocity.x = 0;
-		break;
+		player_motion.velocity.y = -speed;
+	}
+	else if (down_s_key) {
+		player_motion.velocity.x = 0;
+		player_motion.velocity.y = speed;
+	}
+	else if (right_d_key) {
+		player_motion.velocity.y = 0;
+		player_motion.velocity.x = speed;
+	}
+	else if (left_a_key) {
+		player_motion.velocity.y = 0;
+		player_motion.velocity.x = -speed;
+	}
+	else {
+		player_motion.velocity.x = 0;
+		player_motion.velocity.y = 0;
 	}
 
 	// Debugging
