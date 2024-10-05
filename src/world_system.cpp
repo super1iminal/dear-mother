@@ -134,16 +134,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	auto& worldobjects_registry = registry.worldobjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
+	for (int i = (int)worldobjects_registry.components.size()-1; i>=0; --i) {
+	    WorldObject& worldobject = worldobjects_registry.components[i];
+		if (worldobject.position.x + abs(worldobject.scale.x) < 0.f) {
+			if(!registry.players.has(worldobjects_registry.entities[i])) // don't remove the player
+				registry.remove_all_components_of(worldobjects_registry.entities[i]);
 		}
 	}
 
@@ -188,12 +188,31 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	// Remove all entities that we created
-	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
-	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+	// i.e. All world objects
+	while (registry.worldobjects.entities.size() > 0)
+	    registry.remove_all_components_of(registry.worldobjects.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// create an entity in order to render the floor background
+	floor = Entity();
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(floor, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	worldobject.position = vec2(window_width_px / 2, window_height_px / 2);
+	worldobject.angle = 0.f;
+	worldobject.scale.x = 240.f;
+	worldobject.scale.y = 135.f;
+
+	registry.renderRequests.insert(
+		floor,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });

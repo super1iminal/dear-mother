@@ -9,13 +9,16 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
-	// Setting initial motion values
+	// Setting initial motion value
 	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = mesh.original_size * 300.f;
-	motion.scale.y *= -1; // point front to the right
+
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0.f;
+	worldobject.scale = mesh.original_size * 300.f;
+	worldobject.scale.y *= -1; // point front to the right
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
@@ -38,12 +41,13 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
 	motion.velocity = { 0, 100.f };
-	motion.position = position;
 
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = position;
+	worldobject.angle = 0.f;
+	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// create an empty Enemy component to be able to refer to all enemies
 	registry.deadlys.emplace(entity);
@@ -72,10 +76,13 @@ Entity createLine(vec2 position, vec2 scale)
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position = position;
-	motion.scale = scale;
+
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = position;
+	worldobject.angle = 0.f;
+	worldobject.scale = scale;
 
 	registry.debugComponents.emplace(entity);
 	return entity;

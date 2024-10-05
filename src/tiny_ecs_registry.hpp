@@ -13,6 +13,7 @@ public:
 	// Manually created list of all components this game has
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<Motion> motions;
+	ComponentContainer<WorldObject> worldobjects;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
 	ComponentContainer<Mesh*> meshPtrs;
@@ -29,6 +30,7 @@ public:
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
+		registry_list.push_back(&worldobjects);
 		registry_list.push_back(&players);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
