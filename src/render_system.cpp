@@ -7,7 +7,7 @@
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
-	WorldObject &worldobject = registry.worldobjects.get(entity);
+	WorldObject &worldobject = registry.worldObjects.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
@@ -69,6 +69,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		
 		gl_has_errors();
 
 		glEnableVertexAttribArray(in_position_loc);
@@ -87,9 +88,29 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			// Light up?
 			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
 			assert(light_up_uloc >= 0);
-
 			gl_has_errors();
 		}
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::UI_ELEMENT) {
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+								sizeof(ColoredVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+								sizeof(ColoredVertex), (void*)sizeof(vec3));
+		gl_has_errors();
+
+		GLint value_loc = glGetUniformLocation(program, "value");
+		//assert(value_loc >= 0);
+		UIElement& ui_element = registry.uiElements.get(entity);
+		glUniform1f(value_loc, ui_element.value);
+		gl_has_errors();
 	}
 	else
 	{
@@ -208,7 +229,7 @@ void RenderSystem::draw()
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		if (!registry.worldobjects.has(entity))
+		if (!registry.worldObjects.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize

@@ -120,6 +120,39 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 	// Set all states to default
     restart_game();
+
+	// Add the base UI
+	Entity base_ui = createBaseUI(renderer);
+
+	// create health_ui entity
+	health_ui = createTexturedUIElement(renderer, 
+		vec2(window_width_px / 10, window_height_px / 11), 
+		vec2(165.f, 40.f), 
+		"health_ui", 
+		static_cast<float>(player_health));
+
+	// create scrap_ui entity
+	scrap_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 13), 
+		vec2(50.f, 25.f),
+		"scrap_ui",
+		static_cast<float>(scrap));
+
+	// create level_ui entity
+	level_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 8),
+		vec2(50.f, 30.f),
+		"level_ui",
+		static_cast<float>(level));
+
+	// create item_ui entities
+	// as a placeholder, there is just one item slot for now
+	// later, we will want to render all the items and show locked slots too
+	Entity item_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px - window_width_px / 7, window_height_px / 11),
+		vec2(75.f, 75.f),
+		"item_one_ui",
+	TEXTURE_ASSET_ID::FISH);
 }
 
 // Update our game world
@@ -134,7 +167,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& worldobjects_registry = registry.worldobjects;
+	auto& worldobjects_registry = registry.worldObjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -148,12 +181,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// spawn two enemies
-	createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
-	createEnemy(renderer, vec2(200.f, 200.f));
+	createEnemy(renderer, vec2(window_width_px - 200.f, 250.f));
+	createEnemy(renderer, vec2(200.f, 250.f));
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
+	screen.health_status = player_health;
 
     float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
@@ -189,8 +223,8 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	while (registry.worldobjects.entities.size() > 0)
-	    registry.remove_all_components_of(registry.worldobjects.entities.back());
+	while (registry.worldObjects.entities.size() > 0)
+	    registry.remove_all_components_of(registry.worldObjects.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -202,7 +236,7 @@ void WorldSystem::restart_game() {
 	registry.meshPtrs.emplace(floor, &mesh);
 
 	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	WorldObject& worldobject = registry.worldObjects.emplace(floor);
 	worldobject.position = vec2(window_width_px / 2, window_height_px / 2);
 	worldobject.angle = 0.f;
 	worldobject.scale.x = 240.f;
