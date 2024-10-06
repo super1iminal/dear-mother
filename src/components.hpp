@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-
+	float fire_rate = 500.0f;
 };
 
 // anything that is deadly to the player
@@ -112,7 +112,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	TEXTURE_COUNT = BOUNDBOX + 1
+	BULLET = BOUNDBOX + 1,
+	TEXTURE_COUNT = BULLET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

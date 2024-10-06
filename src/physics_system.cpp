@@ -40,7 +40,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		if (projectile_registry.has(entity)) {
 			motion.position.x = motion.position.x + (cos(motion.angle) * motion.velocity.x * step_seconds);
-			motion.position.y = motion.position.y + (sin(motion.angle) * motion.velocity.x * step_seconds);
+			motion.position.y = motion.position.y + (sin(motion.angle) * motion.velocity.y * step_seconds);
 		}
 	}
 

@@ -5,8 +5,13 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <chrono>
 
 #include "physics_system.hpp"
+
+using Clock = std::chrono::high_resolution_clock;
+auto t = Clock::now();
+bool first_shot = true;
 
 // Game configuration
 // add variables here
@@ -150,8 +155,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// spawn two enemies
-	createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
-	createEnemy(renderer, vec2(200.f, 200.f));
+	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
+		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
+		createEnemy(renderer, vec2(200.f, 200.f));
+	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -234,13 +242,23 @@ void WorldSystem::handle_collisions() {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
-
+bool left_mouse_button;
 void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Entity& player = registry.players.entities[0];
-		Motion& player_motion = registry.motions.get(player);
-		createProjectile(renderer, player_motion.position, player_motion.angle, 150.0f, true);
+	 left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	if (left_mouse_button) {
+		auto now = Clock::now();
+		float elapsed_ms =
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			createProjectile(renderer, player_motion.position, player_motion.angle, 150.0f, true);
+			first_shot = false;
+			t = Clock::now();
+		}
 	}
 }
 

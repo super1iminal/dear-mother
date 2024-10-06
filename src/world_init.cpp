@@ -78,7 +78,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	projectile.friendly = is_friendly;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FISH,
+		{ TEXTURE_ASSET_ID::BULLET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
