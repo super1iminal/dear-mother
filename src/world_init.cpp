@@ -13,7 +13,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.max_velocity = 150;
+	motion.input_velocity = { 0.f, 0.f };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
@@ -28,7 +29,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position)
+Entity createEnemy(RenderSystem* renderer, vec2 position, float velocity)
 {
 	auto entity = Entity();
 
@@ -39,7 +40,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 100.f };
+	motion.max_velocity = velocity;
+	motion.input_velocity = { velocity, velocity };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way
@@ -73,7 +75,7 @@ Entity createLine(vec2 position, vec2 scale)
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.input_velocity = { 0, 0 };
 	motion.position = position;
 	motion.scale = scale;
 

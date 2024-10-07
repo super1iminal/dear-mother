@@ -20,7 +20,9 @@ struct Deadly
 struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
-	vec2 velocity = { 0, 0 };
+	float max_velocity;
+	vec2 input_velocity = { 0.0f, 0.0f };
+	vec2 external_velocity = { 0.0f, 0.0f };
 	vec2 scale = { 10, 10 };
 };
 
