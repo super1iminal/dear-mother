@@ -35,6 +35,9 @@ public:
 	// Check for collisions
 	void handle_collisions();
 
+	// check for interactions
+	void handle_interactions();
+
 	// Should the game be over ?
 	bool is_over()const;
 private:

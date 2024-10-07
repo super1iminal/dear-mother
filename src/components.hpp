@@ -49,6 +49,14 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+// anything that the player can interact with
+struct Interactable {
+	// the range that the player must be within to interact
+	float range;
+	// placeholder, not sure what we want the interaction function to do yet
+	std::function<void(int)> interaction;
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {

@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "physics_system.hpp"
+#include <iostream>
 
 // Game configuration
 // add variables here
@@ -216,6 +217,29 @@ void WorldSystem::restart_game() {
 
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
+
+	// create an interactable entity
+	Entity interactable_entity = Entity();
+	Interactable& interactable = registry.interactables.emplace(interactable_entity);
+	interactable.range = 50.f;
+	interactable.interaction = [](int a) {
+		std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;
+	};
+
+	registry.meshPtrs.emplace(interactable_entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
+	interactable_object.position = vec2(window_width_px / 2, window_height_px - 200);
+	interactable_object.angle = 0.f;
+	interactable_object.scale.x = 50.f;
+	interactable_object.scale.y = 50.f;
+
+	registry.renderRequests.insert(
+		interactable_entity,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
 // Compute collisions between entities
@@ -247,6 +271,25 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+void WorldSystem::handle_interactions() {
+	auto& interactablesRegistry = registry.interactables;
+	for (uint i = 0; i < interactablesRegistry.components.size(); i++) {
+		Interactable& interactable = interactablesRegistry.components[i];
+		Entity interactableEntity = interactablesRegistry.entities[i];
+
+		float range = interactable.range;
+
+		WorldObject& playerWorldObject = registry.worldobjects.get(player);
+		WorldObject& interactableObject = registry.worldobjects.get(interactableEntity);
+
+		float distance = sqrt(pow(playerWorldObject.position.x - interactableObject.position.x, 2)
+			+ pow(playerWorldObject.position.y - interactableObject.position.y, 2));
+		if (distance < range) {
+			interactable.interaction(6);
+		}
+	}
+}
+
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
@@ -260,6 +303,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	// interaction
+	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
+		handle_interactions();
 	}
 
 	// Debugging
