@@ -10,6 +10,13 @@ struct Player
 
 };
 
+// Common Health component
+struct Health
+{
+	int max_health = 0;
+	int curr_health = 0;
+};
+
 // anything that is deadly to the player
 struct Deadly
 {
