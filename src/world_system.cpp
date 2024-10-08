@@ -258,6 +258,9 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			player_motion.angle = atan2(ypos - player_motion.position.y, xpos - player_motion.position.x);
 			createProjectile(renderer, player_motion.position, player_motion.angle, 150.0f, true);
 			first_shot = false;
 			t = Clock::now();

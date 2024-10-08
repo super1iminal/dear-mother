@@ -39,8 +39,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		float step_seconds = elapsed_ms / 1000.f;
 
 		if (projectile_registry.has(entity)) {
-			motion.position.x = motion.position.x + (cos(motion.angle) * motion.velocity.x * step_seconds);
-			motion.position.y = motion.position.y + (sin(motion.angle) * motion.velocity.y * step_seconds);
+			motion.position.x = motion.position.x + (cos(motion.angle) * motion.input_velocity.x * step_seconds);
+			motion.position.y = motion.position.y + (sin(motion.angle) * motion.input_velocity.y * step_seconds);
     }
 		if (registry.players.has(entity)) {
 			motion.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;

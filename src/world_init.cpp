@@ -78,7 +78,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.angle = angle;
-	motion.velocity = { speed, speed };
+	motion.input_velocity = { speed, speed };
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
