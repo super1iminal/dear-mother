@@ -13,6 +13,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
 	transform.translate(worldobject.position);
+	if (registry.projectiles.has(entity)) {
+		transform.rotate(worldobject.angle);
+	}
 	transform.scale(worldobject.scale);
 
 	assert(registry.renderRequests.has(entity));

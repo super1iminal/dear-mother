@@ -7,7 +7,14 @@
 // Player component
 struct Player
 {
+	float fire_rate = 500.0f;
+};
 
+// Common Health component
+struct Health
+{
+	int max_health = 0;
+	int curr_health = 0;
 };
 
 // anything that is deadly to the player
@@ -18,7 +25,9 @@ struct Deadly
 
 // All data relevant to the motion of entities
 struct Motion {
-	vec2 velocity = { 0, 0 };
+	float max_velocity;
+	vec2 input_velocity = { 0.0f, 0.0f };
+	vec2 external_velocity = { 0.0f, 0.0f };
 };
 
 // a worldobject has a position, angle, and scale
@@ -26,6 +35,11 @@ struct WorldObject {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
+};
+
+struct Projectile
+{
+	bool friendly = true;
 };
 
 // Stucture to store collision information
@@ -119,7 +133,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	TEXTURE_COUNT = BOUNDBOX + 1
+	BULLET = BOUNDBOX + 1,
+	TEXTURE_COUNT = BULLET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

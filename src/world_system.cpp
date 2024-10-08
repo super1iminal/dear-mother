@@ -5,9 +5,14 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <chrono>
 
 #include "physics_system.hpp"
 #include <iostream>
+
+using Clock = std::chrono::high_resolution_clock;
+auto t = Clock::now();
+bool first_shot = true;
 
 // Game configuration
 // add variables here
@@ -15,6 +20,7 @@
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
+	, player_health(0)
 	, next_eel_spawn(0.f)
 	, next_fish_spawn(0.f) {
 	// Seeding rng with random device
@@ -84,8 +90,10 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, on_mouse_button);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -127,7 +135,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
+	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 	title_ss << "Points: " << points;
+	title_ss << " Health: " << player_health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -149,8 +159,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// spawn two enemies
-	createEnemy(renderer, vec2(window_width_px - 200.f, 200.f));
-	createEnemy(renderer, vec2(200.f, 200.f));
+	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
+		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f), 100);
+		createEnemy(renderer, vec2(200.f, 200.f), 100);
+	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
@@ -196,6 +209,9 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+	// create a new Player entity
+	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+
 	// create an entity in order to render the floor background
 	floor = Entity();
 	// Store a reference to the potentially re-used mesh object
@@ -214,9 +230,6 @@ void WorldSystem::restart_game() {
 		{ TEXTURE_ASSET_ID::BOUNDBOX,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
-
-	// create a new Player entity
-	player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
 
 	// create an interactable entity
 	Entity interactable_entity = Entity();
@@ -294,6 +307,29 @@ void WorldSystem::handle_interactions() {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
+bool left_mouse_button;
+void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
+{
+	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+	WorldObject& player_object = registry.worldobjects.get(player);
+
+	if (left_mouse_button) {
+		auto now = Clock::now();
+		float elapsed_ms =
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			player_object.angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
+			createProjectile(renderer, player_object.position, player_object.angle, 150.0f, true);
+			first_shot = false;
+			t = Clock::now();
+		}
+	}
+}
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
@@ -305,13 +341,59 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
+	Entity& player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+	int speed = player_motion.max_velocity;
+
+	bool up_w_key = glfwGetKey(window, GLFW_KEY_W) == (GLFW_PRESS || GLFW_REPEAT);
+	bool left_a_key = glfwGetKey(window, GLFW_KEY_A) == (GLFW_PRESS || GLFW_REPEAT);
+	bool down_s_key = glfwGetKey(window, GLFW_KEY_S) == (GLFW_PRESS || GLFW_REPEAT);
+	bool right_d_key = glfwGetKey(window, GLFW_KEY_D) == (GLFW_PRESS || GLFW_REPEAT);
+	bool top_right_w_d = up_w_key && right_d_key;
+	bool bot_right_s_d = down_s_key && right_d_key;
+	bool bot_left_s_a = down_s_key && left_a_key;
+	bool top_left_w_a = up_w_key && left_a_key;
+
+	if (top_right_w_d) {
+		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0),-speed * (sqrt(2.0) / 2.0)) ;
+	} 
+	else if (bot_right_s_d) {
+		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+	}
+	else if (top_left_w_a) {
+		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), -speed * (sqrt(2.0) / 2.0));
+	}
+	else if (bot_left_s_a) {
+		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
+	}
+	else if (up_w_key) {
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = -speed;
+	}
+	else if (down_s_key) {
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = speed;
+	}
+	else if (right_d_key) {
+		player_motion.input_velocity.y = 0;
+		player_motion.input_velocity.x = speed;
+	}
+	else if (left_a_key) {
+		player_motion.input_velocity.y = 0;
+		player_motion.input_velocity.x = -speed;
+	}
+	else {
+		player_motion.input_velocity.x = 0;
+		player_motion.input_velocity.y = 0;
+	}
+
 	// interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions();
 	}
 
 	// Debugging
-	if (key == GLFW_KEY_D) {
+	if (key == GLFW_KEY_X) {
 		if (action == GLFW_RELEASE)
 			debugging.in_debug_mode = false;
 		else
@@ -331,5 +413,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	(vec2)mouse_position; // dummy to avoid compiler warning
+
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+	WorldObject& player_object = registry.worldobjects.get(player);
+
+	player_object.angle = atan2(mouse_position.y - player_object.position.y, mouse_position.x - player_object.position.x);
 }

@@ -44,6 +44,7 @@ private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
 	// restart level
 	void restart_game();
@@ -54,13 +55,16 @@ private:
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
 
+	// Player health displayed on window
+	unsigned int player_health;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
-	Entity player;
 	Entity floor;
+	Entity player;
 
 	// music references
 	Mix_Music* background_music;
