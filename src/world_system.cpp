@@ -8,6 +8,7 @@
 #include <chrono>
 
 #include "physics_system.hpp"
+#include <iostream>
 
 using Clock = std::chrono::high_resolution_clock;
 auto t = Clock::now();
@@ -144,16 +145,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	auto& worldobjects_registry = registry.worldobjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
+	for (int i = (int)worldobjects_registry.components.size()-1; i>=0; --i) {
+	    WorldObject& worldobject = worldobjects_registry.components[i];
+		if (worldobject.position.x + abs(worldobject.scale.x) < 0.f) {
+			if(!registry.players.has(worldobjects_registry.entities[i])) // don't remove the player
+				registry.remove_all_components_of(worldobjects_registry.entities[i]);
 		}
 	}
 
@@ -201,15 +202,57 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	// Remove all entities that we created
-	// All that have a motion, we could also iterate over all fish, eels, ... but that would be more cumbersome
-	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+	// i.e. All world objects
+	while (registry.worldobjects.entities.size() > 0)
+	    registry.remove_all_components_of(registry.worldobjects.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// create a new Player entity
-	player = createPlayer(renderer, { window_width_px/2, window_height_px - 200 });
+	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+
+	// create an entity in order to render the floor background
+	floor = Entity();
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(floor, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	worldobject.position = vec2(window_width_px / 2, window_height_px / 2);
+	worldobject.angle = 0.f;
+	worldobject.scale.x = 240.f;
+	worldobject.scale.y = 135.f;
+
+	registry.renderRequests.insert(
+		floor,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	// create an interactable entity
+	Entity interactable_entity = Entity();
+	Interactable& interactable = registry.interactables.emplace(interactable_entity);
+	interactable.range = 50.f;
+	interactable.interaction = [](int a) {
+		std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;
+	};
+
+	registry.meshPtrs.emplace(interactable_entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
+	interactable_object.position = vec2(window_width_px / 2, window_height_px - 200);
+	interactable_object.angle = 0.f;
+	interactable_object.scale.x = 50.f;
+	interactable_object.scale.y = 50.f;
+
+	registry.renderRequests.insert(
+		interactable_entity,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
 // Compute collisions between entities
@@ -241,6 +284,25 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+void WorldSystem::handle_interactions() {
+	auto& interactablesRegistry = registry.interactables;
+	for (uint i = 0; i < interactablesRegistry.components.size(); i++) {
+		Interactable& interactable = interactablesRegistry.components[i];
+		Entity interactableEntity = interactablesRegistry.entities[i];
+
+		float range = interactable.range;
+
+		WorldObject& playerWorldObject = registry.worldobjects.get(player);
+		WorldObject& interactableObject = registry.worldobjects.get(interactableEntity);
+
+		float distance = sqrt(pow(playerWorldObject.position.x - interactableObject.position.x, 2)
+			+ pow(playerWorldObject.position.y - interactableObject.position.y, 2));
+		if (distance < range) {
+			interactable.interaction(6);
+		}
+	}
+}
+
 // Should the game be over ?
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
@@ -248,10 +310,11 @@ bool WorldSystem::is_over() const {
 bool left_mouse_button;
 void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
-	 left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 	
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
+	WorldObject& player_object = registry.worldobjects.get(player);
 
 	if (left_mouse_button) {
 		auto now = Clock::now();
@@ -260,8 +323,8 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
-			player_motion.angle = atan2(ypos - player_motion.position.y, xpos - player_motion.position.x);
-			createProjectile(renderer, player_motion.position, player_motion.angle, 150.0f, true);
+			player_object.angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
+			createProjectile(renderer, player_object.position, player_object.angle, 150.0f, true);
 			first_shot = false;
 			t = Clock::now();
 		}
@@ -324,6 +387,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		player_motion.input_velocity.y = 0;
 	}
 
+	// interaction
+	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
+		handle_interactions();
+	}
+
 	// Debugging
 	if (key == GLFW_KEY_X) {
 		if (action == GLFW_RELEASE)
@@ -348,6 +416,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
+	WorldObject& player_object = registry.worldobjects.get(player);
 
-	player_motion.angle = atan2(mouse_position.y - player_motion.position.y, mouse_position.x - player_motion.position.x);
+	player_object.angle = atan2(mouse_position.y - player_object.position.y, mouse_position.x - player_object.position.x);
 }

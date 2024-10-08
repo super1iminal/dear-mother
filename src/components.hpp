@@ -23,13 +23,17 @@ struct Deadly
 
 };
 
-// All data relevant to the shape and motion of entities
+// All data relevant to the motion of entities
 struct Motion {
-	vec2 position = { 0, 0 };
-	float angle = 0;
 	float max_velocity;
 	vec2 input_velocity = { 0.0f, 0.0f };
 	vec2 external_velocity = { 0.0f, 0.0f };
+};
+
+// a worldobject has a position, angle, and scale
+struct WorldObject {
+	vec2 position = { 0, 0 };
+	float angle = 0;
 	vec2 scale = { 10, 10 };
 };
 
@@ -57,6 +61,14 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+};
+
+// anything that the player can interact with
+struct Interactable {
+	// the range that the player must be within to interact
+	float range;
+	// placeholder, not sure what we want the interaction function to do yet
+	std::function<void(int)> interaction;
 };
 
 // A struct to refer to debugging graphics in the ECS

@@ -35,6 +35,9 @@ public:
 	// Check for collisions
 	void handle_collisions();
 
+	// check for interactions
+	void handle_interactions();
+
 	// Should the game be over ?
 	bool is_over()const;
 private:
@@ -60,6 +63,7 @@ private:
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
+	Entity floor;
 	Entity player;
 
 	// music references
