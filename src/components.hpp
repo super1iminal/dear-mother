@@ -10,6 +10,13 @@ struct Player
 	float fire_rate = 500.0f;
 };
 
+// Common Health component
+struct Health
+{
+	int max_health = 0;
+	int curr_health = 0;
+};
+
 // anything that is deadly to the player
 struct Deadly
 {
@@ -20,7 +27,9 @@ struct Deadly
 struct Motion {
 	vec2 position = { 0, 0 };
 	float angle = 0;
-	vec2 velocity = { 0, 0 };
+	float max_velocity;
+	vec2 input_velocity = { 0.0f, 0.0f };
+	vec2 external_velocity = { 0.0f, 0.0f };
 	vec2 scale = { 10, 10 };
 };
 
