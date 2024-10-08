@@ -36,15 +36,14 @@ void PhysicsSystem::step(float elapsed_ms)
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
-		WorldObject& worldobject = world_object_registry.components[i];
 		Entity entity = motion_registry.entities[i];
+		WorldObject& worldobject = world_object_registry.get(entity);
 		float step_seconds = elapsed_ms / 1000.f;
 
 		if (projectile_registry.has(entity)) {
 			worldobject.position.x = worldobject.position.x + (cos(worldobject.angle) * motion.input_velocity.x * step_seconds);
 			worldobject.position.y = worldobject.position.y + (sin(worldobject.angle) * motion.input_velocity.y * step_seconds);
-    }
-		if (registry.players.has(entity)) {
+		} else if (registry.players.has(entity)) {
 			worldobject.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
 			worldobject.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
 		}
