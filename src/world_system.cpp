@@ -5,8 +5,13 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <chrono>
 
 #include "physics_system.hpp"
+
+using Clock = std::chrono::high_resolution_clock;
+auto t = Clock::now();
+bool first_shot = true;
 
 // Game configuration
 // add variables here
@@ -84,8 +89,10 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+	glfwSetMouseButtonCallback(window, on_mouse_button);
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -238,6 +245,25 @@ void WorldSystem::handle_collisions() {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
+bool left_mouse_button;
+void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
+{
+	 left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	if (left_mouse_button) {
+		auto now = Clock::now();
+		float elapsed_ms =
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			createProjectile(renderer, player_motion.position, player_motion.angle, 150.0f, true);
+			first_shot = false;
+			t = Clock::now();
+		}
+	}
+}
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
@@ -316,5 +342,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	(vec2)mouse_position; // dummy to avoid compiler warning
+
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	player_motion.angle = atan2(mouse_position.y - player_motion.position.y, mouse_position.x - player_motion.position.x);
 }

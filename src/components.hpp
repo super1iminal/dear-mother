@@ -7,7 +7,7 @@
 // Player component
 struct Player
 {
-
+	float fire_rate = 500.0f;
 };
 
 // Common Health component
@@ -31,6 +31,11 @@ struct Motion {
 	vec2 input_velocity = { 0.0f, 0.0f };
 	vec2 external_velocity = { 0.0f, 0.0f };
 	vec2 scale = { 10, 10 };
+};
+
+struct Projectile
+{
+	bool friendly = true;
 };
 
 // Stucture to store collision information
@@ -116,7 +121,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	TEXTURE_COUNT = BOUNDBOX + 1
+	BULLET = BOUNDBOX + 1,
+	TEXTURE_COUNT = BULLET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

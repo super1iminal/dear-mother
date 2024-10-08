@@ -31,17 +31,21 @@ void PhysicsSystem::step(float elapsed_ms)
 	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
+	auto& projectile_registry = registry.projectiles;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 
+		if (projectile_registry.has(entity)) {
+			motion.position.x = motion.position.x + (cos(motion.angle) * motion.velocity.x * step_seconds);
+			motion.position.y = motion.position.y + (sin(motion.angle) * motion.velocity.y * step_seconds);
+    }
 		if (registry.players.has(entity)) {
 			motion.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
 			motion.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
 		}
-		
 	}
 
 	// Check for collisions between all moving entities

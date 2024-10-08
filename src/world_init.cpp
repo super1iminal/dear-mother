@@ -66,6 +66,33 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float velocity)
 	return entity;
 }
 
+Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = angle;
+	motion.velocity = { speed, speed };
+	motion.scale = mesh.original_size * 300.f;
+	motion.scale.y *= -1; // point front to the right
+
+	Projectile& projectile = registry.projectiles.emplace(entity);
+	projectile.friendly = is_friendly;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BULLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
