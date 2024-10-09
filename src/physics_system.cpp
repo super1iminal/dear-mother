@@ -33,20 +33,22 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	auto& world_object_registry = registry.worldobjects;
 	auto& projectile_registry = registry.projectiles;
-	for(uint i = 0; i< motion_registry.size(); i++)
+	for (Entity entity : registry.motions.entities)
 	{
-		Motion& motion = motion_registry.components[i];
-		Entity entity = motion_registry.entities[i];
+		assert(world_object_registry.has(entity) && "Motion Entity has no worldobject component");
+		Motion& motion = motion_registry.get(entity);
 		WorldObject& worldobject = world_object_registry.get(entity);
 		float step_seconds = elapsed_ms / 1000.f;
 
-		if (projectile_registry.has(entity)) {
-			worldobject.position.x = worldobject.position.x + (cos(worldobject.angle) * motion.input_velocity.x * step_seconds);
-			worldobject.position.y = worldobject.position.y + (sin(worldobject.angle) * motion.input_velocity.y * step_seconds);
-		} else if (registry.players.has(entity)) {
-			worldobject.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
-			worldobject.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
-		}
+		//if (projectile_registry.has(entity)) {
+		//	worldobject.position.x = worldobject.position.x + (cos(worldobject.angle) * motion.input_velocity.x * step_seconds);
+		//	worldobject.position.y = worldobject.position.y + (sin(worldobject.angle) * motion.input_velocity.y * step_seconds);
+		//} else if (registry.players.has(entity)) {
+		//	worldobject.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
+		//	worldobject.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
+		//}
+		vec2 velocity = { cos(motion.motion_angle) * motion.speed, sin(motion.motion_angle) * motion.speed };
+		worldobject.position += (velocity) * step_seconds;
 	}
 
 	// Check for collisions between all moving entities

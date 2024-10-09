@@ -63,8 +63,8 @@ private:
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
-	Entity floor;
 	Entity player;
+	Entity crosshair;
 
 	// music references
 	Mix_Music* background_music;

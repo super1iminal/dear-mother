@@ -19,6 +19,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	this->window = window_arg;
 
 	glfwMakeContextCurrent(window);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hides the cursor
 	glfwSwapInterval(1); // vsync
 
 	// Load OpenGL function pointers

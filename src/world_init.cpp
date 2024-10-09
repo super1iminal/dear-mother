@@ -1,6 +1,8 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
+#include <iostream>
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -11,14 +13,15 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Setting initial motion value
 	Motion& motion = registry.motions.emplace(entity);
-	motion.max_velocity = 150;
-	motion.input_velocity = { 0.f, 0.f };
+	motion.max_speed = PLAYER_MAX_SPEED;
+	motion.speed = 0.f;
+	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldobjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
-	worldobject.scale = mesh.original_size * 300.f;
+	worldobject.scale = mesh.original_size * PLAYER_SIZE;
 	worldobject.scale.y *= -1; // point front to the right
 
 	// create an empty Player component for our character
@@ -35,7 +38,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position, float velocity)
+Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 {
 	auto entity = Entity();
 
@@ -45,8 +48,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float velocity)
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
-	motion.max_velocity = velocity;
-	motion.input_velocity = { velocity, velocity };
+	motion.max_speed = speed;
+	motion.speed = 0.f;
+	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldobjects.emplace(entity);
@@ -70,6 +74,78 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float velocity)
 	return entity;
 }
 
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
+	// create an entity in order to render the floor background
+	auto floor = Entity();
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(floor, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	worldobject.position = position;
+	worldobject.angle = 0.f;
+	worldobject.scale = size;
+
+	registry.renderRequests.insert(
+		floor,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return floor;
+}
+
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int)) {
+	// create an interactable entity
+	Entity interactable_entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(interactable_entity, &mesh);
+
+	Interactable& interactable = registry.interactables.emplace(interactable_entity);
+	interactable.range = 50.f;
+	interactable.interaction = a;
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
+	interactable_object.position = position;
+	interactable_object.angle = 0.f;
+	interactable_object.scale = size;
+
+	registry.renderRequests.insert(
+		interactable_entity,
+		{ TEXTURE_ASSET_ID::BOUNDBOX,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return interactable_entity;
+}
+
+Entity createCrosshair(RenderSystem* renderer) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = { -1.f, -1.f }; // initializing position to off screen
+	worldobject.angle = 0.f; 
+	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			TEXTURE_ASSET_ID::CROSSHAIR,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		});
+
+	return entity;
+}
+
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly)
 {
 	auto entity = Entity();
@@ -80,7 +156,8 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.input_velocity = { speed, speed };
+	motion.speed = speed;
+	motion.motion_angle = angle;
 
 	// Set position, angle, scale
 	WorldObject& worldObject = registry.worldobjects.emplace(entity);
@@ -114,7 +191,8 @@ Entity createLine(vec2 position, vec2 scale)
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
-	motion.input_velocity = { 0, 0 };
+	motion.speed = 0.f;
+	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldobjects.emplace(entity);
