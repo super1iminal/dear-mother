@@ -68,6 +68,7 @@ private:
 	Entity items [8];
 	Entity player;
 	Entity floor;
+  Entity crosshair;
 
 	// UI entities
 	Entity health_ui;

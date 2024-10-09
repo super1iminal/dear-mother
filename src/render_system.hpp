@@ -35,6 +35,8 @@ class RenderSystem {
 			textures_path("bounding_box.png"),
 			textures_path("UI_PLACEHOLDER.png"),
 			textures_path("bullet_placeholder.png"), };
+			textures_path("crosshair003.png"),
+	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
