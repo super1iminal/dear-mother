@@ -40,6 +40,7 @@ struct WorldObject {
 struct Projectile
 {
 	bool friendly = true;
+	int damage = 1;
 };
 
 // Stucture to store collision information
@@ -47,7 +48,11 @@ struct Collision
 {
 	// Note, the first object is stored in the ECS container.entities
 	Entity other; // the second object involved in the collision
+	COLLISION_TYPE type = COLLISION_TYPE::COLLISION_COUNT;
+
 	Collision(Entity& other) { this->other = other; };
+	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
+	
 };
 
 // Data structure for toggling debug mode
@@ -106,6 +111,11 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+struct Blocker
+{
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -130,12 +140,13 @@ struct Mesh
  * enums there are, and as a default value to represent uninitialized fields.
  */
 
-enum class TEXTURE_ASSET_ID {
+enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to also add/change it in the texture_paths array in render_system.hpp
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
 	BULLET = BOUNDBOX + 1,
 	CROSSHAIR = BULLET + 1,
-	TEXTURE_COUNT = CROSSHAIR + 1
+	BOUNDBOX_BLUE = CROSSHAIR + 1,
+	TEXTURE_COUNT = BOUNDBOX_BLUE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

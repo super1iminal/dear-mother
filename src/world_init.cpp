@@ -3,6 +3,32 @@
 
 #include <iostream>
 
+// NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = angle;
+	worldobject.scale = size;
+
+	registry.blockers.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+
+}
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();

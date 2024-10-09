@@ -34,6 +34,7 @@ class RenderSystem {
 			textures_path("bounding_box.png"),
 			textures_path("bullet_placeholder.png"), 
 			textures_path("crosshair003.png"),
+			textures_path("bounding_box_blue.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

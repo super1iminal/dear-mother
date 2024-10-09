@@ -35,6 +35,9 @@ public:
 	// Check for collisions
 	void handle_collisions();
 
+	// Check for deaths
+	void handle_deaths();
+
 	// check for interactions
 	void handle_interactions();
 
@@ -65,6 +68,17 @@ private:
 	float next_fish_spawn;
 	Entity player;
 	Entity crosshair;
+
+	// Collision handling helpers
+	void handlePlayerDeadly(Entity player, Entity deadly);
+
+	void handleActorBlocker(Entity actor, Entity blocker);
+
+	void handleProjectileBlocker(Entity projectile, Entity blocker);
+
+	void handleProjectileDeadly(Entity projectile, Entity deadly);
+
+	void handleProjectilePlayer(Entity projectile, Entity player);
 
 	// music references
 	Mix_Music* background_music;

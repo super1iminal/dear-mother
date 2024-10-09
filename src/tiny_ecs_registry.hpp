@@ -25,6 +25,7 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
+	ComponentContainer<Blocker> blockers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -44,6 +45,7 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&healthComponents);
+		registry_list.push_back(&blockers);
 	}
 
 	void clear_all_components() {
