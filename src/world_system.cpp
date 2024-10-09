@@ -150,11 +150,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)worldobjects_registry.components.size()-1; i>=0; --i) {
-	    WorldObject& worldobject = worldobjects_registry.components[i];
-		if (worldobject.position.x + abs(worldobject.scale.x) < 0.f) {
-			if(!registry.players.has(worldobjects_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(worldobjects_registry.entities[i]);
+	for (Entity entity : worldobjects_registry.entities) {
+		WorldObject& worldobject = worldobjects_registry.get(entity);
+		if ((worldobject.position.x + abs(worldobject.scale.x) < 0.f ||
+			worldobject.position.x - abs(worldobject.scale.x) > window_width_px ||
+			worldobject.position.y + abs(worldobject.scale.y) < 0.f ||
+			worldobject.position.y - abs(worldobject.scale.y) > window_height_px) &&
+			!registry.players.has(entity)) {
+			registry.remove_all_components_of(entity);
 		}
 	}
 
@@ -211,48 +214,15 @@ void WorldSystem::restart_game() {
 
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+	crosshair = createCrosshair(renderer);
 
-	// create an entity in order to render the floor background
-	floor = Entity();
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(floor, &mesh);
+	// SHOULD MOVE FLOOR AND INTERACTABLE INITIALISATION TO WORLD_INIT.CPP PLEASE
+	// create a floor entity
+	createFloor(renderer,{ window_width_px / 2, window_height_px / 2 }, { 150.f , 150.f });
+	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 50.f, 50.f },
+		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
+	);
 
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldobjects.emplace(floor);
-	worldobject.position = vec2(window_width_px / 2, window_height_px / 2);
-	worldobject.angle = 0.f;
-	worldobject.scale.x = 240.f;
-	worldobject.scale.y = 135.f;
-
-	registry.renderRequests.insert(
-		floor,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	// create an interactable entity
-	Entity interactable_entity = Entity();
-	Interactable& interactable = registry.interactables.emplace(interactable_entity);
-	interactable.range = 50.f;
-	interactable.interaction = [](int a) {
-		std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;
-	};
-
-	registry.meshPtrs.emplace(interactable_entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
-	interactable_object.position = vec2(window_width_px / 2, window_height_px - 200);
-	interactable_object.angle = 0.f;
-	interactable_object.scale.x = 50.f;
-	interactable_object.scale.y = 50.f;
-
-	registry.renderRequests.insert(
-		interactable_entity,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
 // Compute collisions between entities
@@ -323,100 +293,84 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
-			player_object.angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
-			createProjectile(renderer, player_object.position, player_object.angle, 150.0f, true);
+			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
+			createProjectile(renderer, player_object.position, angle, 150.0f, true);
 			first_shot = false;
 			t = Clock::now();
 		}
 	}
 }
 
-// On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
-
-        restart_game();
+		restart_game();
 	}
 
 	Entity& player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
-	int speed = player_motion.max_velocity;
 
-	bool up_w_key = glfwGetKey(window, GLFW_KEY_W) == (GLFW_PRESS || GLFW_REPEAT);
-	bool left_a_key = glfwGetKey(window, GLFW_KEY_A) == (GLFW_PRESS || GLFW_REPEAT);
-	bool down_s_key = glfwGetKey(window, GLFW_KEY_S) == (GLFW_PRESS || GLFW_REPEAT);
-	bool right_d_key = glfwGetKey(window, GLFW_KEY_D) == (GLFW_PRESS || GLFW_REPEAT);
-	bool top_right_w_d = up_w_key && right_d_key;
-	bool bot_right_s_d = down_s_key && right_d_key;
-	bool bot_left_s_a = down_s_key && left_a_key;
-	bool top_left_w_a = up_w_key && left_a_key;
+	// Handle movement keys
+	if (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) {
+		bool up = glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE;
+		bool left = glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE;
+		bool down = glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE;
+		bool right = glfwGetKey(window, GLFW_KEY_D) != GLFW_RELEASE;
 
-	if (top_right_w_d) {
-		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0),-speed * (sqrt(2.0) / 2.0)) ;
-	} 
-	else if (bot_right_s_d) {
-		player_motion.input_velocity = vec2(speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
-	}
-	else if (top_left_w_a) {
-		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), -speed * (sqrt(2.0) / 2.0));
-	}
-	else if (bot_left_s_a) {
-		player_motion.input_velocity = vec2(-speed * (sqrt(2.0) / 2.0), speed * (sqrt(2.0) / 2.0));
-	}
-	else if (up_w_key) {
-		player_motion.input_velocity.x = 0;
-		player_motion.input_velocity.y = -speed;
-	}
-	else if (down_s_key) {
-		player_motion.input_velocity.x = 0;
-		player_motion.input_velocity.y = speed;
-	}
-	else if (right_d_key) {
-		player_motion.input_velocity.y = 0;
-		player_motion.input_velocity.x = speed;
-	}
-	else if (left_a_key) {
-		player_motion.input_velocity.y = 0;
-		player_motion.input_velocity.x = -speed;
-	}
-	else {
-		player_motion.input_velocity.x = 0;
-		player_motion.input_velocity.y = 0;
+		int dx = (int)right - (int)left;
+		int dy = (int)down - (int)up;
+
+		if (dx == 0 && dy == 0) {
+			player_motion.speed = 0.f;
+		}
+		else {
+			player_motion.speed = player_motion.max_speed;
+			float angle = atan2(dy, dx);
+			if (angle < 0)
+				angle += 2 * M_PI;
+			player_motion.motion_angle = angle;
+		}
 	}
 
-	// interaction
+	// List all components
+	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+		registry.list_all_components();
+	}
+
+	// Interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions();
 	}
 
-	// Debugging
-	if (key == GLFW_KEY_X) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+	// Close window
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	// Control the current speed with `<` `>`
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
-		current_speed -= 0.1f;
-		printf("Current speed = %f\n", current_speed);
+	// Debugging mode toggle
+	if (key == GLFW_KEY_X) {
+		debugging.in_debug_mode = (action != GLFW_RELEASE);
 	}
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
-		current_speed += 0.1f;
-		printf("Current speed = %f\n", current_speed);
+
+	// Adjust current speed with `<` and `>`
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT)) {
+		if (key == GLFW_KEY_COMMA) {
+			current_speed = fmax(0.f, current_speed - 0.1f);
+			printf("Current speed = %f\n", current_speed);
+		}
+		else if (key == GLFW_KEY_PERIOD) {
+			current_speed += 0.1f;
+			printf("Current speed = %f\n", current_speed);
+		}
 	}
-	current_speed = fmax(0.f, current_speed);
 }
 
+
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-
-	Entity player = registry.players.entities[0];
-	Motion& player_motion = registry.motions.get(player);
-	WorldObject& player_object = registry.worldobjects.get(player);
-
-	player_object.angle = atan2(mouse_position.y - player_object.position.y, mouse_position.x - player_object.position.x);
+	// Update the position of the crosshair
+	WorldObject& crosshair_object = registry.worldobjects.get(crosshair);
+	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
+		crosshair_object.position = mouse_position;
 }

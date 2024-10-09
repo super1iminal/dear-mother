@@ -25,9 +25,9 @@ struct Deadly
 
 // All data relevant to the motion of entities
 struct Motion {
-	float max_velocity;
-	vec2 input_velocity = { 0.0f, 0.0f };
-	vec2 external_velocity = { 0.0f, 0.0f };
+	float max_speed;
+	float motion_angle = 0.f; // with respect to the x-axis
+	float speed = 0.f;
 };
 
 // a worldobject has a position, angle, and scale
@@ -134,7 +134,8 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
 	BULLET = BOUNDBOX + 1,
-	TEXTURE_COUNT = BULLET + 1
+	CROSSHAIR = BULLET + 1,
+	TEXTURE_COUNT = CROSSHAIR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
