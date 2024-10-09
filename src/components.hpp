@@ -73,14 +73,6 @@ struct Interactable {
 	std::function<void(int)> interaction;
 };
 
-// anything that the player can interact with
-struct Interactable {
-	// the range that the player must be within to interact
-	float range;
-	// placeholder, not sure what we want the interaction function to do yet
-	std::function<void(int)> interaction;
-};
-
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -151,8 +143,7 @@ enum class TEXTURE_ASSET_ID {
 	BOUNDBOX = FISH + 1,
 	UI = BOUNDBOX + 1,
 	BULLET = UI + 1,
-=======
-	CROSSHAIR = UI + 1,
+	CROSSHAIR = BULLET + 1,
 	TEXTURE_COUNT = CROSSHAIR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

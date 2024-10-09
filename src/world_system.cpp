@@ -259,48 +259,6 @@ void WorldSystem::restart_game() {
 		vec2(75.f, 75.f),
 		"item_one_ui",
 		TEXTURE_ASSET_ID::FISH);
-
-	// create an entity in order to render the floor background
-	floor = Entity();
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(floor, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(floor);
-	worldobject.position = vec2(window_width_px / 2, window_height_px / 2);
-	worldobject.angle = 0.f;
-	worldobject.scale.x = 240.f;
-	worldobject.scale.y = 135.f;
-
-	registry.renderRequests.insert(
-		floor,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	// create an interactable entity
-	Entity interactable_entity = Entity();
-	Interactable& interactable = registry.interactables.emplace(interactable_entity);
-	interactable.range = 50.f;
-	interactable.interaction = [](int a) {
-		std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;
-	};
-
-	registry.meshPtrs.emplace(interactable_entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& interactable_object = registry.worldObjects.emplace(interactable_entity);
-	interactable_object.position = vec2(window_width_px / 2, window_height_px - 200);
-	interactable_object.angle = 0.f;
-	interactable_object.scale.x = 50.f;
-	interactable_object.scale.y = 50.f;
-
-	registry.renderRequests.insert(
-		interactable_entity,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
 // Compute collisions between entities
@@ -447,7 +405,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair
-	WorldObject& crosshair_object = registry.worldobjects.get(crosshair);
+	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
 	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
 		crosshair_object.position = mouse_position;
 }

@@ -81,7 +81,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	registry.meshPtrs.emplace(floor, &mesh);
 
 	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	WorldObject& worldobject = registry.worldObjects.emplace(floor);
 	worldobject.position = position;
 	worldobject.angle = 0.f;
 	worldobject.scale = size;
@@ -107,7 +107,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 	interactable.interaction = a;
 
 	// Setting initial position, scale, and orientation values
-	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
+	WorldObject& interactable_object = registry.worldObjects.emplace(interactable_entity);
 	interactable_object.position = position;
 	interactable_object.angle = 0.f;
 	interactable_object.scale = size;
@@ -129,7 +129,7 @@ Entity createCrosshair(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = { -1.f, -1.f }; // initializing position to off screen
 	worldobject.angle = 0.f; 
 	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
