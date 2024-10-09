@@ -301,100 +301,72 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 	}
 }
 
-// On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
-
 		restart_game();
 	}
 
 	Entity& player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
-	int speed = player_motion.max_speed;
 
-	// wrapped in an if statement to make slightly more optimized
-	if ((key == GLFW_KEY_A) || (key == GLFW_KEY_S) || (key == GLFW_KEY_D) || (key == GLFW_KEY_W)) {
-		bool up_w_key = glfwGetKey(window, GLFW_KEY_W) == (GLFW_PRESS || GLFW_REPEAT);
-		bool left_a_key = glfwGetKey(window, GLFW_KEY_A) == (GLFW_PRESS || GLFW_REPEAT);
-		bool down_s_key = glfwGetKey(window, GLFW_KEY_S) == (GLFW_PRESS || GLFW_REPEAT);
-		bool right_d_key = glfwGetKey(window, GLFW_KEY_D) == (GLFW_PRESS || GLFW_REPEAT);
-		bool top_right_w_d = up_w_key && right_d_key;
-		bool bot_right_s_d = down_s_key && right_d_key;
-		bool bot_left_s_a = down_s_key && left_a_key;
-		bool top_left_w_a = up_w_key && left_a_key;
+	// Handle movement keys
+	if (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) {
+		bool up = glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE;
+		bool left = glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE;
+		bool down = glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE;
+		bool right = glfwGetKey(window, GLFW_KEY_D) != GLFW_RELEASE;
 
-		if (bot_right_s_d) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*0.25;
-		}
-		else if (top_right_w_d) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*1.75;
-		}
-		else if (bot_left_s_a) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*0.75;
-		}
-		else if (top_left_w_a) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*1.25;
-		}
-		else if (down_s_key) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*0.5;
-		}
-		else if (up_w_key) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI*1.5;
-		}
-		else if (right_d_key) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = 0.f;
-		}
-		else if (left_a_key) {
-			player_motion.speed = player_motion.max_speed;
-			player_motion.motion_angle = M_PI;
+		int dx = (int)right - (int)left;
+		int dy = (int)down - (int)up;
+
+		if (dx == 0 && dy == 0) {
+			player_motion.speed = 0.f;
 		}
 		else {
-			player_motion.speed = 0.f;
+			player_motion.speed = player_motion.max_speed;
+			float angle = atan2(dy, dx);
+			if (angle < 0)
+				angle += 2 * M_PI;
+			player_motion.motion_angle = angle;
 		}
 	}
 
+	// List all components
 	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		registry.list_all_components();
 	}
 
-	// interaction
+	// Interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions();
 	}
 
+	// Close window
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	// Debugging
+	// Debugging mode toggle
 	if (key == GLFW_KEY_X) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
+		debugging.in_debug_mode = (action != GLFW_RELEASE);
 	}
 
-	// Control the current speed with `<` `>`
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
-		current_speed -= 0.1f;
-		printf("Current speed = %f\n", current_speed);
+	// Adjust current speed with `<` and `>`
+	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT)) {
+		if (key == GLFW_KEY_COMMA) {
+			current_speed = fmax(0.f, current_speed - 0.1f);
+			printf("Current speed = %f\n", current_speed);
+		}
+		else if (key == GLFW_KEY_PERIOD) {
+			current_speed += 0.1f;
+			printf("Current speed = %f\n", current_speed);
+		}
 	}
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
-		current_speed += 0.1f;
-		printf("Current speed = %f\n", current_speed);
-	}
-	current_speed = fmax(0.f, current_speed);
 }
+
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair

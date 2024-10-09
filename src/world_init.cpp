@@ -22,7 +22,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
 	worldobject.scale = mesh.original_size * PLAYER_SIZE;
-	worldobject.scale.y *= -1; // point front to the right
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
