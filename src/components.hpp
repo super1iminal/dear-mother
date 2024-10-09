@@ -8,7 +8,14 @@
 // Player component
 struct Player
 {
+	float fire_rate = 500.0f;
+};
 
+// Common Health component
+struct Health
+{
+	int max_health = 0;
+	int curr_health = 0;
 };
 
 // anything that is deadly to the player
@@ -19,7 +26,9 @@ struct Deadly
 
 // All data relevant to the motion of entities
 struct Motion {
-	vec2 velocity = { 0, 0 };
+	float max_velocity;
+	vec2 input_velocity = { 0.0f, 0.0f };
+	vec2 external_velocity = { 0.0f, 0.0f };
 };
 
 // a worldobject has a position, angle, and scale
@@ -27,6 +36,11 @@ struct WorldObject {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
+};
+
+struct Projectile
+{
+	bool friendly = true;
 };
 
 // Stucture to store collision information
@@ -49,6 +63,14 @@ struct ScreenState
 {
 	float darken_screen_factor = -1;
 	int health_status = 0;
+};
+
+// anything that the player can interact with
+struct Interactable {
+	// the range that the player must be within to interact
+	float range;
+	// placeholder, not sure what we want the interaction function to do yet
+	std::function<void(int)> interaction;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -120,7 +142,8 @@ enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
 	UI = BOUNDBOX + 1,
-	TEXTURE_COUNT = UI + 1
+	BULLET = UI + 1,
+	TEXTURE_COUNT = BULLET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

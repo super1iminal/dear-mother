@@ -28,12 +28,25 @@ bool collides(const WorldObject& object1, const WorldObject& object2)
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	// Move fish based on how much time has passed, this is to (partially) avoid
+	// Move entities based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
+	auto& world_object_registry = registry.worldObjects;
+	auto& projectile_registry = registry.projectiles;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		Motion& motion = motion_registry.components[i];
+		Entity entity = motion_registry.entities[i];
+		WorldObject& worldobject = world_object_registry.get(entity);
+		float step_seconds = elapsed_ms / 1000.f;
+
+		if (projectile_registry.has(entity)) {
+			worldobject.position.x = worldobject.position.x + (cos(worldobject.angle) * motion.input_velocity.x * step_seconds);
+			worldobject.position.y = worldobject.position.y + (sin(worldobject.angle) * motion.input_velocity.y * step_seconds);
+		} else if (registry.players.has(entity)) {
+			worldobject.position.x += (motion.external_velocity.x + motion.input_velocity.x) * step_seconds;
+			worldobject.position.y += (motion.external_velocity.y + motion.input_velocity.y) * step_seconds;
+		}
 	}
 
 	// Check for collisions between all moving entities

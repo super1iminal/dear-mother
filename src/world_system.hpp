@@ -35,12 +35,16 @@ public:
 	// Check for collisions
 	void handle_collisions();
 
+	// check for interactions
+	void handle_interactions();
+
 	// Should the game be over ?
 	bool is_over()const;
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
+	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
 	// restart level
 	void restart_game();
@@ -51,12 +55,14 @@ private:
 	// Number of fish eaten by the salmon, displayed in the window title
 	unsigned int points;
 
+	// Player health displayed on window
+	unsigned int player_health;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
-	int player_health = 2;
 	int level = 1;
 	int scrap = 28;
 	Entity items [8];
