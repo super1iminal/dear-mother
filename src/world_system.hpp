@@ -63,8 +63,18 @@ private:
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
+	int level = 1;
+	int scrap = 28;
+	Entity items [8];
 	Entity player;
-	Entity crosshair;
+	Entity floor;
+  Entity crosshair;
+
+	// UI entities
+	Entity health_ui;
+	Entity scrap_ui;
+	Entity level_ui;
+	Entity item_ui;
 
 	// music references
 	Mix_Music* background_music;

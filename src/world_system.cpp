@@ -145,7 +145,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& worldobjects_registry = registry.worldobjects;
+	auto& worldobjects_registry = registry.worldObjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -164,13 +164,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// spawn two enemies
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
-		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f), 100);
-		createEnemy(renderer, vec2(200.f, 200.f), 100);
+		createEnemy(renderer, vec2(window_width_px - 200.f, 250.f), 100);
+		createEnemy(renderer, vec2(200.f, 250.f), 100);
 	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
+	screen.health_status = player_health;
 
     float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
@@ -206,8 +207,8 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	while (registry.worldobjects.entities.size() > 0)
-	    registry.remove_all_components_of(registry.worldobjects.entities.back());
+	while (registry.worldObjects.entities.size() > 0)
+	    registry.remove_all_components_of(registry.worldObjects.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -223,6 +224,41 @@ void WorldSystem::restart_game() {
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
 
+	// Add the base UI
+	Entity base_ui = createBaseUI(renderer);
+
+	// set initial player health
+	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+
+	// create health_ui entity
+	health_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 10, window_height_px / 11),
+		vec2(165.f, 40.f),
+		"health_ui",
+		static_cast<float>(player_health));
+
+	// create scrap_ui entity
+	scrap_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 13),
+		vec2(50.f, 25.f),
+		"scrap_ui",
+		static_cast<float>(scrap));
+
+	// create level_ui entity
+	level_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 8),
+		vec2(50.f, 30.f),
+		"level_ui",
+		static_cast<float>(level));
+
+	// create item_ui entities
+	// as a placeholder, there is just one item slot for now
+	// later, we will want to render all the items and show locked slots too
+	Entity item_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px - window_width_px / 7, window_height_px / 11),
+		vec2(75.f, 75.f),
+		"item_one_ui",
+		TEXTURE_ASSET_ID::FISH);
 }
 
 // Compute collisions between entities
@@ -262,8 +298,8 @@ void WorldSystem::handle_interactions() {
 
 		float range = interactable.range;
 
-		WorldObject& playerWorldObject = registry.worldobjects.get(player);
-		WorldObject& interactableObject = registry.worldobjects.get(interactableEntity);
+		WorldObject& playerWorldObject = registry.worldObjects.get(player);
+		WorldObject& interactableObject = registry.worldObjects.get(interactableEntity);
 
 		float distance = sqrt(pow(playerWorldObject.position.x - interactableObject.position.x, 2)
 			+ pow(playerWorldObject.position.y - interactableObject.position.y, 2));
@@ -284,7 +320,7 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 	
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
-	WorldObject& player_object = registry.worldobjects.get(player);
+	WorldObject& player_object = registry.worldObjects.get(player);
 
 	if (left_mouse_button) {
 		auto now = Clock::now();
@@ -367,10 +403,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 }
 
-
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair
-	WorldObject& crosshair_object = registry.worldobjects.get(crosshair);
+	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
 	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
 		crosshair_object.position = mouse_position;
 }

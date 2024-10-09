@@ -33,3 +33,12 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
+
+// create base UI that other UI elements will be layered on
+Entity createBaseUI(RenderSystem* renderer);
+
+// create UI element
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value);
+
+// create UI element using texture
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id);

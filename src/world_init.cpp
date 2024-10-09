@@ -18,7 +18,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
 	worldobject.scale = mesh.original_size * PLAYER_SIZE;
@@ -52,7 +52,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = position;
 	worldobject.angle = 0.f;
 	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
@@ -81,7 +81,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	registry.meshPtrs.emplace(floor, &mesh);
 
 	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldobjects.emplace(floor);
+	WorldObject& worldobject = registry.worldObjects.emplace(floor);
 	worldobject.position = position;
 	worldobject.angle = 0.f;
 	worldobject.scale = size;
@@ -107,7 +107,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 	interactable.interaction = a;
 
 	// Setting initial position, scale, and orientation values
-	WorldObject& interactable_object = registry.worldobjects.emplace(interactable_entity);
+	WorldObject& interactable_object = registry.worldObjects.emplace(interactable_entity);
 	interactable_object.position = position;
 	interactable_object.angle = 0.f;
 	interactable_object.scale = size;
@@ -129,7 +129,7 @@ Entity createCrosshair(RenderSystem* renderer) {
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = { -1.f, -1.f }; // initializing position to off screen
 	worldobject.angle = 0.f; 
 	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
@@ -159,7 +159,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	motion.motion_angle = angle;
 
 	// Set position, angle, scale
-	WorldObject& worldObject = registry.worldobjects.emplace(entity);
+	WorldObject& worldObject = registry.worldObjects.emplace(entity);
 	worldObject.position = pos;
 	worldObject.angle = angle;
 	worldObject.scale = mesh.original_size * 300.f;
@@ -194,11 +194,85 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.motion_angle = 0.f;
 
 	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = position;
 	worldobject.angle = 0.f;
 	worldobject.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	return entity;
+}
+
+Entity createBaseUI(RenderSystem* renderer)
+{
+	Entity entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = vec2(window_width_px / 2, 67.f); // should be based on texture size later
+	worldobject.angle = 0.f;
+	worldobject.scale.x = window_width_px;
+	worldobject.scale.y = 134.f; // later this should be based on texture height
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::UI,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	// setting health value for UI
+	UIElement& health_ui_elt = registry.uiElements.emplace(entity);
+	health_ui_elt.name = element_name;
+	health_ui_elt.value = static_cast<float>(element_value);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::UI_ELEMENT,
+			GEOMETRY_BUFFER_ID::SQUARE });
+
+	return entity;
+}
+
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	// setting value for UI
+	UIElement& ui_element = registry.uiElements.emplace(entity);
+	ui_element.name = element_name;
+	ui_element.value = static_cast<float>(texture_id);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_id,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
 	return entity;
 }

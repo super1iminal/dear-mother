@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <string>
 
 // Player component
 struct Player
@@ -61,6 +62,7 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	int health_status = 0;
 };
 
 // anything that the player can interact with
@@ -95,6 +97,12 @@ struct TexturedVertex
 {
 	vec3 position;
 	vec2 texcoord;
+};
+
+// contains information relating to UI elements
+struct UIElement {
+	std::string name;
+	float value;
 };
 
 // Mesh datastructure for storing vertex and index buffers
@@ -133,7 +141,8 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	BULLET = BOUNDBOX + 1,
+	UI = BOUNDBOX + 1,
+	BULLET = UI + 1,
 	CROSSHAIR = BULLET + 1,
 	TEXTURE_COUNT = CROSSHAIR + 1
 };
@@ -142,7 +151,8 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
-	SALMON = EGG + 1,
+	UI_ELEMENT = EGG + 1,
+	SALMON = UI_ELEMENT + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	EFFECT_COUNT = WATER + 1
@@ -151,7 +161,8 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
 	SALMON = 0,
-	SPRITE = SALMON + 1,
+	SQUARE = SALMON + 1,
+	SPRITE = SQUARE + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
