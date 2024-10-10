@@ -8,6 +8,7 @@
 // Player component
 struct Player
 {
+	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 500.0f;
 };
 
