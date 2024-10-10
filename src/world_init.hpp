@@ -17,6 +17,9 @@ const float CROSSHAIR_SIZE = 75.f;
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
+// the walls
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle);
+
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);
 

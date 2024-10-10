@@ -3,6 +3,32 @@
 
 #include <iostream>
 
+// NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldobjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = angle;
+	worldobject.scale = size;
+
+	registry.blockers.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+
+}
+
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -162,16 +188,34 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	WorldObject& worldObject = registry.worldObjects.emplace(entity);
 	worldObject.position = pos;
 	worldObject.angle = angle;
-	worldObject.scale = mesh.original_size * 300.f;
+	worldObject.scale = mesh.original_size * 50.f;
 	worldObject.scale.y *= -1; // point front to the right
 
 	Projectile& projectile = registry.projectiles.emplace(entity);
 	projectile.friendly = is_friendly;
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+	if (is_friendly) 
+	{
+		registry.renderRequests.insert
+		(
+			entity,
+			{ TEXTURE_ASSET_ID::BULLET_FRIENDLY,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE 
+			}
+		);
+	}
+	else 
+	{
+		registry.renderRequests.insert
+		(
+			entity,
+			{ TEXTURE_ASSET_ID::BULLET_ENEMY,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE 
+			}
+		);
+	}
+
 
 	return entity;
 }

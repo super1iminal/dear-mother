@@ -236,10 +236,11 @@ void WorldSystem::restart_game() {
 
 	// SHOULD MOVE FLOOR AND INTERACTABLE INITIALISATION TO WORLD_INIT.CPP PLEASE
 	// create a floor entity
-	createFloor(renderer,{ window_width_px / 2, window_height_px / 2 }, { 150.f , 150.f });
+	createFloor(renderer,{ window_width_px / 2, window_height_px / 2 }, { 100.f , 100.f });
 	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 50.f, 50.f },
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
+	createWall(renderer, { window_width_px / 3, window_height_px / 3 }, { 50.f, 150.f }, 0.f);
 
 	// Set initial cooldown time
 	set_last_shot_time();
@@ -281,33 +282,131 @@ void WorldSystem::restart_game() {
 		TEXTURE_ASSET_ID::FISH);
 }
 
-// Compute collisions between entities
+// Compute collisions between entities, called after physics_system::step which checks for collisions
 void WorldSystem::handle_collisions() {
-	// Loop over all collisions detected by the physics system
-	auto& collisionsRegistry = registry.collisions;
-	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
-		// The entity and its collider
-		Entity entity = collisionsRegistry.entities[i];
-		Entity entity_other = collisionsRegistry.components[i].other;
+	for (Entity entity : registry.collisions.entities) {
+		Entity entity_other = registry.collisions.get(entity).other;
+		COLLISION_TYPE type = registry.collisions.get(entity).type;
 
-		// for now, we are only interested in collisions that involve the salmon
-		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
-
-			// Checking Player - Deadly collisions
-			if (registry.deadlys.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the salmon sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
-				}
-			}
+		// Handle collisions
+		// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
+		switch (type) {
+			case COLLISION_TYPE::PLAYER_DEADLY:
+				printf("Player deadly collision\n");
+				handlePlayerDeadly(entity, entity_other);
+				break;
+			case COLLISION_TYPE::DEADLY_BLOCKER:
+				printf("Deadly blocker collision\n");
+				handleActorBlocker(entity, entity_other);
+				break;
+			case COLLISION_TYPE::PLAYER_BLOCKER:
+				printf("Player blocker collision\n");
+				handleActorBlocker(entity, entity_other);
+				break;
+			case COLLISION_TYPE::PROJECTILE_BLOCKER:
+				printf("Projectile blocker collision\n");
+				handleProjectileBlocker(entity, entity_other);
+				break;
+			case COLLISION_TYPE::PROJECTILE_DEADLY:
+				printf("Projectile deadly collision\n");	
+				handleProjectileDeadly(entity, entity_other);
+				// note that this collision is only added if the projectile is friendly
+				break;
+			case COLLISION_TYPE::PROJECTILE_PLAYER:
+				printf("Projectile player collision\n");
+				handleProjectilePlayer(entity, entity_other);
+				// note that this collision is only added if the projectile is not friendly
+				break;
+			default:
+				printf("Unhandled collision\n");	
+				break;
 		}
+		
 	}
 
 	// Remove all collisions from this simulation step
 	registry.collisions.clear();
+}
+
+//void WorldSystem::handlePlayerDeadly(Entity entity, Entity entity_other) {
+//	if (!registry.deathTimers.has(entity)) {
+//		// Scream, reset timer, and make the salmon sink
+//		registry.deathTimers.emplace(entity);
+//		Mix_PlayChannel(-1, salmon_dead_sound, 0);
+//	}
+//	return;
+//}
+
+void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
+	if (registry.healthComponents.get(player).curr_health > 0) {
+		registry.healthComponents.get(player).curr_health -= 1;
+		registry.healthComponents.get(deadly).curr_health -= 1;
+	}
+	return;
+}
+
+#include <glm/glm.hpp>
+#include <algorithm>
+
+using glm::vec2;
+
+void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	WorldObject& worldobject_actor = registry.worldobjects.get(actor);
+	WorldObject& worldobject_blocker = registry.worldobjects.get(blocker);
+
+	// Get bounding box half extents for actor and blocker
+	vec2 half_extent_actor = worldobject_actor.scale * 0.5f;
+	vec2 half_extent_blocker = worldobject_blocker.scale * 0.5f;
+
+	// Calculate the difference in positions
+	vec2 delta_position = worldobject_actor.position - worldobject_blocker.position;
+
+	// Calculate overlap in x and y directions
+	float overlap_x = half_extent_actor.x + half_extent_blocker.x - std::abs(delta_position.x);
+	float overlap_y = half_extent_actor.y + half_extent_blocker.y - std::abs(delta_position.y);
+
+	if (overlap_x > 0 && overlap_y > 0) {
+		// Determine the minimum translation direction to resolve the collision
+		if (overlap_x < overlap_y) {
+			// Resolve along x-axis
+			float direction = (delta_position.x < 0) ? -1.0f : 1.0f;
+			worldobject_actor.position.x = worldobject_blocker.position.x + direction * (half_extent_actor.x + half_extent_blocker.x);
+		}
+		else {
+			// Resolve along y-axis
+			float direction = (delta_position.y < 0) ? -1.0f : 1.0f;
+			worldobject_actor.position.y = worldobject_blocker.position.y + direction * (half_extent_actor.y + half_extent_blocker.y);
+		}
+	}
+
+	return;
+}
+
+
+
+
+void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
+	// remove projectile
+	 registry.remove_all_components_of(projectile);
+	return;
+}
+
+void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
+	// Decrease health of deadly
+	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
+
+	// Remove projectile
+	 registry.remove_all_components_of(projectile);
+	return;
+}
+
+void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
+	// Decrease health of player
+	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+	
+	// Remove projectile
+	 registry.remove_all_components_of(projectile);
+	return;
 }
 
 void WorldSystem::handle_interactions() {
@@ -321,10 +420,29 @@ void WorldSystem::handle_interactions() {
 		WorldObject& playerWorldObject = registry.worldObjects.get(player);
 		WorldObject& interactableObject = registry.worldObjects.get(interactableEntity);
 
-		float distance = sqrt(pow(playerWorldObject.position.x - interactableObject.position.x, 2)
-			+ pow(playerWorldObject.position.y - interactableObject.position.y, 2));
-		if (distance < range) {
+		float dist = distance(playerWorldObject.position, interactableObject.position);
+		if (dist < range) {
 			interactable.interaction(6);
+		}
+	}
+}
+
+void WorldSystem::handle_deaths() {
+	for (Entity entity : registry.healthComponents.entities) 
+	{
+		Health& health = registry.healthComponents.get(entity);
+		if (health.curr_health <= 0) 
+		{
+			// Scream, reset timer, and make the salmon sink
+			if (registry.players.has(entity)) {
+				if (!registry.deathTimers.has(entity)) {
+					registry.deathTimers.emplace(entity);
+					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+				}
+			}
+			else {
+				registry.remove_all_components_of(entity);
+			}
 		}
 	}
 }
