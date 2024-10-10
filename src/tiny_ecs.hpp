@@ -20,6 +20,8 @@ public:
 		// Note, indices of already deleted entities arent re-used in this simple implementation.
 	}
 	operator unsigned int() { return id; } // this enables automatic casting to int
+	bool operator==(const Entity& other) const { return id == other.id; }
+	bool operator!=(const Entity& other) const { return id != other.id; }
 };
 
 // Common interface to refer to all containers in the ECS registry
@@ -79,8 +81,9 @@ public:
 		return components[map_entity_componentID[e]];
 	}
 
+	// O(1)
 	// Check if entity has a component of type 'Component'
-	bool has(Entity entity) {
+	bool has(Entity entity) { 
 		return map_entity_componentID.count(entity) > 0;
 	}
 

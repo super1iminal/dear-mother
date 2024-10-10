@@ -236,26 +236,33 @@ void WorldSystem::handle_collisions() {
 		// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
 		switch (type) {
 			case COLLISION_TYPE::PLAYER_DEADLY:
+				printf("Player deadly collision\n");
 				handlePlayerDeadly(entity, entity_other);
 				break;
 			case COLLISION_TYPE::DEADLY_BLOCKER:
+				printf("Deadly blocker collision\n");
 				handleActorBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PLAYER_BLOCKER:
+				printf("Player blocker collision\n");
 				handleActorBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PROJECTILE_BLOCKER:
+				printf("Projectile blocker collision\n");
 				handleProjectileBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PROJECTILE_DEADLY:
+				printf("Projectile deadly collision\n");	
 				handleProjectileDeadly(entity, entity_other);
 				// note that this collision is only added if the projectile is friendly
 				break;
 			case COLLISION_TYPE::PROJECTILE_PLAYER:
+				printf("Projectile player collision\n");
 				handleProjectilePlayer(entity, entity_other);
 				// note that this collision is only added if the projectile is not friendly
 				break;
 			default:
+				printf("Unhandled collision\n");	
 				break;
 		}
 		
@@ -324,7 +331,7 @@ void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 
 void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 	// remove projectile
-	registry.remove_all_components_of(projectile);
+	 registry.remove_all_components_of(projectile);
 	return;
 }
 
@@ -333,7 +340,7 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
 
 	// Remove projectile
-	registry.remove_all_components_of(projectile);
+	 registry.remove_all_components_of(projectile);
 	return;
 }
 
@@ -342,7 +349,7 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
 	
 	// Remove projectile
-	registry.remove_all_components_of(projectile);
+	 registry.remove_all_components_of(projectile);
 	return;
 }
 

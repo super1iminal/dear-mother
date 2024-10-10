@@ -188,16 +188,34 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	WorldObject& worldObject = registry.worldobjects.emplace(entity);
 	worldObject.position = pos;
 	worldObject.angle = angle;
-	worldObject.scale = mesh.original_size * 300.f;
+	worldObject.scale = mesh.original_size * 50.f;
 	worldObject.scale.y *= -1; // point front to the right
 
 	Projectile& projectile = registry.projectiles.emplace(entity);
 	projectile.friendly = is_friendly;
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BULLET,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+	if (is_friendly) 
+	{
+		registry.renderRequests.insert
+		(
+			entity,
+			{ TEXTURE_ASSET_ID::BULLET_FRIENDLY,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE 
+			}
+		);
+	}
+	else 
+	{
+		registry.renderRequests.insert
+		(
+			entity,
+			{ TEXTURE_ASSET_ID::BULLET_ENEMY,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE 
+			}
+		);
+	}
+
 
 	return entity;
 }

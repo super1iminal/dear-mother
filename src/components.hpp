@@ -143,8 +143,9 @@ struct Blocker
 enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to also add/change it in the texture_paths array in render_system.hpp
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	BULLET = BOUNDBOX + 1,
-	CROSSHAIR = BULLET + 1,
+	BULLET_FRIENDLY = BOUNDBOX + 1,
+	BULLET_ENEMY = BULLET_FRIENDLY + 1,
+	CROSSHAIR = BULLET_ENEMY + 1,
 	BOUNDBOX_BLUE = CROSSHAIR + 1,
 	TEXTURE_COUNT = BOUNDBOX_BLUE + 1
 };

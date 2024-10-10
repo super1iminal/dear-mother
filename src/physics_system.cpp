@@ -1,3 +1,6 @@
+// external
+#include <unordered_set>
+
 // internal
 #include "physics_system.hpp"
 #include "world_init.hpp"
@@ -25,74 +28,91 @@ bool collides(const WorldObject& object1, const WorldObject& object2)
 		return true;
 	return false;
 }
-
+/*
+ - Check for collisions between all relevant entities
+ - note that the order of the loops depends strongly on how many of each we have. 
+ - blockers are further in because presumably we'd only have a few (walls, accounting for doors) and we want to check them last
+ - projectiles are first because we expect to have many of them
+ - projectiles can only collide with one thing at a time
+ - note that the order of processing is extremely important for projectiles 
+ - if a bullet is colliding with both a wall and a player, we are currently processing the player (and deadlys) first
+ - players and deadlys can collide with multiple things at a time, which means the order of their processing is less important
+ - this will probably be the source of a lot of bugs. if bug, check here
+ - this has a lot of repetition that I don't know how to get rid of
+*/
 void checkCollision() {
-	// Check for collisions between all relevant entities
-	// note that the order of the loops depends strongly on how many of each we have. 
-	// blockers are further in because presumably we'd only have a few (walls, accounting for doors) and we want to check them last
-	// projectiles are first because we expect to have many of them
-
-	// I have a lot of repetition that I don't know how to get rid of
-
-	// Start with Projectiles
+	// Start with Projectiles. Projectiles can only collide with one thing at a time.
 	for (Entity entity_projectile : registry.projectiles.entities) 
 	{
-		// Check for projectile-deadly collisions
 		WorldObject worldobject_projectile = registry.worldobjects.get(entity_projectile);
-		if (registry.projectiles.get(entity_projectile).friendly) {
+		if (registry.projectiles.get(entity_projectile).friendly) 
+		{
+			// Check for projectile-deadly collisions
+			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
+			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
 			for (Entity entity_enemy : registry.deadlys.entities)
 			{
 				WorldObject worldobject_enemy = registry.worldobjects.get(entity_enemy);
 				if (collides(worldobject_projectile, worldobject_enemy))
 				{
-					registry.collisions.emplace_with_duplicates(entity_projectile, entity_enemy, COLLISION_TYPE::PROJECTILE_DEADLY);
+					assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
+					registry.collisions.emplace(entity_projectile, entity_enemy, COLLISION_TYPE::PROJECTILE_DEADLY);
+					break; // we don't want any more collisions for this projectile
 				}
 			}
 		}
 		else {
 			// Check for projectile-player collisions
+			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
+			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
 			WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
 			if (collides(worldobject_projectile, worldobject_player))
 			{
-				registry.collisions.emplace_with_duplicates(entity_projectile, registry.players.entities[0], COLLISION_TYPE::PROJECTILE_PLAYER);
+				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
+				registry.collisions.emplace(entity_projectile, registry.players.entities[0], COLLISION_TYPE::PROJECTILE_PLAYER);
 			}
 		}
-
+		// Check for projectile-blocker collisions
+		// Check if we've already processed this entity
+		if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
 		for (Entity entity_blocker : registry.blockers.entities)
 		{
 			WorldObject worldobject_blocker = registry.worldobjects.get(entity_blocker);
 			if (collides(worldobject_projectile, worldobject_blocker))
 			{
-				registry.collisions.emplace_with_duplicates(entity_projectile, entity_blocker, COLLISION_TYPE::PROJECTILE_BLOCKER);
+				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
+				registry.collisions.emplace(entity_projectile, entity_blocker, COLLISION_TYPE::PROJECTILE_BLOCKER);
+				break; // we don't want any more collisions for this projectile
 			}
 		}
 
 	}
 
-	// next, check player/deadly-blockers
+	// next, check player/deadly-blocker collisions
 	for (Entity entity_blocker : registry.blockers.entities) {
 		WorldObject worldobject_blocker = registry.worldobjects.get(entity_blocker);
 		WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
 		if (collides(worldobject_blocker, worldobject_player))
 		{
-			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
+			registry.collisions.emplace(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
 		}
 		for (Entity entity_deadly : registry.deadlys.entities) {
 			WorldObject worldobject_deadly = registry.worldobjects.get(entity_deadly);
 			if (collides(worldobject_blocker, worldobject_deadly))
 			{
-				registry.collisions.emplace_with_duplicates(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
+				registry.collisions.emplace(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
 			}
 		}
 	}
 
+	// next, check player-deadly collisions
 	for (Entity entity_deadly : registry.deadlys.entities) 
 	{
 		WorldObject worldobject_deadly = registry.worldobjects.get(entity_deadly);
 		WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
 		if (collides(worldobject_deadly, worldobject_player))
 		{
-			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
+			registry.collisions.emplace(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
 		}
 	}
 }
