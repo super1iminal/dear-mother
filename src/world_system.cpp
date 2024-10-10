@@ -159,13 +159,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& worldobjects_registry = registry.worldObjects;
+	auto& worldObjects_registry = registry.worldObjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (Entity entity : worldobjects_registry.entities) {
-		WorldObject& worldobject = worldobjects_registry.get(entity);
+	for (Entity entity : worldObjects_registry.entities) {
+		WorldObject& worldobject = worldObjects_registry.get(entity);
 		if ((worldobject.position.x + abs(worldobject.scale.x) < 0.f ||
 			worldobject.position.x - abs(worldobject.scale.x) > window_width_px ||
 			worldobject.position.y + abs(worldobject.scale.y) < 0.f ||
@@ -351,8 +351,8 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 using glm::vec2;
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
-	WorldObject& worldobject_actor = registry.worldobjects.get(actor);
-	WorldObject& worldobject_blocker = registry.worldobjects.get(blocker);
+	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
+	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
 
 	// Get bounding box half extents for actor and blocker
 	vec2 half_extent_actor = worldobject_actor.scale * 0.5f;

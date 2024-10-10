@@ -2,7 +2,8 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+# don't gitignore project_path.hpp.in because that's what creates project_path.hpp
+
 /.vs
 /out/build/x64-Debug
-/ext/project_path.hpp
-/ext/project_path.hpp.in
+project_path.hpp
