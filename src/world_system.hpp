@@ -6,6 +6,7 @@
 // stlib
 #include <vector>
 #include <random>
+#include <chrono>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -48,6 +49,17 @@ private:
 
 	// restart level
 	void restart_game();
+
+	// Shooting stuff
+	bool left_mouse_button = false;
+	bool first_shot = true;
+	void shoot(Entity& player);
+
+	// Time management
+	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
+	void set_last_shot_time();
+	std::chrono::steady_clock::time_point get_last_shot_time();
 
 	// OpenGL window handle
 	GLFWwindow* window;

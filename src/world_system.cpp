@@ -10,10 +10,6 @@
 #include "physics_system.hpp"
 #include <iostream>
 
-using Clock = std::chrono::high_resolution_clock;
-auto t = Clock::now();
-bool first_shot = true;
-
 // Game configuration
 // add variables here
 
@@ -52,6 +48,21 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
+void WorldSystem::set_last_shot_time() {
+	using Clock = std::chrono::high_resolution_clock;
+	t = Clock::now();
+}
+
+std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time() {
+	return t;
+}
+
+std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
+	using Clock = std::chrono::high_resolution_clock;
+	return Clock::now();
+}
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -133,9 +144,12 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	// Get Player
+	Entity player = registry.players.entities[0];
+
 	// Updating window title with points
 	std::stringstream title_ss;
-	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
@@ -160,6 +174,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.remove_all_components_of(entity);
 		}
 	}
+
+	// Shoot if LMB is clicked
+	shoot(player);
 
 	// spawn two enemies
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -223,6 +240,9 @@ void WorldSystem::restart_game() {
 	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 50.f, 50.f },
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
+
+	// Set initial cooldown time
+	set_last_shot_time();
 
 	// Add the base UI
 	Entity base_ui = createBaseUI(renderer);
@@ -313,28 +333,28 @@ void WorldSystem::handle_interactions() {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
-bool left_mouse_button;
-void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
-{
-	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-	
-	Entity player = registry.players.entities[0];
-	Motion& player_motion = registry.motions.get(player);
-	WorldObject& player_object = registry.worldObjects.get(player);
 
+void WorldSystem::shoot(Entity& player) {
 	if (left_mouse_button) {
-		auto now = Clock::now();
+		Motion& player_motion = registry.motions.get(player);
+		WorldObject& player_object = registry.worldObjects.get(player);
+		auto now = get_curr_time();
 		float elapsed_ms =
-			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - get_last_shot_time())).count() / 1000;
+		if ((elapsed_ms >= registry.players.get(player).fire_rate) || first_shot) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
 			createProjectile(renderer, player_object.position, angle, 150.0f, true);
 			first_shot = false;
-			t = Clock::now();
+			set_last_shot_time();
 		}
 	}
+}
+
+void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
+{
+	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 }
 
 void WorldSystem::on_key(int key, int, int action, int mod) {
