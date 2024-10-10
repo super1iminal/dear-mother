@@ -6,6 +6,7 @@
 // stlib
 #include <vector>
 #include <random>
+#include <chrono>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -52,6 +53,17 @@ private:
 	// restart level
 	void restart_game();
 
+	// Shooting stuff
+	bool left_mouse_button = false;
+	bool first_shot = true;
+	void shoot(Entity& player);
+
+	// Time management
+	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
+	void set_last_shot_time();
+	std::chrono::steady_clock::time_point get_last_shot_time();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -66,8 +78,18 @@ private:
 	float current_speed;
 	float next_eel_spawn;
 	float next_fish_spawn;
+	int level = 1;
+	int scrap = 28;
+	Entity items [8];
 	Entity player;
-	Entity crosshair;
+	Entity floor;
+  Entity crosshair;
+
+	// UI entities
+	Entity health_ui;
+	Entity scrap_ui;
+	Entity level_ui;
+	Entity item_ui;
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);

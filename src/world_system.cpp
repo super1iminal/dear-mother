@@ -10,10 +10,6 @@
 #include "physics_system.hpp"
 #include <iostream>
 
-using Clock = std::chrono::high_resolution_clock;
-auto t = Clock::now();
-bool first_shot = true;
-
 // Game configuration
 // add variables here
 
@@ -52,6 +48,21 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
+void WorldSystem::set_last_shot_time() {
+	using Clock = std::chrono::high_resolution_clock;
+	t = Clock::now();
+}
+
+std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time() {
+	return t;
+}
+
+std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
+	using Clock = std::chrono::high_resolution_clock;
+	return Clock::now();
+}
+
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -133,9 +144,12 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	// Get Player
+	Entity player = registry.players.entities[0];
+
 	// Updating window title with points
 	std::stringstream title_ss;
-	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
@@ -145,7 +159,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& worldobjects_registry = registry.worldobjects;
+	auto& worldobjects_registry = registry.worldObjects;
 
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
@@ -161,16 +175,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Shoot if LMB is clicked
+	shoot(player);
+
 	// spawn two enemies
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
-		createEnemy(renderer, vec2(window_width_px - 200.f, 200.f), 100);
-		createEnemy(renderer, vec2(200.f, 200.f), 100);
+		createEnemy(renderer, vec2(window_width_px - 200.f, 250.f), 100);
+		createEnemy(renderer, vec2(200.f, 250.f), 100);
 	}
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
+	screen.health_status = player_health;
 
     float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
@@ -206,8 +224,8 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	while (registry.worldobjects.entities.size() > 0)
-	    registry.remove_all_components_of(registry.worldobjects.entities.back());
+	while (registry.worldObjects.entities.size() > 0)
+	    registry.remove_all_components_of(registry.worldObjects.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -224,6 +242,44 @@ void WorldSystem::restart_game() {
 	);
 	createWall(renderer, { window_width_px / 3, window_height_px / 3 }, { 50.f, 150.f }, 0.f);
 
+	// Set initial cooldown time
+	set_last_shot_time();
+
+	// Add the base UI
+	Entity base_ui = createBaseUI(renderer);
+
+	// set initial player health
+	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+
+	// create health_ui entity
+	health_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 10, window_height_px / 11),
+		vec2(165.f, 40.f),
+		"health_ui",
+		static_cast<float>(player_health));
+
+	// create scrap_ui entity
+	scrap_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 13),
+		vec2(50.f, 25.f),
+		"scrap_ui",
+		static_cast<float>(scrap));
+
+	// create level_ui entity
+	level_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px / 4, window_height_px / 8),
+		vec2(50.f, 30.f),
+		"level_ui",
+		static_cast<float>(level));
+
+	// create item_ui entities
+	// as a placeholder, there is just one item slot for now
+	// later, we will want to render all the items and show locked slots too
+	Entity item_ui = createTexturedUIElement(renderer,
+		vec2(window_width_px - window_width_px / 7, window_height_px / 11),
+		vec2(75.f, 75.f),
+		"item_one_ui",
+		TEXTURE_ASSET_ID::FISH);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
@@ -361,8 +417,8 @@ void WorldSystem::handle_interactions() {
 
 		float range = interactable.range;
 
-		WorldObject& playerWorldObject = registry.worldobjects.get(player);
-		WorldObject& interactableObject = registry.worldobjects.get(interactableEntity);
+		WorldObject& playerWorldObject = registry.worldObjects.get(player);
+		WorldObject& interactableObject = registry.worldObjects.get(interactableEntity);
 
 		float dist = distance(playerWorldObject.position, interactableObject.position);
 		if (dist < range) {
@@ -395,28 +451,28 @@ void WorldSystem::handle_deaths() {
 bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
-bool left_mouse_button;
-void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
-{
-	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-	
-	Entity player = registry.players.entities[0];
-	Motion& player_motion = registry.motions.get(player);
-	WorldObject& player_object = registry.worldobjects.get(player);
 
+void WorldSystem::shoot(Entity& player) {
 	if (left_mouse_button) {
-		auto now = Clock::now();
+		Motion& player_motion = registry.motions.get(player);
+		WorldObject& player_object = registry.worldObjects.get(player);
+		auto now = get_curr_time();
 		float elapsed_ms =
-			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-		if ((elapsed_ms > registry.players.get(player).fire_rate) || first_shot) {
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - get_last_shot_time())).count() / 1000;
+		if ((elapsed_ms >= registry.players.get(player).fire_rate) || first_shot) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
 			createProjectile(renderer, player_object.position, angle, 150.0f, true);
 			first_shot = false;
-			t = Clock::now();
+			set_last_shot_time();
 		}
 	}
+}
+
+void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
+{
+	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 }
 
 void WorldSystem::on_key(int key, int, int action, int mod) {
@@ -485,10 +541,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 }
 
-
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair
-	WorldObject& crosshair_object = registry.worldobjects.get(crosshair);
+	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
 	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
 		crosshair_object.position = mouse_position;
 }

@@ -3,10 +3,12 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <string>
 
 // Player component
 struct Player
 {
+	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 500.0f;
 };
 
@@ -66,6 +68,7 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+	int health_status = 0;
 };
 
 // anything that the player can interact with
@@ -100,6 +103,12 @@ struct TexturedVertex
 {
 	vec3 position;
 	vec2 texcoord;
+};
+
+// contains information relating to UI elements
+struct UIElement {
+	std::string name;
+	float value;
 };
 
 // Mesh datastructure for storing vertex and index buffers
@@ -143,18 +152,20 @@ struct Blocker
 enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to also add/change it in the texture_paths array in render_system.hpp
 	FISH = 0,
 	BOUNDBOX = FISH + 1,
-	BULLET_FRIENDLY = BOUNDBOX + 1,
+  BOUNDBOX_BLUE = BOUNDBOX + 1,
+	BULLET_FRIENDLY = BOUNDBOX_BLUE + 1,
 	BULLET_ENEMY = BULLET_FRIENDLY + 1,
 	CROSSHAIR = BULLET_ENEMY + 1,
-	BOUNDBOX_BLUE = CROSSHAIR + 1,
-	TEXTURE_COUNT = BOUNDBOX_BLUE + 1
+	UI = CROSSHAIR + 1,
+	TEXTURE_COUNT = UI + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
-	SALMON = EGG + 1,
+	UI_ELEMENT = EGG + 1,
+	SALMON = UI_ELEMENT + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	EFFECT_COUNT = WATER + 1
@@ -163,7 +174,8 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
 	SALMON = 0,
-	SPRITE = SALMON + 1,
+	SQUARE = SALMON + 1,
+	SPRITE = SQUARE + 1,
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
