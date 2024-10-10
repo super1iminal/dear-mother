@@ -44,7 +44,7 @@ void checkCollision() {
 	// Start with Projectiles. Projectiles can only collide with one thing at a time.
 	for (Entity entity_projectile : registry.projectiles.entities) 
 	{
-		WorldObject worldobject_projectile = registry.worldobjects.get(entity_projectile);
+		WorldObject worldobject_projectile = registry.worldObjects.get(entity_projectile);
 		if (registry.projectiles.get(entity_projectile).friendly) 
 		{
 			// Check for projectile-deadly collisions
@@ -52,7 +52,7 @@ void checkCollision() {
 			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
 			for (Entity entity_enemy : registry.deadlys.entities)
 			{
-				WorldObject worldobject_enemy = registry.worldobjects.get(entity_enemy);
+				WorldObject worldobject_enemy = registry.worldObjects.get(entity_enemy);
 				if (collides(worldobject_projectile, worldobject_enemy))
 				{
 					assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
@@ -65,7 +65,7 @@ void checkCollision() {
 			// Check for projectile-player collisions
 			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
 			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
-			WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
+			WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
 			if (collides(worldobject_projectile, worldobject_player))
 			{
 				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
@@ -77,7 +77,7 @@ void checkCollision() {
 		if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
 		for (Entity entity_blocker : registry.blockers.entities)
 		{
-			WorldObject worldobject_blocker = registry.worldobjects.get(entity_blocker);
+			WorldObject worldobject_blocker = registry.worldObjects.get(entity_blocker);
 			if (collides(worldobject_projectile, worldobject_blocker))
 			{
 				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
@@ -90,14 +90,14 @@ void checkCollision() {
 
 	// next, check player/deadly-blocker collisions
 	for (Entity entity_blocker : registry.blockers.entities) {
-		WorldObject worldobject_blocker = registry.worldobjects.get(entity_blocker);
-		WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
+		WorldObject worldobject_blocker = registry.worldObjects.get(entity_blocker);
+		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
 		if (collides(worldobject_blocker, worldobject_player))
 		{
 			registry.collisions.emplace(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
 		}
 		for (Entity entity_deadly : registry.deadlys.entities) {
-			WorldObject worldobject_deadly = registry.worldobjects.get(entity_deadly);
+			WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
 			if (collides(worldobject_blocker, worldobject_deadly))
 			{
 				registry.collisions.emplace(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
@@ -108,8 +108,8 @@ void checkCollision() {
 	// next, check player-deadly collisions
 	for (Entity entity_deadly : registry.deadlys.entities) 
 	{
-		WorldObject worldobject_deadly = registry.worldobjects.get(entity_deadly);
-		WorldObject worldobject_player = registry.worldobjects.get(registry.players.entities[0]);
+		WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
+		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
 		if (collides(worldobject_deadly, worldobject_player))
 		{
 			registry.collisions.emplace(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
@@ -123,7 +123,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	// having entities move at different speed based on the machine.
 	// motion update step
 	auto& motion_registry = registry.motions;
-	auto& world_object_registry = registry.worldobjects;
+	auto& world_object_registry = registry.worldObjects;
 	for (Entity entity : registry.motions.entities)
 	{
 		assert(world_object_registry.has(entity) && "Motion Entity has no worldobject component");
