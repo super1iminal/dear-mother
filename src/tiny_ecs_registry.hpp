@@ -32,6 +32,9 @@ public:
 	ComponentContainer<Wall> walls;
 	ComponentContainer<BaseUI> baseUI;
 	ComponentContainer<Crosshair> crosshair;
+	ComponentContainer<Lifetime> lifetimes;
+	ComponentContainer<Particle> particles;
+	ComponentContainer<Remove> removes;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -58,6 +61,9 @@ public:
 		registry_list.push_back(&walls);
 		registry_list.push_back(&baseUI);
 		registry_list.push_back(&crosshair);
+		registry_list.push_back(&lifetimes);
+		registry_list.push_back(&particles);
+		registry_list.push_back(&removes);
 	}
 
 	void clear_all_components() {

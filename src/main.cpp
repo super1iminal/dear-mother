@@ -52,6 +52,7 @@ int main()
 		physics.step(elapsed_ms);
 		world.handle_collisions();
 		world.handle_deaths();
+		world.cleanup(); // remove dead entities and entities we want to remove
 
 		renderer.draw();
 	}

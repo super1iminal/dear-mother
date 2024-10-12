@@ -28,10 +28,8 @@ struct Deadly
 // All data relevant to the motion of entities
 struct Motion {
 	float max_speed;
-	float motion_angle = 0.f; // with respect to the x-axis
-	float speed = 0.f;
-	float acceleration = 0.f;
-	float acceleration_angle = 0.f;
+	vec2 velocity = { 0.f, 0.f };
+	vec2 acceleration = { 0.0f, 0.0f };
 };
 
 // a worldobject has a position, angle, and scale
@@ -119,6 +117,10 @@ struct UIElement {
 	float value;
 };
 
+struct Remove {
+
+};
+
 // Mesh datastructure for storing vertex and index buffers
 struct Mesh
 {
@@ -126,6 +128,16 @@ struct Mesh
 	vec2 original_size = {1,1};
 	std::vector<ColoredVertex> vertices;
 	std::vector<uint16_t> vertex_indices;
+};
+
+struct Lifetime
+{
+	float time_remaining_ms = 0;
+};
+
+struct Particle
+{
+
 };
 
 struct Blocker
@@ -189,7 +201,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
 	ITEM = VERT_WALL + 1,
-	TEXTURE_COUNT = ITEM + 1
+	HIT_PARTICLE = ITEM + 1,
+	TEXTURE_COUNT = HIT_PARTICLE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

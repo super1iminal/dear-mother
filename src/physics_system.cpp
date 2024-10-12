@@ -158,9 +158,6 @@ void checkCollision() {
 
 void PhysicsSystem::step(float elapsed_ms)
 {
-	// Move entities based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
-	// motion update step
 	auto& motion_registry = registry.motions;
 	auto& world_object_registry = registry.worldObjects;
 	for (Entity entity : registry.motions.entities)
@@ -169,8 +166,11 @@ void PhysicsSystem::step(float elapsed_ms)
 		Motion& motion = motion_registry.get(entity);
 		WorldObject& worldobject = world_object_registry.get(entity);
 		float step_seconds = elapsed_ms / 1000.f;
-		vec2 velocity = { cos(motion.motion_angle) * motion.speed, sin(motion.motion_angle) * motion.speed };
-		worldobject.position += (velocity) * step_seconds;
+
+		motion.velocity += (motion.acceleration * step_seconds);
+
+		// Update the position based on the new velocity
+		worldobject.position += motion.velocity * step_seconds;
 	}
 
 	// collision detection step

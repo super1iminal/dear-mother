@@ -3,6 +3,43 @@
 
 #include <iostream>
 
+void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	registry.particles.emplace(entity);
+
+	// setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = uniform_dist(rng) * 2 * M_PI;
+	float size = uniform_dist(rng) * MAX_PARTICLE_SIZE;
+	worldobject.scale = vec2({ size, size });
+
+	Lifetime& lifetime = registry.lifetimes.emplace(entity);
+	lifetime.time_remaining_ms = uniform_dist(rng) * MAX_PARTICLE_LIFETIME;
+
+	Motion& motion = registry.motions.emplace(entity);
+	float angle = uniform_dist(rng) * 2 * M_PI;
+	motion.velocity = v_from_sa(uniform_dist(rng) * MAX_PARTICLE_SPEED, angle);
+	motion.acceleration = v_from_sa(MAX_PARTICLE_ACCELERATION, angle);
+
+	registry.renderRequests.insert(
+		entity,
+		{ type,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+}
+
+void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES);
+	for (int i = 0; i < num_particles; i++) {
+		createParticle(renderer, pos, uniform_dist, rng, type);
+	}
+}
+
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
 Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type) {
 	auto entity = Entity();
@@ -19,7 +56,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 	worldobject.scale = size;
 
 	registry.blockers.emplace(entity);
-
+	// don't be fooled, type is type
 	registry.renderRequests.insert(
 		entity,
 		{ type,
@@ -41,8 +78,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	// Setting initial motion value
 	Motion& motion = registry.motions.emplace(entity);
 	motion.max_speed = PLAYER_MAX_SPEED;
-	motion.speed = 0.f;
-	motion.motion_angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.acceleration = { 0.f, 0.f };
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -75,8 +112,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.max_speed = speed;
-	motion.speed = 0.f;
-	motion.motion_angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.acceleration = { 0.f, 0.f };
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -184,8 +221,8 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
-	motion.speed = speed;
-	motion.motion_angle = angle;
+	motion.velocity = v_from_sa(speed, angle);
+	motion.acceleration = { 0.f, 0.f };
 
 	// Set position, angle, scale
 	WorldObject& worldObject = registry.worldObjects.emplace(entity);
@@ -193,6 +230,9 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	worldObject.angle = angle;
 	worldObject.scale = mesh.original_size * 50.f;
 	worldObject.scale.y *= -1; // point front to the right
+
+	Lifetime& lifetime = registry.lifetimes.emplace(entity);
+	lifetime.time_remaining_ms = PROJECTILE_LIFESPAN;
 
 	Projectile& projectile = registry.projectiles.emplace(entity);
 	projectile.friendly = is_friendly;
@@ -237,8 +277,7 @@ Entity createLine(vec2 position, vec2 scale)
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
-	motion.speed = 0.f;
-	motion.motion_angle = 0.f;
+	motion.velocity = { 0.0, 0.0 };
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
