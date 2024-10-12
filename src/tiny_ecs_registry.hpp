@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
 	ComponentContainer<Blocker> blockers;
+	ComponentContainer<InvincibleTimer> invincibleTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -48,6 +49,7 @@ public:
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&healthComponents);
 		registry_list.push_back(&blockers);
+		registry_list.push_back(&invincibleTimers);
 	}
 
 	void clear_all_components() {
