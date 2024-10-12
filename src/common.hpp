@@ -48,6 +48,10 @@ struct Transform {
 
 bool gl_has_errors();
 
+vec2 v_from_sa(float speed, float angle);
+float a_from_v(vec2 velocity);
+float s_from_v(vec2 velocity);
+
 enum class COLLISION_TYPE {
 	PROJECTILE_DEADLY = 0,
 	PROJECTILE_PLAYER = PROJECTILE_DEADLY + 1,

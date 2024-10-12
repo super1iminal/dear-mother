@@ -16,9 +16,7 @@
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
-	, player_health(0)
-	, next_eel_spawn(0.f)
-	, next_fish_spawn(0.f) {
+	, player_health(0) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -155,13 +153,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
-	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
-
+	for (Entity entity : registry.debugComponents.entities) {
+		registry.removes.emplace_with_duplicates(entity);
+	}
+	cleanup();
 	// Removing out of screen entities
 	auto& worldObjects_registry = registry.worldObjects;
 
-	// Remove entities that leave the screen on the left side
+	// Remove entities that leave the screen on any side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
 	for (Entity entity : worldObjects_registry.entities) {
@@ -171,18 +170,27 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			worldobject.position.y + abs(worldobject.scale.y) < 0.f ||
 			worldobject.position.y - abs(worldobject.scale.y) > window_height_px) &&
 			!registry.players.has(entity)) {
-			registry.remove_all_components_of(entity);
+			registry.removes.emplace_with_duplicates(entity);
 		}
 	}
+
+	// Remove entities with expired lifetimes. Need to iterate backwards to avoid catastrophic error
+	for (int i = registry.lifetimes.entities.size() - 1; i >= 0; --i) {
+		Entity entity = registry.lifetimes.entities[i];
+		Lifetime& lifetime = registry.lifetimes.get(entity);
+		lifetime.time_remaining_ms -= elapsed_ms_since_last_update;
+		if (lifetime.time_remaining_ms < 0) {
+			registry.removes.emplace_with_duplicates(entity);
+		}
+	}
+
 
 	// Shoot if LMB is clicked
 	shoot(player);
 
 	// spawn two enemies
-	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
-		createEnemy(renderer, vec2(window_width_px - 200.f, 250.f), 100);
-		createEnemy(renderer, vec2(200.f, 250.f), 100);
+	if (registry.deadlys.components.size() < 2) {
+		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT/2 ), 50.f);
 	}
 
 	// Processing the salmon state
@@ -234,8 +242,10 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	while (registry.worldObjects.entities.size() > 0)
-	    registry.remove_all_components_of(registry.worldObjects.entities.back());
+	for (Entity entity : registry.worldObjects.entities) {
+		registry.removes.emplace_with_duplicates(entity);
+	}
+	WorldSystem::cleanup();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -249,7 +259,14 @@ void WorldSystem::restart_game() {
 	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { 100.f, window_height_px - 120.f }, 0.f);
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
 
 	// Set initial cooldown time
 	set_last_shot_time();
@@ -296,42 +313,42 @@ void WorldSystem::restart_game() {
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
 void WorldSystem::handle_collisions() {
+	// god damn. 
 	for (Entity entity : registry.collisions.entities) {
-		Entity entity_other = registry.collisions.get(entity).other;
-		COLLISION_TYPE type = registry.collisions.get(entity).type;
+		std::vector<Collision*> collisions = registry.collisions.get_all(entity);
 
-		// Handle collisions
-		// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
-		switch (type) {
+		for (int j = 0; j < collisions.size(); j++) {
+			Collision collision = *collisions[j];
+			Entity entity_other = collision.other;
+			COLLISION_TYPE type = collision.type;
+
+			// Handle collisions
+					// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
+			switch (type) {
 			case COLLISION_TYPE::PLAYER_DEADLY:
-				printf("Player deadly collision\n");
 				handlePlayerDeadly(entity, entity_other);
 				break;
 			case COLLISION_TYPE::DEADLY_BLOCKER:
-				printf("Deadly blocker collision\n");
 				handleActorBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PLAYER_BLOCKER:
-				printf("Player blocker collision\n");
 				handleActorBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PROJECTILE_BLOCKER:
-				printf("Projectile blocker collision\n");
 				handleProjectileBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PROJECTILE_DEADLY:
-				printf("Projectile deadly collision\n");	
 				handleProjectileDeadly(entity, entity_other);
 				// note that this collision is only added if the projectile is friendly
 				break;
 			case COLLISION_TYPE::PROJECTILE_PLAYER:
-				printf("Projectile player collision\n");
 				handleProjectilePlayer(entity, entity_other);
 				// note that this collision is only added if the projectile is not friendly
 				break;
 			default:
-				printf("Unhandled collision\n");	
+				printf("Unhandled collision\n");
 				break;
+			}
 		}
 		
 	}
@@ -352,81 +369,109 @@ void WorldSystem::handle_collisions() {
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	if (!registry.invincibleTimers.has(player)) {
 		if (registry.healthComponents.get(player).curr_health > 0) {
+			createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+			createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
 			registry.healthComponents.get(player).curr_health -= 1;
 			registry.healthComponents.get(deadly).curr_health -= 1;
 		}
 		registry.invincibleTimers.emplace(player);
 	}
-
 	return;
 }
 
-
+// Returns the local bounding coordinates scaled by the current size of the entity
+vec2 get_bounding_box_w(const WorldObject& worldobject)
+{
+	// abs is to avoid negative scale due to the facing direction.
+	return { abs(worldobject.scale.x), abs(worldobject.scale.y) };
+}
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
 
-	// Get bounding box half extents for actor and blocker
-	vec2 half_extent_actor = worldobject_actor.scale * 0.5f;
-	vec2 half_extent_blocker = worldobject_blocker.scale * 0.5f;
+	// Get the bounding boxes (sizes) of both entities
+	vec2 bbox_actor = get_bounding_box_w(worldobject_actor);
+	vec2 bbox_blocker = get_bounding_box_w(worldobject_blocker);
 
-	// Calculate the difference in positions
-	vec2 delta_position = worldobject_actor.position - worldobject_blocker.position;
+	// Compute half sizes for easier calculation
+	float half_width_actor = bbox_actor.x / 2.0f;
+	float half_height_actor = bbox_actor.y / 2.0f;
+	float half_width_blocker = bbox_blocker.x / 2.0f;
+	float half_height_blocker = bbox_blocker.y / 2.0f;
 
-	// Calculate overlap in x and y directions
-	float overlap_x = half_extent_actor.x + half_extent_blocker.x - std::abs(delta_position.x);
-	float overlap_y = half_extent_actor.y + half_extent_blocker.y - std::abs(delta_position.y);
+	// Compute the difference in positions
+	float dx = worldobject_actor.position.x - worldobject_blocker.position.x;
+	float dy = worldobject_actor.position.y - worldobject_blocker.position.y;
 
-	if (overlap_x > 0 && overlap_y > 0) {
-		// Determine the minimum translation direction to resolve the collision
-		if (overlap_x < overlap_y) {
-			// Resolve along x-axis
-			float direction = (delta_position.x < 0) ? -1.0f : 1.0f;
-			worldobject_actor.position.x = worldobject_blocker.position.x + direction * (half_extent_actor.x + half_extent_blocker.x);
+	// Compute combined half widths and heights
+	float combined_half_widths = half_width_actor + half_width_blocker;
+	float combined_half_heights = half_height_actor + half_height_blocker;
+
+	// Check for collision on the x and y axes
+	if (std::abs(dx) < combined_half_widths && std::abs(dy) < combined_half_heights) {
+		// Collision detected
+		float overlap_x = combined_half_widths - std::abs(dx);
+		float overlap_y = combined_half_heights - std::abs(dy);
+
+		// Determine the direction of maximum overlap
+		if (overlap_x > overlap_y) {
+			// Push out along the y-axis
+			if (dy > 0) {
+				// Actor is below the blocker
+				worldobject_actor.position.y += overlap_y;
+			}
+			else {
+				// Actor is above the blocker
+				worldobject_actor.position.y -= overlap_y;
+			}
 		}
 		else {
-			// Resolve along y-axis
-			float direction = (delta_position.y < 0) ? -1.0f : 1.0f;
-			worldobject_actor.position.y = worldobject_blocker.position.y + direction * (half_extent_actor.y + half_extent_blocker.y);
+			// Push out along the x-axis
+			if (dx > 0) {
+				// Actor is to the right of the blocker
+				worldobject_actor.position.x += overlap_x;
+			}
+			else {
+				// Actor is to the left of the blocker
+				worldobject_actor.position.x -= overlap_x;
+			}
 		}
 	}
-
-	return;
 }
-
-
 
 
 void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 	// remove projectile
-	 registry.remove_all_components_of(projectile);
+	registry.removes.emplace_with_duplicates(projectile);
 	return;
 }
 
 void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	// Decrease health of deadly
 	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
+	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
 
 	// Remove projectile
-	 registry.remove_all_components_of(projectile);
+	registry.removes.emplace_with_duplicates(projectile);
 	return;
 }
 
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
 	
 	// Remove projectile
-	 registry.remove_all_components_of(projectile);
+	registry.removes.emplace_with_duplicates(projectile);
 	return;
 }
 
 void WorldSystem::handle_interactions() {
 	auto& interactablesRegistry = registry.interactables;
-	for (uint i = 0; i < interactablesRegistry.components.size(); i++) {
-		Interactable& interactable = interactablesRegistry.components[i];
-		Entity interactableEntity = interactablesRegistry.entities[i];
+	for (Entity interactableEntity : interactablesRegistry.entities) {
+		Interactable& interactable = interactablesRegistry.get(interactableEntity);
 
 		float range = interactable.range;
 
@@ -454,7 +499,7 @@ void WorldSystem::handle_deaths() {
 				}
 			}
 			else {
-				registry.remove_all_components_of(entity);
+				registry.removes.emplace_with_duplicates(entity);
 			}
 		}
 	}
@@ -510,14 +555,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int dy = (int)down - (int)up;
 
 		if (dx == 0 && dy == 0) {
-			player_motion.speed = 0.f;
+			player_motion.velocity = { 0.f, 0.f };
 		}
 		else {
-			player_motion.speed = player_motion.max_speed;
-			float angle = atan2(dy, dx);
+			float angle = atan2f(dy, dx);
 			if (angle < 0)
 				angle += 2 * M_PI;
-			player_motion.motion_angle = angle;
+			player_motion.velocity = v_from_sa(player_motion.max_speed, angle);
 		}
 	}
 
@@ -559,4 +603,19 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
 	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
 		crosshair_object.position = mouse_position;
+}
+
+// cleanup all entities to be removed. will prevent so many errors. 
+// works fine with duplicate entries in removes
+void WorldSystem::cleanup() {
+	// Make a copy of the entities to remove
+	auto entities_to_remove = registry.removes.entities; // Copy the list
+
+	// Remove components of each entity
+	for (Entity entity : entities_to_remove) {
+		registry.remove_all_components_of(entity);
+	}
+
+	// Clear the removes container
+	registry.removes.clear();
 }

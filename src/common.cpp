@@ -22,6 +22,18 @@ void Transform::translate(vec2 offset)
 	mat = mat * T;
 }
 
+vec2 v_from_sa(float speed, float angle) {
+	return { cos(angle) * speed, sin(angle) * speed };
+}
+
+float a_from_v(vec2 velocity) {
+	return atan2(velocity.y, velocity.x);
+}
+
+float s_from_v(vec2 velocity) {
+	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+}
+
 bool gl_has_errors()
 {
 	GLenum error = glGetError();

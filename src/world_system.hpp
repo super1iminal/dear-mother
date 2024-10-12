@@ -44,6 +44,8 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	void cleanup();
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -76,14 +78,12 @@ private:
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_eel_spawn;
-	float next_fish_spawn;
 	int level = 1;
 	int scrap = 28;
 	Entity items [8];
 	Entity player;
 	Entity floor;
-  Entity crosshair;
+    Entity crosshair;
 
 	// UI entities
 	Entity health_ui;

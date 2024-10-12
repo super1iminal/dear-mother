@@ -241,22 +241,26 @@ void RenderSystem::draw()
 
 	// add floor first
 	render_list.push_back(registry.floors.entities[0]);
-	// then walls
-	for (Entity entity : registry.walls.entities) {
-		render_list.push_back(entity);
-	}
-	// then the player
-	render_list.push_back(registry.players.entities[0]);
 	// then interactables
 	for (Entity entity : registry.interactables.entities) {
 		render_list.push_back(entity);
 	}
+	// then particles
+	for (Entity entity : registry.particles.entities) {
+		render_list.push_back(entity);
+	}
+	// then the player
+	render_list.push_back(registry.players.entities[0]);
 	// then enemies
 	for (Entity entity : registry.deadlys.entities) {
 		render_list.push_back(entity);
 	}
 	// then projectiles
 	for (Entity entity : registry.projectiles.entities) {
+		render_list.push_back(entity);
+	}
+	// then walls
+	for (Entity entity : registry.walls.entities) {
 		render_list.push_back(entity);
 	}
 	// then the crosshair

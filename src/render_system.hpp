@@ -42,7 +42,8 @@ class RenderSystem {
 			textures_path("enemy_robot.png"),
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
-			textures_path("item.png")
+			textures_path("item.png"),
+			textures_path("hit_particle.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

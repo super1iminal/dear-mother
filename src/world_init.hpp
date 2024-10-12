@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "render_system.hpp"
-
+#include <random>
 // BB = bounding box
 const float ENEMY_BB_WIDTH = 100.f;
 const float ENEMY_BB_HEIGHT = 130.f;
@@ -14,11 +14,29 @@ const float PLAYER_SIZE = 100.f;
 
 const float CROSSHAIR_SIZE = 75.f;
 
+const float BASE_UI_HEIGHT = 120.f;
+
+// particle stuff
+const float MAX_NUM_PARTICLES = 30;
+const float MAX_PARTICLE_LIFETIME = 1000.f;
+const float MAX_PARTICLE_SIZE = 20.f;
+const float MAX_PARTICLE_SPEED = 200.f;
+const float MAX_PARTICLE_ACCELERATION = -50.f;
+
+// projectile stuff
+const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
+
+// wall stuff
+const float WALL_WIDTH = 75.f;
+
+// the particles
+void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type);
+
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
 // the walls
-Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle);
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type);
 
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);
