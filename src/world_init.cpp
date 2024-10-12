@@ -10,6 +10,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	registry.walls.emplace(entity);
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -105,6 +106,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(floor, &mesh);
+	registry.floors.emplace(floor);
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(floor);
@@ -153,6 +155,7 @@ Entity createCrosshair(RenderSystem* renderer) {
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	registry.crosshair.emplace(entity);
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -254,6 +257,7 @@ Entity createBaseUI(RenderSystem* renderer)
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+	registry.baseUI.emplace(entity);
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
