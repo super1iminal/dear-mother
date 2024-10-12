@@ -27,6 +27,10 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
 	ComponentContainer<Blocker> blockers;
+	ComponentContainer<Floor> floors;
+	ComponentContainer<Wall> walls;
+	ComponentContainer<BaseUI> baseUI;
+	ComponentContainer<Crosshair> crosshair;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!

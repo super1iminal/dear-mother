@@ -228,8 +228,48 @@ void RenderSystem::draw()
 							  // sprites back to front
 	gl_has_errors();
 	mat3 projection_2D = createProjectionMatrix();
+	//// Draw all textured meshes that have a position and size component
+	//for (Entity entity : registry.renderRequests.entities)
+	//{
+	//	if (!registry.worldObjects.has(entity))
+	//		continue;
+	//	// Note, its not very efficient to access elements indirectly via the entity
+	//	// albeit iterating through all Sprites in sequence. A good point to optimize
+	//	drawTexturedMesh(entity, projection_2D);
+	//}
+
+	std::vector<Entity> render_list = {};
+
+	// add floor first
+	render_list.push_back(registry.floors.entities[0]);
+	// then walls
+	for (Entity entity : registry.walls.entities) {
+		render_list.push_back(entity);
+	}
+	// then the player
+	render_list.push_back(registry.players.entities[0]);
+	// then interactables
+	for (Entity entity : registry.interactables.entities) {
+		render_list.push_back(entity);
+	}
+	// then enemies
+	for (Entity entity : registry.deadlys.entities) {
+		render_list.push_back(entity);
+	}
+	// then projectiles
+	for (Entity entity : registry.projectiles.entities) {
+		render_list.push_back(entity);
+	}
+	// then the crosshair
+	render_list.push_back(registry.crosshair.entities[0]);
+	// then UI elements, starting with the base UI
+	render_list.push_back(registry.baseUI.entities[0]);
+	for (Entity entity : registry.uiElements.entities) {
+		render_list.push_back(entity);
+	}
+
 	// Draw all textured meshes that have a position and size component
-	for (Entity entity : registry.renderRequests.entities)
+	for (Entity entity : render_list)
 	{
 		if (!registry.worldObjects.has(entity))
 			continue;
