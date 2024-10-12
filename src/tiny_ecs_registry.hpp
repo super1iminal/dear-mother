@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
 	ComponentContainer<Blocker> blockers;
+	ComponentContainer<InvincibleTimer> invincibleTimers;
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<BaseUI> baseUI;
@@ -52,6 +53,7 @@ public:
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&healthComponents);
 		registry_list.push_back(&blockers);
+		registry_list.push_back(&invincibleTimers);
 	}
 
 	void clear_all_components() {

@@ -207,6 +207,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
+	auto& invincibleTimerRegistry = registry.invincibleTimers;
+	if (invincibleTimerRegistry.has(player)) {
+		InvincibleTimer& counter = invincibleTimerRegistry.get(player);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < 0) {
+			invincibleTimerRegistry.remove(player);
+		}
+	}
+
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
@@ -340,17 +350,18 @@ void WorldSystem::handle_collisions() {
 //}
 
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
-	if (registry.healthComponents.get(player).curr_health > 0) {
-		registry.healthComponents.get(player).curr_health -= 1;
-		registry.healthComponents.get(deadly).curr_health -= 1;
+	if (!registry.invincibleTimers.has(player)) {
+		if (registry.healthComponents.get(player).curr_health > 0) {
+			registry.healthComponents.get(player).curr_health -= 1;
+			registry.healthComponents.get(deadly).curr_health -= 1;
+		}
+		registry.invincibleTimers.emplace(player);
 	}
+
 	return;
 }
 
-#include <glm/glm.hpp>
-#include <algorithm>
 
-using glm::vec2;
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
