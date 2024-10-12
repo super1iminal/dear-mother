@@ -555,13 +555,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int dy = (int)down - (int)up;
 
 		if (dx == 0 && dy == 0) {
-			player_motion.velocity = { 0.f, 0.f };
+			player_motion.speed = 0.f;
+			player_motion.angle = 0.f;
 		}
 		else {
 			float angle = atan2f(dy, dx);
 			if (angle < 0)
 				angle += 2 * M_PI;
-			player_motion.velocity = v_from_sa(player_motion.max_speed, angle);
+			player_motion.angle = angle;
+			player_motion.speed = player_motion.max_speed;
 		}
 	}
 
