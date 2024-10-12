@@ -245,12 +245,12 @@ void RenderSystem::draw()
 	for (Entity entity : registry.walls.entities) {
 		render_list.push_back(entity);
 	}
-	// then the player
-	render_list.push_back(registry.players.entities[0]);
 	// then interactables
 	for (Entity entity : registry.interactables.entities) {
 		render_list.push_back(entity);
 	}
+	// then the player
+	render_list.push_back(registry.players.entities[0]);
 	// then enemies
 	for (Entity entity : registry.deadlys.entities) {
 		render_list.push_back(entity);

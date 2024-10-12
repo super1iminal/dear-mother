@@ -30,6 +30,8 @@ struct Motion {
 	float max_speed;
 	float motion_angle = 0.f; // with respect to the x-axis
 	float speed = 0.f;
+	float acceleration = 0.f;
+	float acceleration_angle = 0.f;
 };
 
 // a worldobject has a position, angle, and scale

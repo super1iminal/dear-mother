@@ -4,7 +4,7 @@
 #include <iostream>
 
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
-Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
@@ -22,7 +22,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::VERT_WALL,
+		{ type,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -261,10 +261,10 @@ Entity createBaseUI(RenderSystem* renderer)
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = vec2(window_width_px / 2, 60.f); // should be based on texture size later
+	worldobject.position = vec2(window_width_px / 2, BASE_UI_HEIGHT/2); // should be based on texture size later
 	worldobject.angle = 0.f;
 	worldobject.scale.x = window_width_px;
-	worldobject.scale.y = 120.f; // later this should be based on texture height
+	worldobject.scale.y = BASE_UI_HEIGHT; // later this should be based on texture height
 
 	registry.renderRequests.insert(
 		entity,

@@ -12,22 +12,46 @@ vec2 get_bounding_box(const WorldObject& worldobject)
 	return { abs(worldobject.scale.x), abs(worldobject.scale.y) };
 }
 
-// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
-// if the center point of either object is inside the other's bounding-box-circle. You can
-// surely implement a more accurate detection
+// keeping this for later.. muwahahahah
+//// This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
+//// if the center point of either object is inside the other's bounding-box-circle. You can
+//// surely implement a more accurate detection
+//bool collides(const WorldObject& object1, const WorldObject& object2)
+//{
+//	vec2 dp = object1.position - object2.position;
+//	float dist_squared = dot(dp,dp);
+//	const vec2 other_bonding_box = get_bounding_box(object1) / 2.f;
+//	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
+//	const vec2 my_bonding_box = get_bounding_box(object2) / 2.f;
+//	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+//	const float r_squared = max(other_r_squared, my_r_squared);
+//	if (dist_squared < r_squared)
+//		return true;
+//	return false;
+//}
+
+// This is a KINDA APPROXIMATE check that puts a retangle around the bounding boxes and sees
+// if the center point of either object is inside the other's bounding-box. 
 bool collides(const WorldObject& object1, const WorldObject& object2)
 {
 	vec2 dp = object1.position - object2.position;
-	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(object1) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(object2) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
+	vec2 half_extent1 = get_bounding_box(object1) / 2.f;
+	vec2 half_extent2 = get_bounding_box(object2) / 2.f;
+
+	// Check collision in x-axis
+	if (std::abs(dp.x) < (half_extent1.x + half_extent2.x))
+	{
+		// Check collision in y-axis
+		if (std::abs(dp.y) < (half_extent1.y + half_extent2.y))
+		{
+			// Collision detected
+			return true;
+		}
+	}
+	// No collision
 	return false;
 }
+
 /*
  - Check for collisions between all relevant entities
  - note that the order of the loops depends strongly on how many of each we have. 
@@ -94,13 +118,18 @@ void checkCollision() {
 		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
 		if (collides(worldobject_blocker, worldobject_player))
 		{
-			registry.collisions.emplace(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
+			// i emplace with duplicates because player can collide with multiple things.
+			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
+			if (registry.collisions.has(registry.players.entities[0])) {
+			}
+				
 		}
 		for (Entity entity_deadly : registry.deadlys.entities) {
 			WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
 			if (collides(worldobject_blocker, worldobject_deadly))
 			{
-				registry.collisions.emplace(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
+				// i emplace with duplicates because deadly can collide with multiple things.
+				registry.collisions.emplace_with_duplicates(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
 			}
 		}
 	}
@@ -112,7 +141,17 @@ void checkCollision() {
 		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
 		if (collides(worldobject_deadly, worldobject_player))
 		{
-			registry.collisions.emplace(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
+			for (Entity entity : registry.collisions.entities) {
+				Entity entity_other = registry.collisions.get(entity).other;
+				if (registry.players.has(entity) && registry.blockers.has(entity_other)) {
+				}
+			}
+			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
+			for (Entity entity : registry.collisions.entities) {
+				Entity entity_other = registry.collisions.get(entity).other;
+				if (registry.players.has(entity) && registry.blockers.has(entity_other)) {
+				}
+			}
 		}
 	}
 }

@@ -181,8 +181,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// spawn two enemies
 	next_eel_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.deadlys.components.size() <= 2 && next_eel_spawn < 0.f) {
-		createEnemy(renderer, vec2(window_width_px - 200.f, 250.f), 100);
-		createEnemy(renderer, vec2(200.f, 250.f), 100);
+		createEnemy(renderer, vec2(window_width_px - 200.f, 250.f), 50.f);
+		createEnemy(renderer, vec2(200.f, 250.f), 50.f);
 	}
 
 	// Processing the salmon state
@@ -249,7 +249,14 @@ void WorldSystem::restart_game() {
 	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { 100.f, window_height_px - 120.f }, 0.f);
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, 100.f }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, 100.f }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { 100.f, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { 100.f, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
 
 	// Set initial cooldown time
 	set_last_shot_time();
@@ -296,13 +303,18 @@ void WorldSystem::restart_game() {
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
 void WorldSystem::handle_collisions() {
+	// god damn. 
 	for (Entity entity : registry.collisions.entities) {
-		Entity entity_other = registry.collisions.get(entity).other;
-		COLLISION_TYPE type = registry.collisions.get(entity).type;
+		std::vector<Collision*> collisions = registry.collisions.get_all(entity);
 
-		// Handle collisions
-		// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
-		switch (type) {
+		for (int j = 0; j < collisions.size(); j++) {
+			Collision collision = *collisions[j];
+			Entity entity_other = collision.other;
+			COLLISION_TYPE type = collision.type;
+
+			// Handle collisions
+					// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
+			switch (type) {
 			case COLLISION_TYPE::PLAYER_DEADLY:
 				printf("Player deadly collision\n");
 				handlePlayerDeadly(entity, entity_other);
@@ -320,7 +332,7 @@ void WorldSystem::handle_collisions() {
 				handleProjectileBlocker(entity, entity_other);
 				break;
 			case COLLISION_TYPE::PROJECTILE_DEADLY:
-				printf("Projectile deadly collision\n");	
+				printf("Projectile deadly collision\n");
 				handleProjectileDeadly(entity, entity_other);
 				// note that this collision is only added if the projectile is friendly
 				break;
@@ -330,8 +342,9 @@ void WorldSystem::handle_collisions() {
 				// note that this collision is only added if the projectile is not friendly
 				break;
 			default:
-				printf("Unhandled collision\n");	
+				printf("Unhandled collision\n");
 				break;
+			}
 		}
 		
 	}
@@ -357,45 +370,73 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 		}
 		registry.invincibleTimers.emplace(player);
 	}
-
 	return;
 }
 
-
+// Returns the local bounding coordinates scaled by the current size of the entity
+vec2 get_bounding_box_w(const WorldObject& worldobject)
+{
+	// abs is to avoid negative scale due to the facing direction.
+	return { abs(worldobject.scale.x), abs(worldobject.scale.y) };
+}
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	if (registry.players.has(actor)) {
+		printf("PLAYER WALL COLLISION ALERT AWWWWW----------------\n");
+	}
+	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
 
-	// Get bounding box half extents for actor and blocker
-	vec2 half_extent_actor = worldobject_actor.scale * 0.5f;
-	vec2 half_extent_blocker = worldobject_blocker.scale * 0.5f;
+	// Get the bounding boxes (sizes) of both entities
+	vec2 bbox_actor = get_bounding_box_w(worldobject_actor);
+	vec2 bbox_blocker = get_bounding_box_w(worldobject_blocker);
 
-	// Calculate the difference in positions
-	vec2 delta_position = worldobject_actor.position - worldobject_blocker.position;
+	// Compute half sizes for easier calculation
+	float half_width_actor = bbox_actor.x / 2.0f;
+	float half_height_actor = bbox_actor.y / 2.0f;
+	float half_width_blocker = bbox_blocker.x / 2.0f;
+	float half_height_blocker = bbox_blocker.y / 2.0f;
 
-	// Calculate overlap in x and y directions
-	float overlap_x = half_extent_actor.x + half_extent_blocker.x - std::abs(delta_position.x);
-	float overlap_y = half_extent_actor.y + half_extent_blocker.y - std::abs(delta_position.y);
+	// Compute the difference in positions
+	float dx = worldobject_actor.position.x - worldobject_blocker.position.x;
+	float dy = worldobject_actor.position.y - worldobject_blocker.position.y;
 
-	if (overlap_x > 0 && overlap_y > 0) {
-		// Determine the minimum translation direction to resolve the collision
-		if (overlap_x < overlap_y) {
-			// Resolve along x-axis
-			float direction = (delta_position.x < 0) ? -1.0f : 1.0f;
-			worldobject_actor.position.x = worldobject_blocker.position.x + direction * (half_extent_actor.x + half_extent_blocker.x);
+	// Compute combined half widths and heights
+	float combined_half_widths = half_width_actor + half_width_blocker;
+	float combined_half_heights = half_height_actor + half_height_blocker;
+
+	// Check for collision on the x and y axes
+	if (std::abs(dx) < combined_half_widths && std::abs(dy) < combined_half_heights) {
+		// Collision detected
+		float overlap_x = combined_half_widths - std::abs(dx);
+		float overlap_y = combined_half_heights - std::abs(dy);
+
+		// Determine the direction of maximum overlap
+		if (overlap_x > overlap_y) {
+			// Push out along the y-axis
+			if (dy > 0) {
+				// Actor is below the blocker
+				worldobject_actor.position.y += overlap_y;
+			}
+			else {
+				// Actor is above the blocker
+				worldobject_actor.position.y -= overlap_y;
+			}
 		}
 		else {
-			// Resolve along y-axis
-			float direction = (delta_position.y < 0) ? -1.0f : 1.0f;
-			worldobject_actor.position.y = worldobject_blocker.position.y + direction * (half_extent_actor.y + half_extent_blocker.y);
+			// Push out along the x-axis
+			if (dx > 0) {
+				// Actor is to the right of the blocker
+				worldobject_actor.position.x += overlap_x;
+			}
+			else {
+				// Actor is to the left of the blocker
+				worldobject_actor.position.x -= overlap_x;
+			}
 		}
 	}
-
-	return;
 }
-
-
 
 
 void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
@@ -424,9 +465,8 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 
 void WorldSystem::handle_interactions() {
 	auto& interactablesRegistry = registry.interactables;
-	for (uint i = 0; i < interactablesRegistry.components.size(); i++) {
-		Interactable& interactable = interactablesRegistry.components[i];
-		Entity interactableEntity = interactablesRegistry.entities[i];
+	for (Entity interactableEntity : interactablesRegistry.entities) {
+		Interactable& interactable = interactablesRegistry.get(interactableEntity);
 
 		float range = interactable.range;
 

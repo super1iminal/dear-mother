@@ -14,11 +14,14 @@ const float PLAYER_SIZE = 100.f;
 
 const float CROSSHAIR_SIZE = 75.f;
 
+const float BASE_UI_HEIGHT = 120.f;
+
+
 // the player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
 // the walls
-Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle);
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type);
 
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);

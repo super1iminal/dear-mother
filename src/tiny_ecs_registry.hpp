@@ -54,6 +54,10 @@ public:
 		registry_list.push_back(&healthComponents);
 		registry_list.push_back(&blockers);
 		registry_list.push_back(&invincibleTimers);
+		registry_list.push_back(&floors);
+		registry_list.push_back(&walls);
+		registry_list.push_back(&baseUI);
+		registry_list.push_back(&crosshair);
 	}
 
 	void clear_all_components() {
