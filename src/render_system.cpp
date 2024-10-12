@@ -64,6 +64,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
+
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::SALMON || render_request.used_effect == EFFECT_ASSET_ID::EGG)

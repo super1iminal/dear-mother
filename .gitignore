@@ -6,4 +6,4 @@
 
 /.vs
 /out/build/x64-Debug
-project_path.hpp
+/ext/project_path.hpp.in

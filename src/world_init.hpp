@@ -6,7 +6,7 @@
 
 // BB = bounding box
 const float ENEMY_BB_WIDTH = 100.f;
-const float ENEMY_BB_HEIGHT = 175.f;
+const float ENEMY_BB_HEIGHT = 130.f;
 
 const float PLAYER_MAX_SPEED = 150.f;
 
