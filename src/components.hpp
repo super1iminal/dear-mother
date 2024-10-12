@@ -28,8 +28,6 @@ struct Deadly
 // All data relevant to the motion of entities
 struct Motion {
 	float max_speed;
-	float motion_angle = 0.f; // with respect to the x-axis
-	float speed = 0.f;
 	vec2 velocity = { 0.f, 0.f };
 	vec2 acceleration = { 0.0f, 0.0f };
 };

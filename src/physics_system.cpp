@@ -35,7 +35,6 @@ vec2 get_bounding_box(const WorldObject& worldobject)
 bool collides(const WorldObject& object1, const WorldObject& object2)
 {
 	vec2 dp = object1.position - object2.position;
-
 	vec2 half_extent1 = get_bounding_box(object1) / 2.f;
 	vec2 half_extent2 = get_bounding_box(object2) / 2.f;
 
@@ -55,11 +54,11 @@ bool collides(const WorldObject& object1, const WorldObject& object2)
 
 /*
  - Check for collisions between all relevant entities
- - note that the order of the loops depends strongly on how many of each we have.
+ - note that the order of the loops depends strongly on how many of each we have. 
  - blockers are further in because presumably we'd only have a few (walls, accounting for doors) and we want to check them last
  - projectiles are first because we expect to have many of them
  - projectiles can only collide with one thing at a time
- - note that the order of processing is extremely important for projectiles
+ - note that the order of processing is extremely important for projectiles 
  - if a bullet is colliding with both a wall and a player, we are currently processing the player (and deadlys) first
  - players and deadlys can collide with multiple things at a time, which means the order of their processing is less important
  - this will probably be the source of a lot of bugs. if bug, check here
@@ -67,10 +66,10 @@ bool collides(const WorldObject& object1, const WorldObject& object2)
 */
 void checkCollision() {
 	// Start with Projectiles. Projectiles can only collide with one thing at a time.
-	for (Entity entity_projectile : registry.projectiles.entities)
+	for (Entity entity_projectile : registry.projectiles.entities) 
 	{
 		WorldObject worldobject_projectile = registry.worldObjects.get(entity_projectile);
-		if (registry.projectiles.get(entity_projectile).friendly)
+		if (registry.projectiles.get(entity_projectile).friendly) 
 		{
 			// Check for projectile-deadly collisions
 			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
@@ -136,7 +135,7 @@ void checkCollision() {
 	}
 
 	// next, check player-deadly collisions
-	for (Entity entity_deadly : registry.deadlys.entities)
+	for (Entity entity_deadly : registry.deadlys.entities) 
 	{
 		WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
 		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
@@ -161,41 +160,19 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	auto& motion_registry = registry.motions;
 	auto& world_object_registry = registry.worldObjects;
-	float lerpFactor = 0.1f;
 	for (Entity entity : registry.motions.entities)
 	{
 		assert(world_object_registry.has(entity) && "Motion Entity has no worldobject component");
-		
 		Motion& motion = motion_registry.get(entity);
 		WorldObject& worldobject = world_object_registry.get(entity);
-		
 		float step_seconds = elapsed_ms / 1000.f;
-		
-		vec2 target_velocity = { cos(motion.motion_angle) * motion.speed, sin(motion.motion_angle) * motion.speed };
-		
-    if (registry.particles.has(entity) {
-      motion.velocity += (motion.acceleration * step_seconds);
-      worldobject.position += motion.velocity * step_seconds;
-    }
-		if (!registry.projectiles.has(entity)) { // player & enemies
-			// calculate actual velocity based on linear interpolation
-			motion.velocity.x = lerp(motion.velocity.x, target_velocity.x, lerpFactor);
-			motion.velocity.y = lerp(motion.velocity.y, target_velocity.y, lerpFactor);
 
-			worldobject.position += (motion.velocity) * step_seconds;
-		}
-		else
-		{
-			worldobject.position += (target_velocity) * step_seconds;
-		}
+		motion.velocity += (motion.acceleration * step_seconds);
 
+		// Update the position based on the new velocity
+		worldobject.position += motion.velocity * step_seconds;
 	}
 
 	// collision detection step
 	checkCollision();
 }
-
-float PhysicsSystem::lerp(float base, float target, float alpha) {
-	return (1 - alpha) * base + alpha * target;
-}
-

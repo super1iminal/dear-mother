@@ -102,7 +102,6 @@ private:
 
 	void handleProjectilePlayer(Entity projectile, Entity player);
 
-
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;
