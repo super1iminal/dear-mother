@@ -11,6 +11,10 @@ class PhysicsSystem
 public:
 	void step(float elapsed_ms);
 
+	// movement interpolation
+	//void updateProjectile(Entity& entity, WorldObject& worldObject, float step_seconds);
+	float lerp(float base, float target, float alpha);
+
 	PhysicsSystem()
 	{
 	}

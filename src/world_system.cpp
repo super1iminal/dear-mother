@@ -24,14 +24,14 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 	
 	// destroy music components
-	if (background_music != nullptr)
+	/**/if (background_music != nullptr) //TODO uncomment
 		Mix_FreeMusic(background_music);
 	if (salmon_dead_sound != nullptr)
 		Mix_FreeChunk(salmon_dead_sound);
 	if (salmon_eat_sound != nullptr)
 		Mix_FreeChunk(salmon_eat_sound);
-
-	Mix_CloseAudio();
+		/**/
+	/**/Mix_CloseAudio(); //TODO uncomment
 
 	// Destroy all created components
 	registry.clear_all_components();
@@ -105,7 +105,9 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetMouseButtonCallback(window, on_mouse_button);
 
 	//////////////////////////////////////
+	// TODO uncomment this for merges
 	// Loading music and sounds with SDL
+	
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		return nullptr;
@@ -132,7 +134,7 @@ GLFWwindow* WorldSystem::create_window() {
 
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
-	// Playing background music indefinitely
+	// Playing background music indefinitely  TODO uncomment this line
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
@@ -521,7 +523,7 @@ void WorldSystem::shoot(Entity& player) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
-			createProjectile(renderer, player_object.position, angle, 150.0f, true);
+			createProjectile(renderer, player_object.position, angle, 300.0f, true);
 			first_shot = false;
 			set_last_shot_time();
 		}
