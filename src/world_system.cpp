@@ -230,17 +230,16 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f });
+
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
-	crosshair = createCrosshair(renderer);
 
-	// SHOULD MOVE FLOOR AND INTERACTABLE INITIALISATION TO WORLD_INIT.CPP PLEASE
-	// create a floor entity
-	createFloor(renderer,{ window_width_px / 2, window_height_px / 2 }, { 100.f , 100.f });
-	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 50.f, 50.f },
+	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
 		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
 	);
-	createWall(renderer, { window_width_px / 3, window_height_px / 3 }, { 50.f, 150.f }, 0.f);
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { 100.f, window_height_px - 120.f }, 0.f);
 
 	// Set initial cooldown time
 	set_last_shot_time();
@@ -260,15 +259,15 @@ void WorldSystem::restart_game() {
 
 	// create scrap_ui entity
 	scrap_ui = createTexturedUIElement(renderer,
-		vec2(window_width_px / 4, window_height_px / 13),
-		vec2(50.f, 25.f),
+		vec2(375.f, window_height_px / 20),
+		vec2(25.f, 25.f),
 		"scrap_ui",
 		static_cast<float>(scrap));
 
 	// create level_ui entity
 	level_ui = createTexturedUIElement(renderer,
-		vec2(window_width_px / 4, window_height_px / 8),
-		vec2(50.f, 30.f),
+		vec2(375.f, window_height_px / 10),
+		vec2(25.f, 30.f),
 		"level_ui",
 		static_cast<float>(level));
 
@@ -276,10 +275,13 @@ void WorldSystem::restart_game() {
 	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
 	Entity item_ui = createTexturedUIElement(renderer,
-		vec2(window_width_px - window_width_px / 7, window_height_px / 11),
+		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
 		vec2(75.f, 75.f),
 		"item_one_ui",
-		TEXTURE_ASSET_ID::FISH);
+		TEXTURE_ASSET_ID::ITEM);
+
+	// add crosshair
+	crosshair = createCrosshair(renderer);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions

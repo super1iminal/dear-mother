@@ -21,7 +21,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle) {
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+		{ TEXTURE_ASSET_ID::VERT_WALL,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -47,7 +47,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
-	worldobject.scale = mesh.original_size * PLAYER_SIZE;
+	worldobject.scale = vec2(mesh.original_size.x * PLAYER_SIZE, mesh.original_size.y * PLAYER_SIZE * 1.3);
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
@@ -56,7 +56,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	health.curr_health = 5;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FISH,
+		{ TEXTURE_ASSET_ID::PLAYER,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -91,7 +91,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	registry.renderRequests.insert(
 		entity,
 		{
-			TEXTURE_ASSET_ID::BOUNDBOX,
+			TEXTURE_ASSET_ID::ENEMY,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE
 		});
@@ -114,7 +114,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 
 	registry.renderRequests.insert(
 		floor,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
+		{ TEXTURE_ASSET_ID::FLOOR,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -140,7 +140,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 
 	registry.renderRequests.insert(
 		interactable_entity,
-		{ TEXTURE_ASSET_ID::BOUNDBOX,
+		{ TEXTURE_ASSET_ID::ITEM,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -257,10 +257,10 @@ Entity createBaseUI(RenderSystem* renderer)
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = vec2(window_width_px / 2, 67.f); // should be based on texture size later
+	worldobject.position = vec2(window_width_px / 2, 60.f); // should be based on texture size later
 	worldobject.angle = 0.f;
 	worldobject.scale.x = window_width_px;
-	worldobject.scale.y = 134.f; // later this should be based on texture height
+	worldobject.scale.y = 120.f; // later this should be based on texture height
 
 	registry.renderRequests.insert(
 		entity,

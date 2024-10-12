@@ -31,13 +31,18 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			textures_path("green_fish.png"),
+			textures_path("player_robot.png"),
 			textures_path("bounding_box.png"),
-      textures_path("bounding_box_blue.png"),
+			textures_path("floor_1.png"),
+			textures_path("bounding_box_blue.png"),
 			textures_path("bullet_friendly.png"), 
 			textures_path("bullet_enemy.png"),
 			textures_path("crosshair003.png"),
-			textures_path("UI_PLACEHOLDER.png"),
+			textures_path("base_UI.png"),
+			textures_path("enemy_robot.png"),
+			textures_path("horz_wall.png"),
+			textures_path("vert_wall.png"),
+			textures_path("item.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
