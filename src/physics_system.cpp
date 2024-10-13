@@ -156,6 +156,7 @@ void checkCollision() {
 	}
 }
 
+// unused
 bool PhysicsSystem::check_velocity_threshold(Motion& motion) {
 	return ((motion.velocity.x > 1.1) || (motion.velocity.x < -0.1)) || ((motion.velocity.y > 1.1) || (motion.velocity.y < -0.1));
 }
@@ -216,9 +217,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 
 		// Update the position based on the new velocity
-		if (check_velocity_threshold(motion)) {
-			worldobject.position += motion.velocity * step_seconds;
-		}
+		worldobject.position += motion.velocity * step_seconds;
 	}
 
 	// Collision detection step
@@ -226,5 +225,6 @@ void PhysicsSystem::step(float elapsed_ms)
 }
 
 float PhysicsSystem::lerp(float base, float target, float alpha) {
-	return (1 - alpha) * base + target + alpha;
+	return (1 - alpha) * base + alpha * target;
 }
+
