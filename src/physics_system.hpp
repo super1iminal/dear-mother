@@ -10,6 +10,7 @@ class PhysicsSystem
 {
 public:
 	void step(float elapsed_ms);
+	float lerp(float base, float target, float alpha);
 
 	PhysicsSystem()
 	{

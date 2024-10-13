@@ -160,8 +160,14 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	auto& motion_registry = registry.motions;
 	auto& world_object_registry = registry.worldObjects;
+	vec2 zeroVel = { 0.f, 0.f };
+	float lerpFactor = 0.1f;
+
 	for (Entity entity : registry.motions.entities)
 	{
+		float x_dir = 0.f;
+		float y_dir = 0.f;
+
 		assert(world_object_registry.has(entity) && "Motion Entity has no worldobject component");
 		Motion& motion = motion_registry.get(entity);
 		WorldObject& worldobject = world_object_registry.get(entity);
@@ -205,7 +211,31 @@ void PhysicsSystem::step(float elapsed_ms)
 		// Update the position based on the new velocity
 		worldobject.position += motion.velocity * step_seconds;
 	}
+		vec2 target_velocity = { cos(motion.angle) * motion.speed, sin(motion.angle) * motion.speed };
+		
+		if (!registry.projectiles.has(entity) && !registry.particles.has(entity)) {
+			motion.velocity.x = lerp(motion.velocity.x, target_velocity.x, lerpFactor);
+			motion.velocity.y = lerp(motion.velocity.y, target_velocity.y, lerpFactor);
+		}
+
+		if (registry.projectiles.has(entity) || registry.particles.has(entity)) {
+			motion.velocity += (motion.acceleration * step_seconds);
+			// Update the position based on the new velocity
+			worldobject.position += motion.velocity * step_seconds;
+		}
+		else if (registry.players.has(entity) || registry.deadlys.has(entity)) {
+			motion.velocity.x = lerp(motion.velocity.x, target_velocity.x, lerpFactor);
+			motion.velocity.y = lerp(motion.velocity.y, target_velocity.y, lerpFactor);
+
+			worldobject.position += (motion.velocity) * step_seconds;
+		}	
+	}
 
 	// collision detection step
 	checkCollision();
+}
+}
+
+float PhysicsSystem::lerp(float base, float target, float alpha) {
+	return (1 - alpha) * base + target + alpha;
 }
