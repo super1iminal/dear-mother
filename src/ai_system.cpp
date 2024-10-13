@@ -98,7 +98,7 @@ void AISystem::step(float elapsed_ms)
 			if (angle < 0)
 				angle += 2 * M_PI;
 			//worldObjectRegistry.get(enemy).angle = angle;
-			motionRegistry.get(enemy).velocity = v_from_sa(motionRegistry.get(enemy).max_speed, angle);
+			motionRegistry.get(enemy).target_velocity = v_from_sa(motionRegistry.get(enemy).max_speed, angle);
 			//cout << "{" << coor_player.x << "||" << coor_player.y << "}" << "{" << coor_enemy.x << "||" << coor_enemy.y << "}" << dx <<"|"<<dy<<"|" <<angle << endl;
 		}
 	}

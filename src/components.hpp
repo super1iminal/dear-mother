@@ -29,9 +29,9 @@ struct Deadly
 struct Motion {
 	float max_speed;
 	vec2 velocity = { 0.f, 0.f };
+	vec2 target_velocity = { 0.f, 0.f };
 	vec2 acceleration = { 0.0f, 0.0f };
-	float angle;
-	float speed;
+	float mass;
 };
 
 // a worldobject has a position, angle, and scale
@@ -121,6 +121,10 @@ struct UIElement {
 
 struct Remove {
 
+};
+
+struct Friction {
+	float force;
 };
 
 // Mesh datastructure for storing vertex and index buffers

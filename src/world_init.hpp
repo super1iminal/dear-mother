@@ -17,11 +17,17 @@ const float CROSSHAIR_SIZE = 75.f;
 const float BASE_UI_HEIGHT = 120.f;
 
 // particle stuff
-const float MAX_NUM_PARTICLES = 30;
+const float MAX_NUM_PARTICLES = 10;
+const int NUM_PARTICLES_OFFSET = 5;
 const float MAX_PARTICLE_LIFETIME = 1000.f;
 const float MAX_PARTICLE_SIZE = 20.f;
-const float MAX_PARTICLE_SPEED = 200.f;
-const float MAX_PARTICLE_ACCELERATION = -50.f;
+const float MAX_PARTICLE_SPEED = 1500.f;
+const float PARTICLE_SPEED_OFFSET = 500.0f;
+const float MAX_PARTICLE_ACCELERATION = -50.f; // unused for now
+const float MAX_PARTICLE_MASS = 10.f; // in kg
+const float PARTICLE_DRAG_COEF = 0.47f; // drag coefficient for particles. intermediate reynolds number
+const float VELOCITY_THRESHOLD = 0.1f; // if a particle is slower than this, it will be removed, sort of. calculated and set as lifetime
+
 
 // projectile stuff
 const int PROJECTILE_LIFESPAN = 2000; // in milliseconds

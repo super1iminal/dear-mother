@@ -190,7 +190,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// spawn two enemies
 	if (registry.deadlys.components.size() < 2) {
-		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT/2 ), 50.f);
+		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT/2 ), 10.f);
 	}
 
 	// Processing the salmon state
@@ -521,7 +521,7 @@ void WorldSystem::shoot(Entity& player) {
 			double xpos, ypos;
 			glfwGetCursorPos(window, &xpos, &ypos);
 			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
-			createProjectile(renderer, player_object.position, angle, 150.0f, true);
+			createProjectile(renderer, player_object.position, angle, 350.0f, true);
 			first_shot = false;
 			set_last_shot_time();
 		}
@@ -555,15 +555,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int dy = (int)down - (int)up;
 
 		if (dx == 0 && dy == 0) {
-			player_motion.speed = 0.f;
-			player_motion.angle = 0.f;
+			player_motion.target_velocity = { 0.f, 0.f };
 		}
 		else {
 			float angle = atan2f(dy, dx);
 			if (angle < 0)
 				angle += 2 * M_PI;
-			player_motion.angle = angle;
-			player_motion.speed = player_motion.max_speed;
+			player_motion.target_velocity = v_from_sa(player_motion.max_speed, angle);
 		}
 	}
 
