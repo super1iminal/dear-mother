@@ -9,7 +9,7 @@
 class PhysicsSystem
 {
 private:
-	bool check_velocity_threshold(Motion& motion);
+	bool check_velocity_threshold(Motion& motion); // unused
 public:
 	void step(float elapsed_ms);
 	float lerp(float base, float target, float alpha);

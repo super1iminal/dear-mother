@@ -8,7 +8,7 @@
 const float ENEMY_BB_WIDTH = 100.f;
 const float ENEMY_BB_HEIGHT = 130.f;
 
-const float PLAYER_MAX_SPEED = 30.f;
+const float PLAYER_MAX_SPEED = 300.f;
 
 const float PLAYER_SIZE = 100.f;
 
