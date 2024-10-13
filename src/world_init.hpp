@@ -17,10 +17,11 @@ const float CROSSHAIR_SIZE = 75.f;
 const float BASE_UI_HEIGHT = 120.f;
 
 // particle stuff
-const float MAX_NUM_PARTICLES = 10;
-const int NUM_PARTICLES_OFFSET = 5;
+const float MAX_NUM_PARTICLES = 4;
+const int NUM_PARTICLES_OFFSET = 1;
 const float MAX_PARTICLE_LIFETIME = 1000.f;
 const float MAX_PARTICLE_SIZE = 20.f;
+const float PARTICLE_SIZE_OFFSET = 10.f;
 const float MAX_PARTICLE_SPEED = 1500.f;
 const float PARTICLE_SPEED_OFFSET = 500.0f;
 const float MAX_PARTICLE_ACCELERATION = -50.f; // unused for now

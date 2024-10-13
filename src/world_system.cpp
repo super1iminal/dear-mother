@@ -22,7 +22,7 @@ WorldSystem::WorldSystem()
 }
 
 WorldSystem::~WorldSystem() {
-	
+
 	// destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
@@ -42,18 +42,18 @@ WorldSystem::~WorldSystem() {
 
 // Debugging
 namespace {
-	void glfw_err_cb(int error, const char *desc) {
+	void glfw_err_cb(int error, const char* desc) {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
 
-void WorldSystem::set_last_shot_time() {
+void WorldSystem::set_last_shot_time(Entity& entity) {
 	using Clock = std::chrono::high_resolution_clock;
-	t = Clock::now();
+	registry.shooters.get(entity).t = Clock::now();
 }
 
-std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time() {
-	return t;
+std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time(Entity& entity) {
+	return registry.shooters.get(entity).t;
 }
 
 std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
@@ -137,7 +137,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
@@ -186,7 +186,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 
 	// Shoot if LMB is clicked
-	shoot(player);
+	for (Entity entity : registry.shooters.entities) {
+		shoot(entity);
+	}
 
 	// spawn two enemies
 	if (registry.deadlys.components.size() < 2) {
@@ -195,33 +197,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the salmon state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState& screen = registry.screenStates.components[0];
 	screen.health_status = player_health;
 
-    float min_counter_ms = 3000.f;
+	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
 
 	auto& invincibleTimerRegistry = registry.invincibleTimers;
-	if (invincibleTimerRegistry.has(player)) {
-		InvincibleTimer& counter = invincibleTimerRegistry.get(player);
+	for (Entity entity : invincibleTimerRegistry.entities) {
+		InvincibleTimer& counter = invincibleTimerRegistry.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
 		if (counter.counter_ms < 0) {
-			invincibleTimerRegistry.remove(player);
+			invincibleTimerRegistry.remove(entity);
 		}
 	}
 
@@ -257,7 +259,7 @@ void WorldSystem::restart_game() {
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
 	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
-		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl;}
+		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl; }
 	);
 	// top wall
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
@@ -269,7 +271,10 @@ void WorldSystem::restart_game() {
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
 
 	// Set initial cooldown time
-	set_last_shot_time();
+	for (Entity entity : registry.shooters.entities) {
+		set_last_shot_time(entity);
+	}
+	
 
 	// Add the base UI
 	Entity base_ui = createBaseUI(renderer);
@@ -350,7 +355,7 @@ void WorldSystem::handle_collisions() {
 				break;
 			}
 		}
-		
+
 	}
 
 	// Remove all collisions from this simulation step
@@ -367,14 +372,20 @@ void WorldSystem::handle_collisions() {
 //}
 
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
-	if (!registry.invincibleTimers.has(player)) {
-		if (registry.healthComponents.get(player).curr_health > 0) {
-			createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
-			createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
-			registry.healthComponents.get(player).curr_health -= 1;
-			registry.healthComponents.get(deadly).curr_health -= 1;
+
+	std::array<Entity, 2> entities = { player, deadly };
+	for (Entity entity : entities) {
+		if (!registry.invincibleTimers.has(entity)) {
+			registry.healthComponents.get(entity).curr_health -= 1;
+			if (registry.players.has(entity)) {
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+			}
+			else {
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+			}
+			
 		}
-		registry.invincibleTimers.emplace(player);
+		registry.invincibleTimers.emplace(entity);
 	}
 	return;
 }
@@ -461,8 +472,8 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
-	
+	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+
 	// Remove projectile
 	registry.removes.emplace_with_duplicates(projectile);
 	return;
@@ -486,10 +497,10 @@ void WorldSystem::handle_interactions() {
 }
 
 void WorldSystem::handle_deaths() {
-	for (Entity entity : registry.healthComponents.entities) 
+	for (Entity entity : registry.healthComponents.entities)
 	{
 		Health& health = registry.healthComponents.get(entity);
-		if (health.curr_health <= 0) 
+		if (health.curr_health <= 0)
 		{
 			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
@@ -499,6 +510,9 @@ void WorldSystem::handle_deaths() {
 				}
 			}
 			else {
+				if (registry.deadlys.has(entity)) {
+					// TODO: drop item on death
+				}
 				registry.removes.emplace_with_duplicates(entity);
 			}
 		}
@@ -510,22 +524,39 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
-void WorldSystem::shoot(Entity& player) {
-	if (left_mouse_button) {
-		Motion& player_motion = registry.motions.get(player);
-		WorldObject& player_object = registry.worldObjects.get(player);
-		auto now = get_curr_time();
-		float elapsed_ms =
-			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - get_last_shot_time())).count() / 1000;
-		if ((elapsed_ms >= registry.players.get(player).fire_rate) || first_shot) {
-			double xpos, ypos;
-			glfwGetCursorPos(window, &xpos, &ypos);
-			float angle = atan2(ypos - player_object.position.y, xpos - player_object.position.x);
-			createProjectile(renderer, player_object.position, angle, 350.0f, true);
-			first_shot = false;
-			set_last_shot_time();
+void WorldSystem::shoot(Entity& entity) {
+	auto now = get_curr_time();
+	float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - get_last_shot_time(entity))).count() / 1000;
+	Motion& entity_motion = registry.motions.get(entity);
+	WorldObject& entity_object = registry.worldObjects.get(entity);
+
+	if (registry.players.has(entity)) {
+		if (left_mouse_button) {
+			if ((elapsed_ms >= registry.shooters.get(entity).fire_rate) || first_shot) {
+				double xpos, ypos;
+				glfwGetCursorPos(window, &xpos, &ypos);
+				float angle = atan2(ypos - entity_object.position.y, xpos - entity_object.position.x);
+				createProjectile(renderer, entity_object.position, angle, 350.0f, true);
+				first_shot = false;
+
+				set_last_shot_time(entity);
+			}
 		}
 	}
+	else if (registry.deadlys.has(entity)) {
+		if ((elapsed_ms >= registry.shooters.get(entity).fire_rate)) {
+			vec2 coor_player = registry.worldObjects.get(registry.players.entities[0]).position;
+			int dx = entity_object.position.x - coor_player.x;
+			int dy = entity_object.position.y - coor_player.y;
+			float angle = atan2(dy, dx) - M_PI;
+			if (angle < 0)
+				angle += 2 * M_PI;
+			createProjectile(renderer, entity_object.position, angle, 350.0f, false);
+			set_last_shot_time(entity);
+		}
+		
+	}
+
 }
 
 void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
@@ -601,7 +632,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair
 	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > BASE_UI_HEIGHT && mouse_position.y < window_height_px) 
+	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > BASE_UI_HEIGHT && mouse_position.y < window_height_px)
 		crosshair_object.position = mouse_position;
 }
 

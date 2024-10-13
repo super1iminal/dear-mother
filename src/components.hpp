@@ -5,13 +5,20 @@
 #include "../ext/stb_image/stb_image.h"
 #include <string>
 
+#include <iostream>
+#include <chrono>
+
 // Player component
 struct Player
 {
-	// Fire Rate in ms (Temp: change to ranged weapon later)
-	float fire_rate = 500.0f;
+	
 };
-
+struct Shooter
+{	
+	// Fire Rate in ms (Temp: change to ranged weapon later)
+	float fire_rate = 0.0f;
+	std::chrono::steady_clock::time_point t;
+};
 // Common Health component
 struct Health
 {
@@ -208,7 +215,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	VERT_WALL = HORZ_WALL + 1,
 	ITEM = VERT_WALL + 1,
 	HIT_PARTICLE = ITEM + 1,
-	TEXTURE_COUNT = HIT_PARTICLE + 1,
+	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
+	TEXTURE_COUNT = HIT_PARTICLE_PLAYER + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
