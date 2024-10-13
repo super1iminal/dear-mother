@@ -2,8 +2,7 @@
 ; Copyright(c) Microsoft Corporation. All Rights Reserved.
 ;---------------------------------------------------------------
 ;
-; While debugging, Data Tips and 
-s in the Watch and Variable
+; While debugging, Data Tips and items in the Watch and Variable
 ; windows are automatically expanded to show their most important
 ; elements. The expansion follows the format given by the rules
 ; in this file. You can add rules for your types or change the

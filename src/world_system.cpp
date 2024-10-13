@@ -511,7 +511,7 @@ void WorldSystem::handle_deaths() {
 			}
 			else {
 				if (registry.deadlys.has(entity)) {
-
+					// TODO: drop item on death
 				}
 				registry.removes.emplace_with_duplicates(entity);
 			}
