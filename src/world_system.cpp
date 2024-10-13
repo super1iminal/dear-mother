@@ -601,7 +601,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// Update the position of the crosshair
 	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > 0 && mouse_position.y < window_height_px) 
+	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > BASE_UI_HEIGHT && mouse_position.y < window_height_px) 
 		crosshair_object.position = mouse_position;
 }
 
