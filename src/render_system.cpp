@@ -263,13 +263,13 @@ void RenderSystem::draw()
 	for (Entity entity : registry.walls.entities) {
 		render_list.push_back(entity);
 	}
-	// then the crosshair
-	render_list.push_back(registry.crosshair.entities[0]);
 	// then UI elements, starting with the base UI
 	render_list.push_back(registry.baseUI.entities[0]);
 	for (Entity entity : registry.uiElements.entities) {
 		render_list.push_back(entity);
 	}
+	// finally, the crosshair
+	render_list.push_back(registry.crosshair.entities[0]);
 
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : render_list)
