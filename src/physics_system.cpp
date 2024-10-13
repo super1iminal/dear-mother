@@ -156,6 +156,10 @@ void checkCollision() {
 	}
 }
 
+bool PhysicsSystem::check_velocity_threshold(Motion& motion) {
+	return ((motion.velocity.x > 1.1) || (motion.velocity.x < -0.1)) || ((motion.velocity.y > 1.1) || (motion.velocity.y < -0.1));
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
 	auto& motion_registry = registry.motions;
@@ -172,7 +176,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		// For non-projectile and non-particle entities, adjust velocity towards target_velocity using lerp
 		if (registry.players.has(entity) || registry.deadlys.has(entity)) {
-			float angle = a_from_v(motion.velocity);;
+			float angle = a_from_v(motion.velocity);
 			motion.velocity.x = lerp(motion.velocity.x, motion.target_velocity.x, lerpFactor);
 			motion.velocity.y = lerp(motion.velocity.y, motion.target_velocity.y, lerpFactor);
 		}
@@ -212,7 +216,9 @@ void PhysicsSystem::step(float elapsed_ms)
 		}
 
 		// Update the position based on the new velocity
-		worldobject.position += motion.velocity * step_seconds;
+		if (check_velocity_threshold(motion)) {
+			worldobject.position += motion.velocity * step_seconds;
+		}
 	}
 
 	// Collision detection step

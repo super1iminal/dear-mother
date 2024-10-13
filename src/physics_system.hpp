@@ -8,6 +8,8 @@
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem
 {
+private:
+	bool check_velocity_threshold(Motion& motion);
 public:
 	void step(float elapsed_ms);
 	float lerp(float base, float target, float alpha);
