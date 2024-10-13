@@ -20,7 +20,7 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = uniform_dist(rng) * 2 * M_PI;
-	float size = uniform_dist(rng) * MAX_PARTICLE_SIZE;
+	float size = uniform_dist(rng) * MAX_PARTICLE_SIZE + PARTICLE_SIZE_OFFSET;
 	worldobject.scale = vec2({ size, size });
 
 	// adding motion component
@@ -108,6 +108,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
+	auto& shooter = registry.shooters.emplace(entity);
+	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
@@ -142,6 +144,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 
 	// create an empty Enemy component to be able to refer to all enemies
 	registry.deadlys.emplace(entity);
+	auto& shooter = registry.shooters.emplace(entity);
+	shooter.fire_rate = 10000.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;

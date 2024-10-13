@@ -36,6 +36,7 @@ public:
 	ComponentContainer<Particle> particles;
 	ComponentContainer<Remove> removes;
 	ComponentContainer<Friction> frictions;
+	ComponentContainer<Shooter> shooters;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -66,6 +67,7 @@ public:
 		registry_list.push_back(&particles);
 		registry_list.push_back(&removes);
 		registry_list.push_back(&frictions);
+		registry_list.push_back(&shooters);
 	}
 
 	void clear_all_components() {
