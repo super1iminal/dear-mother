@@ -7,9 +7,14 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
+	// Adding meshptr component
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
+
+	// adding particles component
 	registry.particles.emplace(entity);
+
+	//float mass_size_rand = uniform_dist(rng);
 
 	// setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -18,14 +23,28 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 	float size = uniform_dist(rng) * MAX_PARTICLE_SIZE;
 	worldobject.scale = vec2({ size, size });
 
-	Lifetime& lifetime = registry.lifetimes.emplace(entity);
-	lifetime.time_remaining_ms = uniform_dist(rng) * MAX_PARTICLE_LIFETIME;
-
+	// adding motion component
 	Motion& motion = registry.motions.emplace(entity);
 	float angle = uniform_dist(rng) * 2 * M_PI;
-	motion.velocity = v_from_sa(uniform_dist(rng) * MAX_PARTICLE_SPEED, angle);
-	motion.acceleration = v_from_sa(MAX_PARTICLE_ACCELERATION, angle);
+	float speed = uniform_dist(rng) * MAX_PARTICLE_SPEED + PARTICLE_SPEED_OFFSET;
+	speed = speed == 0.f ? 0.02f : speed;
+	motion.velocity = v_from_sa(speed, angle);
+	motion.mass = MAX_PARTICLE_MASS;
+	motion.acceleration = { 0.0, 0.0 };
+	
+	// adding friction component CALCULATING AIR FRICTION
+	Friction& friction = registry.frictions.emplace(entity);
+	float velocity_magnitude_sq = glm::dot(motion.velocity, motion.velocity);
 
+	friction.force = 0.5f * M_RHO * velocity_magnitude_sq * PARTICLE_DRAG_COEF;	
+	// equation from https://www.ck12.org/flexi/physics/uniform-acceleration/how-can-air-resistance-be-calculated-using-mass-and-acceleration/#:~:text=It%20is%20typically%20calculated%20using,is%20the%20cross%2Dsectional%20area.
+
+	// adding lifetimne component
+	Lifetime& lifetime = registry.lifetimes.emplace(entity);
+	//lifetime.time_remaining_ms = uniform_dist(rng) * MAX_PARTICLE_LIFETIME;
+	lifetime.time_remaining_ms = (((1.0f / VELOCITY_THRESHOLD) - (1.0f / speed)) * (2.0f * motion.mass) / (M_RHO * PARTICLE_DRAG_COEF)) + 500;
+
+	// adding renderRequest component
 	registry.renderRequests.insert(
 		entity,
 		{ type,
@@ -34,7 +53,7 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 }
 
 void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
-	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES);
+	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES) + NUM_PARTICLES_OFFSET;
 	for (int i = 0; i < num_particles; i++) {
 		createParticle(renderer, pos, uniform_dist, rng, type);
 	}

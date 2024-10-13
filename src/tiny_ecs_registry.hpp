@@ -35,6 +35,7 @@ public:
 	ComponentContainer<Lifetime> lifetimes;
 	ComponentContainer<Particle> particles;
 	ComponentContainer<Remove> removes;
+	ComponentContainer<Friction> frictions;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -64,6 +65,7 @@ public:
 		registry_list.push_back(&lifetimes);
 		registry_list.push_back(&particles);
 		registry_list.push_back(&removes);
+		registry_list.push_back(&frictions);
 	}
 
 	void clear_all_components() {

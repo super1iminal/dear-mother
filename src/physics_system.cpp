@@ -167,7 +167,40 @@ void PhysicsSystem::step(float elapsed_ms)
 		WorldObject& worldobject = world_object_registry.get(entity);
 		float step_seconds = elapsed_ms / 1000.f;
 
+		// Update velocity based on the acceleration first
 		motion.velocity += (motion.acceleration * step_seconds);
+
+		// Apply drag if the entity has friction
+		if (registry.frictions.has(entity)) {
+			auto& friction = registry.frictions.get(entity);
+
+			// Calculate the magnitude of the velocity
+			float velocity_magnitude_sq = glm::dot(motion.velocity, motion.velocity);
+			float velocity_magnitude = sqrt(velocity_magnitude_sq);
+
+			friction.force = 0.5f * M_RHO * velocity_magnitude_sq * PARTICLE_DRAG_COEF;
+			// using the following equation without area since pixels don't equate to real world units and value with area is huge
+		    // https://www.ck12.org/flexi/physics/uniform-acceleration/how-can-air-resistance-be-calculated-using-mass-and-acceleration/#:~:text=It%20is%20typically%20calculated%20using,is%20the%20cross%2Dsectional%20area.
+
+			// Calculate drag acceleration (force / mass)
+			float drag_acceleration_magnitude = friction.force / motion.mass;
+
+			// Potential change in velocity due to drag during this time step
+			float delta_v = drag_acceleration_magnitude * step_seconds;
+
+			if (delta_v >= velocity_magnitude) {
+				// Drag would reverse the velocity; set it to zero
+				motion.velocity = glm::vec2(0.0f, 0.0f);
+			}
+			else {
+				// Apply drag as a force opposing the velocity
+				glm::vec2 velocity_direction = glm::normalize(motion.velocity);
+				glm::vec2 drag_acceleration = -velocity_direction * drag_acceleration_magnitude;
+
+				// Adjust velocity by applying the drag acceleration
+				motion.velocity += drag_acceleration * step_seconds;
+			}
+		}
 
 		// Update the position based on the new velocity
 		worldobject.position += motion.velocity * step_seconds;
