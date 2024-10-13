@@ -172,10 +172,9 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		// For non-projectile and non-particle entities, adjust velocity towards target_velocity using lerp
 		if (registry.players.has(entity) || registry.deadlys.has(entity)) {
-			float angle = a_from_v(motion.velocity);
-			vec2 target_velocity = { cos(motion.angle) * motion.speed, sin(motion.angle) * motion.speed };
-			motion.velocity.x = lerp(motion.velocity.x, target_velocity.x, lerpFactor);
-			motion.velocity.y = lerp(motion.velocity.y, target_velocity.y, lerpFactor);
+			float angle = a_from_v(motion.velocity);;
+			motion.velocity.x = lerp(motion.velocity.x, motion.target_velocity.x, lerpFactor);
+			motion.velocity.y = lerp(motion.velocity.y, motion.target_velocity.y, lerpFactor);
 		}
 		else {
 			// Update velocity based on the acceleration first

@@ -247,7 +247,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	WorldObject& worldObject = registry.worldObjects.emplace(entity);
 	worldObject.position = pos;
 	worldObject.angle = angle;
-	worldObject.scale = mesh.original_size * 50.f;
+	worldObject.scale = mesh.original_size * 30.f;
 	worldObject.scale.y *= -1; // point front to the right
 
 	Lifetime& lifetime = registry.lifetimes.emplace(entity);
