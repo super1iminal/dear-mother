@@ -141,7 +141,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 }
 
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update) {
+bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
@@ -150,6 +150,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
+	title_ss << " FPS: " << fps;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step

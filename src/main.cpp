@@ -37,17 +37,32 @@ int main()
 
 	// variable timestep loop
 	auto t = Clock::now();
+
+	double last_time = glfwGetTime();
+	int num_of_frames = 0;
+	double fps = 0;
+
 	while (!world.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
 
 		// Calculating elapsed times in milliseconds from the previous iteration
 		auto now = Clock::now();
+
+		double curr_time = glfwGetTime();
+		num_of_frames++;
+
+		if (curr_time - last_time >= 1.0) {
+			fps = num_of_frames;
+			num_of_frames = 0;
+			last_time += 1.0;
+		}
+
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world.step(elapsed_ms);
+		world.step(elapsed_ms, fps);
 		ai.step(elapsed_ms);
 		physics.step(elapsed_ms);
 		world.handle_collisions();

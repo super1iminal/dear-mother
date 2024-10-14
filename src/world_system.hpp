@@ -31,7 +31,7 @@ public:
 	~WorldSystem();
 
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms);
+	bool step(float elapsed_ms, double fps);
 
 	// Check for collisions
 	void handle_collisions();
