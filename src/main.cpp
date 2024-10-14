@@ -38,6 +38,7 @@ int main()
 	// variable timestep loop
 	auto t = Clock::now();
 
+	// FPS Counter based on this tutorial: http://www.opengl-tutorial.org/miscellaneous/an-fps-counter/
 	double last_time = glfwGetTime();
 	int num_of_frames = 0;
 	double fps = 0;
