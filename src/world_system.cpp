@@ -154,7 +154,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	for (Entity entity : registry.debugComponents.entities) {
-		registry.removes.emplace_with_duplicates(entity);
+		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
 	cleanup();
 	// Removing out of screen entities
@@ -170,7 +170,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			worldobject.position.y + abs(worldobject.scale.y) < 0.f ||
 			worldobject.position.y - abs(worldobject.scale.y) > window_height_px) &&
 			!registry.players.has(entity)) {
-			registry.removes.emplace_with_duplicates(entity);
+			registry.pendingRemoves.emplace_with_duplicates(entity);
 		}
 	}
 
@@ -180,7 +180,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Lifetime& lifetime = registry.lifetimes.get(entity);
 		lifetime.time_remaining_ms -= elapsed_ms_since_last_update;
 		if (lifetime.time_remaining_ms < 0) {
-			registry.removes.emplace_with_duplicates(entity);
+			registry.pendingRemoves.emplace_with_duplicates(entity);
 		}
 	}
 
@@ -245,7 +245,7 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// i.e. All world objects
 	for (Entity entity : registry.worldObjects.entities) {
-		registry.removes.emplace_with_duplicates(entity);
+		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
 	WorldSystem::cleanup();
 
@@ -455,7 +455,7 @@ void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 
 void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 	// remove projectile
-	registry.removes.emplace_with_duplicates(projectile);
+	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
 }
 
@@ -465,7 +465,7 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
 
 	// Remove projectile
-	registry.removes.emplace_with_duplicates(projectile);
+	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
 }
 
@@ -475,7 +475,7 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
 
 	// Remove projectile
-	registry.removes.emplace_with_duplicates(projectile);
+	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
 }
 
@@ -513,7 +513,7 @@ void WorldSystem::handle_deaths() {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
 				}
-				registry.removes.emplace_with_duplicates(entity);
+				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
 		}
 	}
@@ -640,7 +640,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 // works fine with duplicate entries in removes
 void WorldSystem::cleanup() {
 	// Make a copy of the entities to remove
-	auto entities_to_remove = registry.removes.entities; // Copy the list
+	auto entities_to_remove = registry.pendingRemoves.entities; // Copy the list
 
 	// Remove components of each entity
 	for (Entity entity : entities_to_remove) {
@@ -648,5 +648,5 @@ void WorldSystem::cleanup() {
 	}
 
 	// Clear the removes container
-	registry.removes.clear();
+	registry.pendingRemoves.clear();
 }

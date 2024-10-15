@@ -126,7 +126,7 @@ struct UIElement {
 	float value;
 };
 
-struct Remove {
+struct PendingRemove {
 
 };
 

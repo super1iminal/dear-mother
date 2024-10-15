@@ -34,7 +34,7 @@ public:
 	ComponentContainer<Crosshair> crosshair;
 	ComponentContainer<Lifetime> lifetimes;
 	ComponentContainer<Particle> particles;
-	ComponentContainer<Remove> removes;
+	ComponentContainer<PendingRemove> pendingRemoves;
 	ComponentContainer<Friction> frictions;
 	ComponentContainer<Shooter> shooters;
 
@@ -65,7 +65,7 @@ public:
 		registry_list.push_back(&crosshair);
 		registry_list.push_back(&lifetimes);
 		registry_list.push_back(&particles);
-		registry_list.push_back(&removes);
+		registry_list.push_back(&pendingRemoves);
 		registry_list.push_back(&frictions);
 		registry_list.push_back(&shooters);
 	}
