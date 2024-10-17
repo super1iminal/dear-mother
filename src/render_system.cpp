@@ -269,7 +269,9 @@ void RenderSystem::draw()
 		render_list.push_back(entity);
 	}
 	// finally, the crosshair
-	render_list.push_back(registry.crosshair.entities[0]);
+	for (Entity entity : registry.crosshairs.entities) {
+		render_list.push_back(entity);
+	}
 
 	// Draw all textured meshes that have a position and size component
 	for (Entity entity : render_list)
@@ -304,4 +306,45 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+// Debugging
+namespace {
+	void glfw_err_cb(int error, const char* desc) {
+		fprintf(stderr, "%d: %s", error, desc);
+	}
+}
+
+// World initialization
+// Note, this has a lot of OpenGL specific things, could be moved to the renderer
+GLFWwindow* RenderSystem::create_window() {
+	///////////////////////////////////////
+	// Initialize GLFW
+	glfwSetErrorCallback(glfw_err_cb);
+	if (!glfwInit()) {
+		fprintf(stderr, "Failed to initialize GLFW");
+		return nullptr;
+	}
+
+	//-------------------------------------------------------------------------
+	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
+	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
+	// GLFW / OGL Initialization
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#if __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+	glfwWindowHint(GLFW_RESIZABLE, 0);
+
+	// Create the main window (for rendering, keyboard, and mouse input)
+	GLFWwindow* window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
+	if (window == nullptr) {
+		fprintf(stderr, "Failed to glfwCreateWindow");
+		return nullptr;
+	}
+
+	return window;
 }

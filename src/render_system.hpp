@@ -1,7 +1,12 @@
 #pragma once
 
+// stlib
 #include <array>
 #include <utility>
+#include <cassert>
+#include <sstream>
+#include <chrono>
+#include <iostream>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -88,6 +93,9 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
+
+	// Creates a window
+	GLFWwindow* create_window();
 
 private:
 	// Internal drawing functions for each entity type

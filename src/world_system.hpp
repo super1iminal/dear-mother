@@ -13,6 +13,8 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "collision_system.hpp"
+#include "physics_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -21,11 +23,8 @@ class WorldSystem
 public:
 	WorldSystem();
 
-	// Creates a window
-	GLFWwindow* create_window();
-
 	// starts the game
-	void init(RenderSystem* renderer);
+	void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -42,15 +41,11 @@ public:
 	// check for interactions
 	void handle_interactions();
 
-	// Should the game be over ?
-	bool is_over()const;
-
-	void cleanup();
-private:
 	// Input callback functions
-	void on_key(int key, int, int action, int mod);
+	void on_key(int key, int sc, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
+private:
 
 	// restart level
 	void restart_game();
@@ -83,9 +78,9 @@ private:
 	Entity items [8];
 	Entity player;
 	Entity floor;
-    Entity crosshair;
 
 	// UI entities
+	// TODO: why are these constants here?
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;

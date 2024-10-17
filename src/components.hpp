@@ -80,6 +80,22 @@ struct ScreenState
 	int health_status = 0;
 };
 
+struct GameScene
+{
+};
+
+struct MenuScene
+{
+};
+
+struct PauseScene
+{
+};
+
+struct TestScene
+{
+};
+
 // anything that the player can interact with
 struct Interactable {
 	// the range that the player must be within to interact
