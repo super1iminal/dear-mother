@@ -23,7 +23,7 @@ int main()
 	AISystem ai;
 
 	// Initializing window
-	GLFWwindow* window = world.create_window();
+	GLFWwindow* window = renderer.create_window();
 	if (!window) {
 		// Time to read the error message
 		printf("Press any key to exit");
@@ -33,7 +33,10 @@ int main()
 
 	// initialize the main systems
 	renderer.init(window);
-	world.init(&renderer);
+
+	// initialize the main menu
+	// TODO: when 'start' in main menu is pressed, initialize the world
+	world.init(&renderer, window);
 
 	// variable timestep loop
 	auto t = Clock::now();

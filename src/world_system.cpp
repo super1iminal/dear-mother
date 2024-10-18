@@ -40,13 +40,6 @@ WorldSystem::~WorldSystem() {
 	glfwDestroyWindow(window);
 }
 
-// Debugging
-namespace {
-	void glfw_err_cb(int error, const char* desc) {
-		fprintf(stderr, "%d: %s", error, desc);
-	}
-}
-
 void WorldSystem::set_last_shot_time(Entity& entity) {
 	using Clock = std::chrono::high_resolution_clock;
 	registry.shooters.get(entity).t = Clock::now();
@@ -62,58 +55,22 @@ std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
 }
 
 
-// World initialization
-// Note, this has a lot of OpenGL specific things, could be moved to the renderer
-GLFWwindow* WorldSystem::create_window() {
-	///////////////////////////////////////
-	// Initialize GLFW
-	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
-		fprintf(stderr, "Failed to initialize GLFW");
-		return nullptr;
-	}
+void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
+	this->renderer = renderer_arg;
+	this->window = window_arg;
 
-	//-------------------------------------------------------------------------
-	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
-	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
-	// GLFW / OGL Initialization
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-#if __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-	glfwWindowHint(GLFW_RESIZABLE, 0);
-
-	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
-	if (window == nullptr) {
-		fprintf(stderr, "Failed to glfwCreateWindow");
-		return nullptr;
-	}
+	// getting key and mouse callback fns for renderer
+	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
+	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
 	// http://www.glfw.org/docs/latest/input_guide.html
 	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, on_mouse_button);
-
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
-	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
@@ -124,14 +81,9 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("music.wav").c_str(),
 			audio_path("death_sound.wav").c_str(),
 			audio_path("eat_sound.wav").c_str());
-		return nullptr;
+		return;
 	}
 
-	return window;
-}
-
-void WorldSystem::init(RenderSystem* renderer_arg) {
-	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");

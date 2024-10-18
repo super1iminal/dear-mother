@@ -21,11 +21,8 @@ class WorldSystem
 public:
 	WorldSystem();
 
-	// Creates a window
-	GLFWwindow* create_window();
-
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init(RenderSystem* renderer, GLFWwindow* window);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -45,12 +42,14 @@ public:
 	// Should the game be over ?
 	bool is_over()const;
 
-	void cleanup();
-private:
 	// Input callback functions
+	// TODO: check if these can be public
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
+
+	void cleanup();
+private:
 
 	// restart level
 	void restart_game();

@@ -7,6 +7,10 @@
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include <SDL_mixer.h>
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -62,6 +66,10 @@ class RenderSystem {
 	std::array<Mesh, geometry_count> meshes;
 
 public:
+
+	// Creates a window
+	GLFWwindow* create_window();
+
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
