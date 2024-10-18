@@ -15,7 +15,7 @@ SceneSystem::~SceneSystem()
 
 	// Close the window
 	// commenting this out prevents an error. im not sure why
-	glfwDestroyWindow(window);
+	// glfwDestroyWindow(window);
 }
 
 bool SceneSystem::init()
