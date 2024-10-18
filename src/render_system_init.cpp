@@ -13,58 +13,6 @@
 #include <iostream>
 #include <sstream>
 
-// Debugging
-namespace {
-	void glfw_err_cb(int error, const char* desc) {
-		fprintf(stderr, "%d: %s", error, desc);
-	}
-}
-
-// World initialization
-// Note, this has a lot of OpenGL specific things, could be moved to the renderer
-GLFWwindow* RenderSystem::create_window() {
-	///////////////////////////////////////
-	// Initialize GLFW
-	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
-		fprintf(stderr, "Failed to initialize GLFW");
-		return nullptr;
-	}
-
-	//-------------------------------------------------------------------------
-	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
-	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
-	// GLFW / OGL Initialization
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-#if __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-	glfwWindowHint(GLFW_RESIZABLE, 0);
-
-	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Dear Mother", nullptr, nullptr);
-	if (window == nullptr) {
-		fprintf(stderr, "Failed to glfwCreateWindow");
-		return nullptr;
-	}
-
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
-	}
-
-	return window;
-}
-
 // World initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
 {

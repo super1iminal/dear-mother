@@ -1,7 +1,12 @@
 #pragma once
 
+// stlib
 #include <array>
 #include <utility>
+#include <cassert>
+#include <sstream>
+#include <chrono>
+#include <iostream>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -81,6 +86,7 @@ public:
 	void initializeGlEffects();
 
 	void initializeGlMeshes();
+
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();

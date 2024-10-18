@@ -6,8 +6,6 @@
 #include <cassert>
 #include <sstream>
 #include <chrono>
-
-#include "physics_system.hpp"
 #include <iostream>
 
 // Game configuration
@@ -16,7 +14,8 @@
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
-	, player_health(0) {
+	, player_health(0)
+	, current_speed(1.0) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -32,12 +31,6 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(salmon_eat_sound);
 
 	Mix_CloseAudio();
-
-	// Destroy all created components
-	registry.clear_all_components();
-
-	// Close the window
-	glfwDestroyWindow(window);
 }
 
 void WorldSystem::set_last_shot_time(Entity& entity) {
@@ -54,23 +47,21 @@ std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
 	return Clock::now();
 }
 
-
-void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
+void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	this->renderer = renderer_arg;
-	this->window = window_arg;
-
-	// getting key and mouse callback fns for renderer
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
-
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, on_mouse_button);
+	this->window = window;
+	//////////////////////////////////////
+	// Loading music and sounds with SDL
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		fprintf(stderr, "Failed to initialize SDL Audio");
+		exit(1);
+		// return nullptr;
+	}
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+		fprintf(stderr, "Failed to open audio device");
+		exit(1);
+		// return nullptr;
+	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
 	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
@@ -81,8 +72,10 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 			audio_path("music.wav").c_str(),
 			audio_path("death_sound.wav").c_str(),
 			audio_path("eat_sound.wav").c_str());
-		return;
+		exit(1);
+		// return nullptr;
 	}
+
 
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
@@ -108,7 +101,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity entity : registry.debugComponents.entities) {
 		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
-	cleanup();
+	// cleanup();
+
+
 	// Removing out of screen entities
 	auto& worldObjects_registry = registry.worldObjects;
 
@@ -199,7 +194,7 @@ void WorldSystem::restart_game() {
 	for (Entity entity : registry.worldObjects.entities) {
 		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
-	WorldSystem::cleanup();
+	// cleanup();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -265,7 +260,7 @@ void WorldSystem::restart_game() {
 		TEXTURE_ASSET_ID::ITEM);
 
 	// add crosshair
-	crosshair = createCrosshair(renderer);
+	createCrosshair(renderer);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
@@ -342,21 +337,14 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	return;
 }
 
-// Returns the local bounding coordinates scaled by the current size of the entity
-vec2 get_bounding_box_w(const WorldObject& worldobject)
-{
-	// abs is to avoid negative scale due to the facing direction.
-	return { abs(worldobject.scale.x), abs(worldobject.scale.y) };
-}
-
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
 
 	// Get the bounding boxes (sizes) of both entities
-	vec2 bbox_actor = get_bounding_box_w(worldobject_actor);
-	vec2 bbox_blocker = get_bounding_box_w(worldobject_blocker);
+	vec2 bbox_actor = get_bounding_box(worldobject_actor);
+	vec2 bbox_blocker = get_bounding_box(worldobject_blocker);
 
 	// Compute half sizes for easier calculation
 	float half_width_actor = bbox_actor.x / 2.0f;
@@ -471,11 +459,6 @@ void WorldSystem::handle_deaths() {
 	}
 }
 
-// Should the game be over ?
-bool WorldSystem::is_over() const {
-	return bool(glfwWindowShouldClose(window));
-}
-
 void WorldSystem::shoot(Entity& entity) {
 	auto now = get_curr_time();
 	float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(now - get_last_shot_time(entity))).count() / 1000;
@@ -516,11 +499,10 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 }
 
-void WorldSystem::on_key(int key, int, int action, int mod) {
+// sc is scancode, we don't use it
+void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
 		restart_game();
 	}
 
@@ -548,24 +530,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// List all components
-	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		registry.list_all_components();
-	}
-
 	// Interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions();
-	}
-
-	// Close window
-	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
-
-	// Debugging mode toggle
-	if (key == GLFW_KEY_X) {
-		debugging.in_debug_mode = (action != GLFW_RELEASE);
 	}
 
 	// Adjust current speed with `<` and `>`
@@ -582,23 +549,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// Update the position of the crosshair
-	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > BASE_UI_HEIGHT && mouse_position.y < window_height_px)
-		crosshair_object.position = mouse_position;
+	// nothing yet
 }
 
-// cleanup all entities to be removed. will prevent so many errors. 
-// works fine with duplicate entries in removes
-void WorldSystem::cleanup() {
-	// Make a copy of the entities to remove
-	auto entities_to_remove = registry.pendingRemoves.entities; // Copy the list
-
-	// Remove components of each entity
-	for (Entity entity : entities_to_remove) {
-		registry.remove_all_components_of(entity);
-	}
-
-	// Clear the removes container
-	registry.pendingRemoves.clear();
-}

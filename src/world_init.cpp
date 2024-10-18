@@ -5,6 +5,7 @@
 
 void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
 	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	// Adding meshptr component
@@ -62,6 +63,7 @@ void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distrib
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
 Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type) {
 	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -89,6 +91,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -125,6 +128,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 {
 	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -163,6 +167,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
+	registry.gameSceneComponents.emplace(floor);
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(floor, &mesh);
@@ -186,6 +191,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int)) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
+	registry.gameSceneComponents.emplace(interactable_entity);
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(interactable_entity, &mesh);
@@ -209,13 +215,27 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 	return interactable_entity;
 }
 
-Entity createCrosshair(RenderSystem* renderer) {
+Entity createCrosshair(RenderSystem* renderer, SCENE_TYPE scene_type) {
 	auto entity = Entity();
+	switch (scene_type) {
+		case SCENE_TYPE::GAME:
+			registry.gameSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::MENU:
+			registry.menuSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::PAUSE:
+			registry.pauseSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::TEST:
+			registry.testSceneComponents.emplace(entity);
+			break;
+	}
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	registry.crosshair.emplace(entity);
+	registry.crosshairs.emplace(entity);
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -237,6 +257,7 @@ Entity createCrosshair(RenderSystem* renderer) {
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly)
 {
 	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -289,6 +310,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	registry.renderRequests.insert(
@@ -312,9 +334,23 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createBaseUI(RenderSystem* renderer)
+Entity createBaseUI(RenderSystem* renderer, SCENE_TYPE scene_type)
 {
 	Entity entity = Entity();
+	switch (scene_type) {
+		case SCENE_TYPE::GAME:
+			registry.gameSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::MENU:
+			registry.menuSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::PAUSE:
+			registry.pauseSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::TEST:
+			registry.testSceneComponents.emplace(entity);
+			break;
+	}
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -337,9 +373,23 @@ Entity createBaseUI(RenderSystem* renderer)
 	return entity;
 }
 
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value) {
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
+	switch (scene_type) {
+		case SCENE_TYPE::GAME:
+			registry.gameSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::MENU:
+			registry.menuSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::PAUSE:
+			registry.pauseSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::TEST:
+			registry.testSceneComponents.emplace(entity);
+			break;
+	}
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
@@ -362,9 +412,24 @@ Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std
 	return entity;
 }
 
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id) {
+Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
+	switch (scene_type) {
+		case SCENE_TYPE::GAME:
+			registry.gameSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::MENU:
+			registry.menuSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::PAUSE:
+			registry.pauseSceneComponents.emplace(entity);
+			break;
+		case SCENE_TYPE::TEST:
+			registry.testSceneComponents.emplace(entity);
+			break;
+	}
+
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
