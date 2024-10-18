@@ -31,12 +31,16 @@ public:
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<BaseUI> baseUI;
-	ComponentContainer<Crosshair> crosshair;
+	ComponentContainer<Crosshair> crosshairs;
 	ComponentContainer<Lifetime> lifetimes;
 	ComponentContainer<Particle> particles;
-	ComponentContainer<Remove> removes;
+	ComponentContainer<PendingRemove> pendingRemoves;
 	ComponentContainer<Friction> frictions;
 	ComponentContainer<Shooter> shooters;
+	ComponentContainer<GameScene> gameSceneComponents;
+	ComponentContainer<MenuScene> menuSceneComponents;
+	ComponentContainer<PauseScene> pauseSceneComponents;
+	ComponentContainer<TestScene> testSceneComponents;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -62,12 +66,16 @@ public:
 		registry_list.push_back(&floors);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&baseUI);
-		registry_list.push_back(&crosshair);
+		registry_list.push_back(&crosshairs);
 		registry_list.push_back(&lifetimes);
 		registry_list.push_back(&particles);
-		registry_list.push_back(&removes);
+		registry_list.push_back(&pendingRemoves);
 		registry_list.push_back(&frictions);
 		registry_list.push_back(&shooters);
+		registry_list.push_back(&gameSceneComponents);
+		registry_list.push_back(&menuSceneComponents);
+		registry_list.push_back(&pauseSceneComponents);
+		registry_list.push_back(&testSceneComponents);
 	}
 
 	void clear_all_components() {
