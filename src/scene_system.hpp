@@ -3,6 +3,7 @@
 #include "render_system.hpp"
 #include "world_system.hpp"
 #include "ai_system.hpp"
+#include "ui_system.hpp"
 #include "collision_system.hpp"
 #include "common.hpp"
 #include "tiny_ecs_registry.hpp"
@@ -25,6 +26,7 @@ private:
 	// Scene systems
 	CollisionSystem collisions;
 	RenderSystem renderer;
+	UISystem ui;
 
 	// Window handle
 	GLFWwindow* window;

@@ -140,6 +140,13 @@ struct TexturedVertex
 struct UIElement {
 	std::string name;
 	float value;
+	std::function<void()> action;
+};
+
+// contains information relating to UI buttons
+struct UIButton {
+	std::string name;
+	std::function<void()> action;
 };
 
 struct PendingRemove {
@@ -232,7 +239,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ITEM = VERT_WALL + 1,
 	HIT_PARTICLE = ITEM + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	TEXTURE_COUNT = HIT_PARTICLE_PLAYER + 1,
+	START_MENU = HIT_PARTICLE_PLAYER + 1,
+	TEXTURE_COUNT = START_MENU + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

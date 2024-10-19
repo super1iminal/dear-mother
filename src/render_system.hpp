@@ -44,7 +44,7 @@ class RenderSystem {
 			textures_path("bounding_box.png"),
 			textures_path("floor_1.png"),
 			textures_path("bounding_box_blue.png"),
-			textures_path("bullet_friendly.png"), 
+			textures_path("bullet_friendly.png"),
 			textures_path("bullet_enemy.png"),
 			textures_path("crosshair003.png"),
 			textures_path("base_UI.png"),
@@ -54,6 +54,7 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("start_screen_bg.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -100,8 +101,13 @@ public:
 
 	// Draw all entities
 	void draw();
+	void drawMenu();
+	void drawGame();
 
 	mat3 createProjectionMatrix();
+
+	// show/hide mouse cursor
+	void updateCursorVisibility(bool visible);
 
 private:
 	// Internal drawing functions for each entity type

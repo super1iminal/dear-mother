@@ -12,8 +12,6 @@ const float PLAYER_MAX_SPEED = 300.f;
 
 const float PLAYER_SIZE = 100.f;
 
-// moved base UI height and crosshair size to common.hpp
-
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
 const int NUM_PARTICLES_OFFSET = 1;
@@ -59,12 +57,3 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
-
-// create base UI that other UI elements will be layered on
-Entity createBaseUI(RenderSystem* renderer, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
-// create UI element
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
-// create UI element using texture
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type = SCENE_TYPE::GAME);

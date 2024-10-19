@@ -19,7 +19,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	this->window = window_arg;
 
 	glfwMakeContextCurrent(window);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hides the cursor
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // hides the cursor
 	glfwSwapInterval(1); // vsync
 
 	// Load OpenGL function pointers
@@ -62,6 +62,16 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlGeometryBuffers();
 
 	return true;
+}
+
+void RenderSystem::updateCursorVisibility(bool visible)
+{
+	if (visible) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // show the cursor
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // hides the cursor
+	}
 }
 
 void RenderSystem::initializeGlTextures()

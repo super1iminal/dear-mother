@@ -7,6 +7,7 @@
 #include <sstream>
 #include <chrono>
 #include <iostream>
+#include <ui_system.hpp>
 
 // Game configuration
 // add variables here
@@ -47,20 +48,19 @@ std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
 	return Clock::now();
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
+void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, UISystem* ui) {
 	this->renderer = renderer_arg;
 	this->window = window;
+	this->ui = ui;
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		exit(1);
-		// return nullptr;
 	}
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
 		fprintf(stderr, "Failed to open audio device");
 		exit(1);
-		// return nullptr;
 	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
@@ -73,7 +73,6 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 			audio_path("death_sound.wav").c_str(),
 			audio_path("eat_sound.wav").c_str());
 		exit(1);
-		// return nullptr;
 	}
 
 
@@ -130,7 +129,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.pendingRemoves.emplace_with_duplicates(entity);
 		}
 	}
-
 
 	// Shoot if LMB is clicked
 	for (Entity entity : registry.shooters.entities) {
@@ -222,44 +220,7 @@ void WorldSystem::restart_game() {
 		set_last_shot_time(entity);
 	}
 	
-
-	// Add the base UI
-	Entity base_ui = createBaseUI(renderer);
-
-	// set initial player health
-	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
-
-	// create health_ui entity
-	health_ui = createTexturedUIElement(renderer,
-		vec2(window_width_px / 10, window_height_px / 11),
-		vec2(165.f, 40.f),
-		"health_ui",
-		static_cast<float>(player_health));
-
-	// create scrap_ui entity
-	scrap_ui = createTexturedUIElement(renderer,
-		vec2(375.f, window_height_px / 20),
-		vec2(25.f, 25.f),
-		"scrap_ui",
-		static_cast<float>(scrap));
-
-	// create level_ui entity
-	level_ui = createTexturedUIElement(renderer,
-		vec2(375.f, window_height_px / 10),
-		vec2(25.f, 30.f),
-		"level_ui",
-		static_cast<float>(level));
-
-	// create item_ui entities
-	// as a placeholder, there is just one item slot for now
-	// later, we will want to render all the items and show locked slots too
-	Entity item_ui = createTexturedUIElement(renderer,
-		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
-		vec2(75.f, 75.f),
-		"item_one_ui",
-		TEXTURE_ASSET_ID::ITEM);
-
-	// add crosshair
+	ui->initGameUI(scrap, level);
 	createCrosshair(renderer);
 }
 

@@ -1,7 +1,7 @@
 #include "scene_system.hpp"
 
 SceneSystem::SceneSystem() :
-	scene(SCENE_TYPE::GAME)
+	scene(SCENE_TYPE::MENU)
 {
 
 }
@@ -42,8 +42,16 @@ bool SceneSystem::init()
 	// Initialize renderer
 	renderer.init(window);
 
-	// Initialize world
-	world.init(&renderer, window);
+	// Intialize ui
+	ui.init(&renderer, window);
+	
+	if (scene == SCENE_TYPE::MENU) {
+		ui.initMenuUI();
+	}
+	else if (scene == SCENE_TYPE::GAME) {
+		// Initialize world
+		world.init(&renderer, window, &ui);
+	}
 
 	return true;
 }
@@ -109,6 +117,7 @@ void SceneSystem::on_mouse_move(vec2 pos) {
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
+			ui.on_mouse_move(pos);
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -139,6 +148,7 @@ void SceneSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
+			ui.on_mouse_button(window, button, action, mods);
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -172,11 +182,13 @@ bool SceneSystem::step(float elapsed_ms)
 			collisions.add_collisions();
 			world.handle_collisions();
 			world.handle_deaths();
+			renderer.drawGame();
 			break;
 		}
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
+			renderer.drawMenu();
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -196,7 +208,6 @@ bool SceneSystem::step(float elapsed_ms)
 		}
 	}
 	cleanup(); // remove dead entities and entities we want to remove
-	renderer.draw(); // draw the scene
 	return true;
 }
 

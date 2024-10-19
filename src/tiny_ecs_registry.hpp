@@ -19,6 +19,7 @@ public:
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<UIElement> uiElements;
+	ComponentContainer<UIButton> uiButtons;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Deadly> deadlys;
@@ -54,6 +55,7 @@ public:
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&uiElements);
+		registry_list.push_back(&uiButtons);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&interactables);
 		registry_list.push_back(&deadlys);

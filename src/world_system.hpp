@@ -15,6 +15,7 @@
 #include "render_system.hpp"
 #include "collision_system.hpp"
 #include "physics_system.hpp"
+#include "ui_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -24,7 +25,7 @@ public:
 	WorldSystem();
 
 	// starts the game
-	void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window, UISystem* ui);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -49,7 +50,7 @@ public:
 private:
 
 	// restart level
-	void restart_game();
+	void WorldSystem::restart_game();
 
 	// Shooting stuff
 	bool left_mouse_button = false;
@@ -73,19 +74,13 @@ private:
 
 	// Game state
 	RenderSystem* renderer;
+	UISystem* ui;
 	float current_speed;
-	int level = 1;
-	int scrap = 28;
+	uint level = 1;
+	uint scrap = 28;
 	Entity items [8];
 	Entity player;
 	Entity floor;
-
-	// UI entities
-	// TODO: why are these constants here?
-	Entity health_ui;
-	Entity scrap_ui;
-	Entity level_ui;
-	Entity item_ui;
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);

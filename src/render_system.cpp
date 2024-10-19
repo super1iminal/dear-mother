@@ -267,17 +267,37 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
-	//// Draw all textured meshes that have a position and size component
-	//for (Entity entity : registry.renderRequests.entities)
-	//{
-	//	if (!registry.worldObjects.has(entity))
-	//		continue;
-	//	// Note, its not very efficient to access elements indirectly via the entity
-	//	// albeit iterating through all Sprites in sequence. A good point to optimize
-	//	drawTexturedMesh(entity, projection_2D);
-	//}
+}
 
+// TODO: these need to be changed (moved back into draw, then draw needs to handle
+// what to do w/ different scene types
+void RenderSystem::drawMenu() {
+	draw();
+
+	mat3 projection_2D = createProjectionMatrix();
+
+	// Draw all textured meshes that have a position and size component
+	for (Entity entity : registry.worldObjects.entities)
+	{
+		if (!registry.worldObjects.has(entity))
+			continue;
+		// Note, its not very efficient to access elements indirectly via the entity
+		// albeit iterating through all Sprites in sequence. A good point to optimize
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	// Truely render to the screen
+	drawToScreen();
+
+	// flicker-free display with a double buffer
+	glfwSwapBuffers(window);
+	gl_has_errors();
+}
+
+void RenderSystem::drawGame() {
+	draw();
+
+	mat3 projection_2D = createProjectionMatrix();
 	std::vector<Entity> render_list = {};
 
 	// add floor first
