@@ -34,6 +34,12 @@ const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 // wall stuff
 const float WALL_WIDTH = 75.f;
 
+// Item drop chance
+const float DROP_CHANCE = 15;
+
+// Builds all items
+void buildItemSet();
+
 // the particles
 void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type);
 
@@ -68,3 +74,6 @@ Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std
 
 // create UI element using texture
 Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
+
+// create Item element
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);

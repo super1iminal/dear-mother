@@ -116,6 +116,9 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
+
+	registry.inventory.emplace(entity);
+	registry.modifiers.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
@@ -213,6 +216,57 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return interactable_entity;
+}
+
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+	// create an interactable entity
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	ItemStat& item = registry.itemStats.emplace(entity);
+
+	int roll_type = uniform_dist(rng) * 100;
+	int roll_item;
+	if (roll_type > 80) {
+		roll_item = (rand() % registry.damage_items.size());
+		item = registry.damage_items.at(roll_item);
+	}
+	else if (roll_type > 60) {
+		roll_item = (rand() % registry.speed_items.size());
+		item = registry.speed_items.at(roll_item);
+	}
+	else if (roll_type > 40) {
+		roll_item = (rand() % registry.fire_rate_items.size());
+		item = registry.fire_rate_items.at(roll_item);
+	}
+	else if (roll_type > 20) {
+		roll_item = (rand() % registry.range_items.size());
+		item = registry.range_items.at(roll_item);
+	}
+	else {
+		roll_item = (rand() % registry.healing_items.size());
+		item = registry.healing_items.at(roll_item);
+	} 
+
+	Interactable& interactable = registry.interactables.emplace(entity);
+	interactable.range = 50.f;
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& interactable_object = registry.worldObjects.emplace(entity);
+	interactable_object.position = position;
+	interactable_object.angle = 0.f;
+	interactable_object.scale = size;
+
+	registry.renderRequests.insert(
+		entity,
+		{ (TEXTURE_ASSET_ID)item.item_texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
 }
 
 Entity createCrosshair(RenderSystem* renderer, SCENE_TYPE scene_type) {
@@ -450,4 +504,48 @@ Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
+}
+
+void buildItemSet() {
+	ItemStat shattered_quartz;
+	shattered_quartz.name = "Shattered Quartz";
+	shattered_quartz.type = "damage";
+	shattered_quartz.flat_damage_mod = 1;
+	shattered_quartz.flat_range = -100;	// May change debuff to just accuracy 
+	shattered_quartz.accuracy = 0.05;
+	shattered_quartz.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	registry.all_items.push_back(shattered_quartz);
+	registry.damage_items.push_back(shattered_quartz);
+
+	ItemStat creaky_wheel;
+	creaky_wheel.name = "Creaky Wheel";
+	creaky_wheel.type = "speed";
+	creaky_wheel.percent_speed_mod = 0.2;
+	creaky_wheel.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	registry.all_items.push_back(creaky_wheel);
+	registry.speed_items.push_back(creaky_wheel);
+
+	ItemStat heatsink;
+	heatsink.name = "Heatsink";
+	heatsink.type = "fire_rate";
+	heatsink.percent_fire_rate = 0.1;
+	heatsink.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	registry.all_items.push_back(heatsink);
+	registry.fire_rate_items.push_back(heatsink);
+
+	ItemStat repeater;
+	repeater.name = "Repeater";
+	repeater.type = "range";
+	repeater.flat_range = 100;
+	repeater.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	registry.all_items.push_back(repeater);
+	registry.range_items.push_back(repeater);
+
+	ItemStat battery_pack;
+	battery_pack.name = "Battery Pack";
+	battery_pack.type = "health_pack";
+	battery_pack.heal_size = 1;
+	battery_pack.item_texture = (int)TEXTURE_ASSET_ID::ITEM;
+	registry.all_items.push_back(battery_pack);
+	registry.healing_items.push_back(battery_pack);
 }

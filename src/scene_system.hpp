@@ -36,6 +36,6 @@ public:
 	bool init();
 	SCENE_TYPE scene;
 	bool is_over()const;
-	bool step(float elapsed_ms);
+	bool step(float elapsed_ms, double fps);
 
 };

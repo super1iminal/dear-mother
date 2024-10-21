@@ -41,6 +41,27 @@ public:
 	ComponentContainer<MenuScene> menuSceneComponents;
 	ComponentContainer<PauseScene> pauseSceneComponents;
 	ComponentContainer<TestScene> testSceneComponents;
+	ComponentContainer<Modifier> modifiers;
+	ComponentContainer<Inventory> inventory;
+	ComponentContainer<ItemStat> itemStats;
+
+	// Set of all items
+	std::vector<ItemStat> all_items;
+
+	// Set of all damage items
+	std::vector<ItemStat> damage_items;
+
+	// Set of all speed items
+	std::vector<ItemStat> speed_items;
+
+	// Set of all range items
+	std::vector<ItemStat> range_items;
+
+	// Set of all fire rate items
+	std::vector<ItemStat> fire_rate_items;
+
+	// Set of all healing items
+	std::vector<ItemStat> healing_items;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -72,6 +93,9 @@ public:
 		registry_list.push_back(&pendingRemoves);
 		registry_list.push_back(&frictions);
 		registry_list.push_back(&shooters);
+		registry_list.push_back(&modifiers);
+		registry_list.push_back(&inventory);
+		registry_list.push_back(&itemStats);
 		registry_list.push_back(&gameSceneComponents);
 		registry_list.push_back(&menuSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);

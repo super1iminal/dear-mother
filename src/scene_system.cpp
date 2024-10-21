@@ -160,13 +160,13 @@ void SceneSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 }
 
 
-bool SceneSystem::step(float elapsed_ms)
+bool SceneSystem::step(float elapsed_ms, double fps)
 {
 	switch (scene) {
 		case SCENE_TYPE::GAME: 
 		{
 			// Update the game
-			world.step(elapsed_ms);
+			world.step(elapsed_ms, fps);
 			ai.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			collisions.add_collisions();

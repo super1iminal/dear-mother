@@ -26,6 +26,26 @@ struct Health
 	int curr_health = 0;
 };
 
+struct Modifier {
+
+	int damage_modifier_flat = 0;
+
+	float speed_modifier_flat = 0;
+	float speed_modifier_percent = 0;
+
+	float fire_rate_modifier_flat = 0;
+	float fire_rate_modifier_percent = 0;
+
+	float range_modifier_flat = 0;
+	float range_modifier_percent = 0;
+
+	float accuracy_modifier = 0;  // 0 would be perfect accuracy
+};
+
+struct Inventory {
+	std::vector<struct ItemStat> items;
+};
+
 // anything that is deadly to the player
 struct Deadly
 {
@@ -102,6 +122,28 @@ struct Interactable {
 	float range;
 	// placeholder, not sure what we want the interaction function to do yet
 	std::function<void(int)> interaction;
+};
+
+struct ItemStat {
+	std::string name;
+	std::string type;
+
+	int flat_damage_mod = 0;
+
+	float flat_speed_mod = 0;
+	float percent_speed_mod = 0;
+
+	float flat_fire_rate = 0;
+	float percent_fire_rate = 0;
+
+	float flat_range = 0;
+	float percent_range = 0;
+
+	float accuracy = 0;
+
+	int heal_size = 0;
+
+	int item_texture;
 };
 
 // A struct to refer to debugging graphics in the ECS

@@ -61,6 +61,10 @@ private:
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
 
+	// Item stuff
+	void update_player_modifier() const;
+	void handle_item_pickup(Entity item);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

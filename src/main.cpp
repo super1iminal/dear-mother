@@ -31,6 +31,10 @@ int main()
 
 	// variable timestep loop
 	auto t = Clock::now();
+	// FPS Counter based on this tutorial: http://www.opengl-tutorial.org/miscellaneous/an-fps-counter/
+	double last_time = glfwGetTime();
+	int num_of_frames = 0;
+	double fps = 0;
 	while (!scene.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
@@ -52,7 +56,7 @@ int main()
 		t = now;
 
 		// Updating the game state
-		scene.step(elapsed_ms);
+		scene.step(elapsed_ms, fps);
 	}
 
 	return EXIT_SUCCESS;
