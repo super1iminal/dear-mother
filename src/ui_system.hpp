@@ -13,7 +13,7 @@ public:
 	~UISystem();
 
 	// intialize
-	void UISystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
 
 	// init game UI
 	void initGameUI(uint scrap, uint level);
@@ -29,6 +29,10 @@ private:
 
 	// Window handle
 	GLFWwindow* window;
+
+	vec2 cursor_position;
+
+	SCENE_TYPE* scene;
 
 	Entity health_ui;
 	Entity scrap_ui;
@@ -46,4 +50,6 @@ private:
 		std::string button_name, 
 		TEXTURE_ASSET_ID texture_id, 
 		SCENE_TYPE scene_type);
+
+	bool is_mouse_within_button(WorldObject buttonObject);
 };

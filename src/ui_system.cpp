@@ -13,9 +13,10 @@ UISystem::~UISystem() {
 
 }
 
-void UISystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
+void UISystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
 	this->renderer = renderer_arg;
 	this->window = window_arg;
+	this->scene = scene_arg;
 }
 
 void UISystem::initGameUI(uint scrap, uint level) {
@@ -83,12 +84,47 @@ void UISystem::initMenuUI()
 	);
 
 	createButton(
-		vec2(window_width_px / 2, window_height_px / 2),
-		vec2(100.f, 50.f),
-		[]() {std::cout << "game started!" << std::endl;},
+		vec2(window_width_px / 2 - 1.f, 275.f),
+		vec2(162.f, 42.f),
+		[&]() { 
+			*(this->scene) = SCENE_TYPE::GAME; 
+		},
 		"start_button",
-		TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
-		SCENE_TYPE::GAME
+		TEXTURE_ASSET_ID::START_BUTTON,
+		SCENE_TYPE::MENU
+	);
+
+	createButton(
+		vec2(window_width_px / 2 + 3.f, 322.f),
+		vec2(90.f, 44.f),
+		[&]() {
+			std::cout << "Help button pressed!" << std::endl;
+		},
+		"start_button",
+		TEXTURE_ASSET_ID::HELP_BUTTON,
+		SCENE_TYPE::MENU
+	);
+
+	createButton(
+		vec2(window_width_px / 2, 372.f),
+		vec2(165.f, 44.f),
+		[&]() {
+			std::cout << "Upgrades button pressed!" << std::endl;
+		},
+		"start_button",
+		TEXTURE_ASSET_ID::SHOP_BUTTON,
+		SCENE_TYPE::MENU
+	);
+
+	createButton(
+		vec2(window_width_px / 2 + 7.f, 420.f),
+		vec2(90.f, 44.f),
+		[&]() {
+			std::cout << "Quit button pressed!" << std::endl;
+		},
+		"start_button",
+		TEXTURE_ASSET_ID::QUIT_BUTTON,
+		SCENE_TYPE::MENU
 	);
 }
 
@@ -259,8 +295,6 @@ Entity UISystem::createButton(
 
 void UISystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
-	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		// if mouse position is within button boundaries
 		// activate the button's action function
@@ -270,17 +304,25 @@ void UISystem::on_mouse_button(GLFWwindow* window, int button, int action, int m
 			UIButton button = uiButtonsRegistry.components[i];
 			Entity buttonEntity = uiButtonsRegistry.entities[i];
 			WorldObject buttonObject = worldObjectsRegistry.get(buttonEntity);
-			bool passesX = (xpos > buttonObject.position.x - (buttonObject.scale.x / 2)
-				&& xpos < buttonObject.position.x + (buttonObject.scale.x / 2));
-			bool passesY = (ypos > buttonObject.position.y - (buttonObject.scale.y / 2)
-				&& ypos < buttonObject.position.y + (buttonObject.scale.y / 2));
-			if (passesX && passesY) {
+			if (is_mouse_within_button(buttonObject)) {
 				button.action();
 			}
 		}
 	}
 }
 
+bool UISystem::is_mouse_within_button(WorldObject buttonObject)
+{
+	bool passesX = (cursor_position.x > buttonObject.position.x - (buttonObject.scale.x / 2)
+		&& cursor_position.x < buttonObject.position.x + (buttonObject.scale.x / 2));
+	bool passesY = (cursor_position.y > buttonObject.position.y - (buttonObject.scale.y / 2)
+		&& cursor_position.y < buttonObject.position.y + (buttonObject.scale.y / 2));
+	return passesX && passesY;
+}
+
 void UISystem::on_mouse_move(vec2 mouse_position) {
-	
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	cursor_position = vec2(xpos, ypos);
+	// change cursor to be hover
 }

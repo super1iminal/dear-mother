@@ -43,15 +43,9 @@ bool SceneSystem::init()
 	renderer.init(window);
 
 	// Intialize ui
-	ui.init(&renderer, window);
-	
-	if (scene == SCENE_TYPE::MENU) {
-		ui.initMenuUI();
-	}
-	else if (scene == SCENE_TYPE::GAME) {
-		// Initialize world
-		world.init(&renderer, window, &ui);
-	}
+	ui.init(&renderer, window, &scene);
+	world.init(&renderer, window, &ui);
+	ui.initMenuUI();
 
 	return true;
 }
