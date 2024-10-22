@@ -176,13 +176,11 @@ bool SceneSystem::step(float elapsed_ms)
 			collisions.add_collisions();
 			world.handle_collisions();
 			world.handle_deaths();
-			renderer.drawGame();
 			break;
 		}
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
-			renderer.drawMenu();
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -201,6 +199,7 @@ bool SceneSystem::step(float elapsed_ms)
 			break;
 		}
 	}
+	renderer.draw(scene);
 	cleanup(); // remove dead entities and entities we want to remove
 	return true;
 }

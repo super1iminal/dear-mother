@@ -193,7 +193,7 @@ struct Wall
 
 struct BaseUI
 {
-
+	std::string name;
 };
 
 struct Crosshair {
@@ -240,7 +240,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HIT_PARTICLE = ITEM + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
-	START_BUTTON = START_MENU + 1,
+	HELP_SCREEN = START_MENU + 1,
+	START_BUTTON = HELP_SCREEN + 1,
 	HELP_BUTTON = START_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,

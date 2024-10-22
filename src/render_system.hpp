@@ -55,6 +55,7 @@ class RenderSystem {
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
+			textures_path("help_screen.png"),
 			textures_path("/buttons/start_button.png"),
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
@@ -104,9 +105,7 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw();
-	void drawMenu();
-	void drawGame();
+	void draw(SCENE_TYPE scene);
 
 	mat3 createProjectionMatrix();
 

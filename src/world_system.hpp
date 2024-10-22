@@ -82,6 +82,15 @@ private:
 	Entity player;
 	Entity floor;
 
+	// HUD
+	Entity health_ui;
+	Entity scrap_ui;
+	Entity level_ui;
+	Entity item_ui;
+
+	// initialize HUD
+	void initGameUI();
+
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
 

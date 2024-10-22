@@ -220,8 +220,59 @@ void WorldSystem::restart_game() {
 		set_last_shot_time(entity);
 	}
 	
-	ui->initGameUI(scrap, level);
+	initGameUI();
 	createCrosshair(renderer);
+}
+
+void WorldSystem::initGameUI() {
+	// Add the base UI
+	Entity base_ui = ui->createPanel(
+		SCENE_TYPE::GAME,
+		vec2(window_width_px / 2, BASE_UI_HEIGHT / 2),
+		0.f,
+		vec2(window_width_px, BASE_UI_HEIGHT),
+		"game_HUD",
+		TEXTURE_ASSET_ID::UI
+	);
+
+	// grab player health
+	// TODO must update this when any UI elements change
+	// maybe make a gameUI update fn
+	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+
+	// create health_ui entity
+	this->health_ui = ui->createUIElement(
+		vec2(window_width_px / 10, window_height_px / 11),
+		vec2(165.f, 40.f),
+		"health_ui",
+		static_cast<float>(player_health),
+		SCENE_TYPE::GAME);
+
+	// create scrap_ui entity
+	scrap_ui = ui->createUIElement(
+		vec2(375.f, window_height_px / 20),
+		vec2(25.f, 25.f),
+		"scrap_ui",
+		static_cast<float>(scrap),
+		SCENE_TYPE::GAME);
+
+	// create level_ui entity
+	level_ui = ui->createUIElement(
+		vec2(375.f, window_height_px / 10),
+		vec2(25.f, 30.f),
+		"level_ui",
+		static_cast<float>(level),
+		SCENE_TYPE::GAME);
+
+	// create item_ui entities
+	// as a placeholder, there is just one item slot for now
+	// later, we will want to render all the items and show locked slots too
+	item_ui = ui->createTexturedUIElement(
+		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
+		vec2(75.f, 75.f),
+		"item_one_ui",
+		TEXTURE_ASSET_ID::ITEM,
+		SCENE_TYPE::GAME);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions

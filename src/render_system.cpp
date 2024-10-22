@@ -246,7 +246,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::draw(SCENE_TYPE scene)
 {
 	// Getting size of window
 	int w, h;
@@ -267,81 +267,72 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-}
-
-// TODO: these need to be changed (moved back into draw, then draw needs to handle
-// what to do w/ different scene types
-void RenderSystem::drawMenu() {
-	draw();
-
-	mat3 projection_2D = createProjectionMatrix();
-
-	// Draw all textured meshes that have a position and size component
-	for (Entity entity : registry.worldObjects.entities)
-	{
-		if (!registry.worldObjects.has(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity
-		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
-	}
-
-	// Truely render to the screen
-	drawToScreen();
-
-	// flicker-free display with a double buffer
-	glfwSwapBuffers(window);
-	gl_has_errors();
-}
-
-void RenderSystem::drawGame() {
-	draw();
 
 	mat3 projection_2D = createProjectionMatrix();
 	std::vector<Entity> render_list = {};
 
-	// add floor first
-	render_list.push_back(registry.floors.entities[0]);
-	// then interactables
-	for (Entity entity : registry.interactables.entities) {
-		render_list.push_back(entity);
-	}
-	// then particles
-	for (Entity entity : registry.particles.entities) {
-		render_list.push_back(entity);
-	}
-	// then the player
-	render_list.push_back(registry.players.entities[0]);
-	// then enemies
-	for (Entity entity : registry.deadlys.entities) {
-		render_list.push_back(entity);
-	}
-	// then projectiles
-	for (Entity entity : registry.projectiles.entities) {
-		render_list.push_back(entity);
-	}
-	// then walls
-	for (Entity entity : registry.walls.entities) {
-		render_list.push_back(entity);
-	}
-	// then UI elements, starting with the base UI
-	render_list.push_back(registry.baseUI.entities[0]);
-	for (Entity entity : registry.uiElements.entities) {
-		render_list.push_back(entity);
-	}
-	// finally, the crosshair
-	for (Entity entity : registry.crosshairs.entities) {
-		render_list.push_back(entity);
-	}
+	if (scene == SCENE_TYPE::GAME) {
+		// draw game
+		for (Entity entity : registry.gameSceneComponents.entities) {
+			// add floor first
+			render_list.push_back(registry.floors.entities[0]);
+			// then interactables
+			for (Entity entity : registry.interactables.entities) {
+				render_list.push_back(entity);
+			}
+			// then particles
+			for (Entity entity : registry.particles.entities) {
+				render_list.push_back(entity);
+			}
+			// then the player
+			render_list.push_back(registry.players.entities[0]);
+			// then enemies
+			for (Entity entity : registry.deadlys.entities) {
+				render_list.push_back(entity);
+			}
+			// then projectiles
+			for (Entity entity : registry.projectiles.entities) {
+				render_list.push_back(entity);
+			}
+			// then walls
+			for (Entity entity : registry.walls.entities) {
+				render_list.push_back(entity);
+			}
+			// then UI elements, starting with the base UI
+			render_list.push_back(registry.baseUI.entities[0]);
+			for (Entity entity : registry.uiElements.entities) {
+				render_list.push_back(entity);
+			}
+			// finally, the crosshair
+			for (Entity entity : registry.crosshairs.entities) {
+				render_list.push_back(entity);
+			}
 
-	// Draw all textured meshes that have a position and size component
-	for (Entity entity : render_list)
-	{
-		if (!registry.worldObjects.has(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity
-		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
+			// Draw all textured meshes that have a position and size component
+			for (Entity entity : render_list)
+			{
+				if (!registry.worldObjects.has(entity))
+					continue;
+				drawTexturedMesh(entity, projection_2D);
+			}
+		}
+	}
+	else if (scene == SCENE_TYPE::MENU) {
+		// draw menu
+		for (Entity entity : registry.menuSceneComponents.entities)
+		{
+			if (!registry.worldObjects.has(entity))
+				continue;
+			// Note, its not very efficient to access elements indirectly via the entity
+			// albeit iterating through all Sprites in sequence. A good point to optimize
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
+	else if (scene == SCENE_TYPE::PAUSE) {
+		// draw pause menu
+	}
+	else if (scene == SCENE_TYPE::TEST) {
+		// draw test scene
 	}
 
 	// Truely render to the screen
