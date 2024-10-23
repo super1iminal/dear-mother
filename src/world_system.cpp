@@ -97,10 +97,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
-	for (Entity entity : registry.debugComponents.entities) {
-		registry.pendingRemoves.emplace_with_duplicates(entity);
-	}
+	//for (Entity entity : registry.debugComponents.entities) {
+	//	registry.pendingRemoves.emplace_with_duplicates(entity);
+	//}
 	// cleanup();
+	 
+
+
+	// Remove debug info from the last step. Need to iterate backwards to avoid catastrophic error
+		// Remove debug info from the last step
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 
 	// Removing out of screen entities
@@ -189,10 +196,10 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	for (Entity entity : registry.worldObjects.entities) {
-		registry.pendingRemoves.emplace_with_duplicates(entity);
+	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
+		Entity entity = registry.gameSceneWorldObjects.entities[i];
+		registry.remove_all_components_of(entity);
 	}
-	// cleanup();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();

@@ -8,6 +8,7 @@ class ECSRegistry
 {
 	// Callbacks to remove a particular or all entities in the system
 	std::vector<ContainerInterface*> registry_list;
+	std::vector<ContainerInterface*> registry_filtered; // auto-cleared, doesn't need to be a member of registry list
 
 public:
 	// Manually created list of all components this game has
@@ -43,9 +44,16 @@ public:
 	ComponentContainer<PauseScene> pauseSceneComponents;
 	ComponentContainer<TestScene> testSceneComponents;
 
+
+	// filtered containers
+	FilteredComponentContainer<RenderRequest, GameScene> gameSceneRenderRequests;
+	FilteredComponentContainer<WorldObject, GameScene> gameSceneWorldObjects;
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
-	ECSRegistry()
+	ECSRegistry() : 
+		gameSceneRenderRequests(renderRequests, gameSceneComponents),
+		gameSceneWorldObjects(worldObjects, gameSceneComponents)
 	{
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
@@ -78,6 +86,10 @@ public:
 		registry_list.push_back(&menuSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);
 		registry_list.push_back(&testSceneComponents);
+
+		// filtered components
+		registry_filtered.push_back(&gameSceneRenderRequests);
+		registry_filtered.push_back(&gameSceneWorldObjects);
 	}
 
 	void clear_all_components() {
@@ -88,6 +100,9 @@ public:
 	void list_all_components() {
 		printf("Debug info on all registry entries:\n");
 		for (ContainerInterface* reg : registry_list)
+			if (reg->size() > 0)
+				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
+		for (ContainerInterface* reg : registry_filtered)
 			if (reg->size() > 0)
 				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
 	}
