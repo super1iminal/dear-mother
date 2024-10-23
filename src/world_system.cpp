@@ -196,6 +196,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
+
 	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
 		Entity entity = registry.gameSceneWorldObjects.entities[i];
 		registry.remove_all_components_of(entity);

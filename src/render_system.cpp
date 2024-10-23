@@ -273,48 +273,46 @@ void RenderSystem::draw(SCENE_TYPE scene)
 
 	if (scene == SCENE_TYPE::GAME) {
 		// draw game
-		for (Entity entity : registry.gameSceneComponents.entities) {
-			// add floor first
-			render_list.push_back(registry.floors.entities[0]);
-			// then interactables
-			for (Entity entity : registry.interactables.entities) {
-				render_list.push_back(entity);
-			}
-			// then particles
-			for (Entity entity : registry.particles.entities) {
-				render_list.push_back(entity);
-			}
-			// then the player
-			render_list.push_back(registry.players.entities[0]);
-			// then enemies
-			for (Entity entity : registry.deadlys.entities) {
-				render_list.push_back(entity);
-			}
-			// then projectiles
-			for (Entity entity : registry.projectiles.entities) {
-				render_list.push_back(entity);
-			}
-			// then walls
-			for (Entity entity : registry.walls.entities) {
-				render_list.push_back(entity);
-			}
-			// then UI elements, starting with the base UI
-			render_list.push_back(registry.baseUI.entities[0]);
-			for (Entity entity : registry.uiElements.entities) {
-				render_list.push_back(entity);
-			}
-			// finally, the crosshair
-			for (Entity entity : registry.crosshairs.entities) {
-				render_list.push_back(entity);
-			}
+		// add floor first
+		render_list.push_back(registry.floors.entities[0]);
+		// then interactables
+		for (Entity entity : registry.interactables.entities) {
+			render_list.push_back(entity);
+		}
+		// then particles
+		for (Entity entity : registry.particles.entities) {
+			render_list.push_back(entity);
+		}
+		// then the player
+		render_list.push_back(registry.players.entities[0]);
+		// then enemies
+		for (Entity entity : registry.deadlys.entities) {
+			render_list.push_back(entity);
+		}
+		// then projectiles
+		for (Entity entity : registry.projectiles.entities) {
+			render_list.push_back(entity);
+		}
+		// then walls
+		for (Entity entity : registry.walls.entities) {
+			render_list.push_back(entity);
+		}
+		// then UI elements, starting with the base UI
+		render_list.push_back(registry.baseUI.entities[0]);
+		for (Entity entity : registry.uiElements.entities) {
+			render_list.push_back(entity);
+		}
+		// finally, the crosshair
+		for (Entity entity : registry.crosshairs.entities) {
+			render_list.push_back(entity);
+		}
 
-			// Draw all textured meshes that have a position and size component
-			for (Entity entity : render_list)
-			{
-				if (!registry.worldObjects.has(entity))
-					continue;
-				drawTexturedMesh(entity, projection_2D);
-			}
+		// Draw all textured meshes that have a position and size component
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D);
 		}
 	}
 	else if (scene == SCENE_TYPE::MENU) {
