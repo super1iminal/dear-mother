@@ -8,6 +8,7 @@
 #include "common.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "tiny_ecs.hpp"
+#include <menu_system.hpp>
 
 class SceneSystem
 {
@@ -22,6 +23,8 @@ private:
 	WorldSystem world;
 	PhysicsSystem physics;
 	AISystem ai;
+
+	MenuSystem menu;
 
 	// Scene systems
 	CollisionSystem collisions;
