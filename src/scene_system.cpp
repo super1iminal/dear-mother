@@ -44,8 +44,12 @@ bool SceneSystem::init()
 
 	// Intialize ui
 	ui.init(&renderer, window, &scene);
+
+	// initialize menu and world
+	menu.init(&renderer, window, &scene, &ui);
 	world.init(&renderer, window, &ui);
-	ui.initMenuUI();
+
+	menu.initStartMenu();
 
 	return true;
 }
@@ -111,7 +115,7 @@ void SceneSystem::on_mouse_move(vec2 pos) {
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
-			ui.on_mouse_move(pos);
+			menu.on_mouse_move(pos);
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -142,7 +146,7 @@ void SceneSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
-			ui.on_mouse_button(window, button, action, mods);
+			menu.on_mouse_button(window, button, action, mods);
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
