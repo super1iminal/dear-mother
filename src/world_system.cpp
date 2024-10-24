@@ -147,7 +147,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f);
 	}
 
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 	screen.health_status = player_health;
@@ -229,7 +229,7 @@ void WorldSystem::restart_game() {
 	}
 	
 	initGameUI();
-	createCrosshair(renderer);
+	ui->createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::initGameUI() {

@@ -27,9 +27,6 @@ private:
 
 	SCENE_TYPE* scene;
 
-	// close the start menu
-	void closeMenuScreen();
-
 	// open help screen
 	void initHelpScreen();
 

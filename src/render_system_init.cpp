@@ -64,16 +64,6 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	return true;
 }
 
-void RenderSystem::updateCursorVisibility(bool visible)
-{
-	if (visible) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); // show the cursor
-	}
-	else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // hides the cursor
-	}
-}
-
 void RenderSystem::initializeGlTextures()
 {
     glGenTextures((GLsizei)texture_gl_handles.size(), texture_gl_handles.data());

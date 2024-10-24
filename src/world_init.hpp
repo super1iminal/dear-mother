@@ -44,9 +44,6 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);
 
-// the crosshair
-Entity createCrosshair(RenderSystem* renderer, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size);
 

@@ -186,3 +186,42 @@ Entity UISystem::createButton(
 	return entity;
 }
 
+Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type) {
+	auto entity = Entity();
+	switch (scene_type) {
+	case SCENE_TYPE::GAME:
+		registry.gameSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::MENU:
+		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::PAUSE:
+		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::TEST:
+		registry.testSceneComponents.emplace(entity);
+		break;
+	}
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+	registry.crosshairs.emplace(entity);
+
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = { -1.f, -1.f }; // initializing position to off screen
+	worldobject.angle = 0.f;
+	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+			texture,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE
+		});
+
+	return entity;
+}
+

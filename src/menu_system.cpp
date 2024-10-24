@@ -20,10 +20,6 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_
 
 void MenuSystem::initStartMenu()
 {
-	Entity entity = Entity();
-
-	renderer->updateCursorVisibility(true);
-
 	Entity base_ui = ui->createPanel(
 		SCENE_TYPE::MENU,
 		vec2(window_width_px / 2, window_height_px / 2),
@@ -38,7 +34,6 @@ void MenuSystem::initStartMenu()
 		vec2(162.f, 42.f),
 		[&]() {
 			*(this->scene) = SCENE_TYPE::GAME;
-			closeMenuScreen();
 		},
 		"start_button",
 		TEXTURE_ASSET_ID::START_BUTTON,
@@ -78,17 +73,8 @@ void MenuSystem::initStartMenu()
 		TEXTURE_ASSET_ID::QUIT_BUTTON,
 		SCENE_TYPE::MENU
 	);
-}
 
-void MenuSystem::closeMenuScreen() {
-	// cleanup our start menu elements
-	for (Entity entity : registry.menuSceneComponents.entities) {
-		// mark the entity for cleanup
-		registry.pendingRemoves.emplace(entity);
-	}
-
-	// hide the cursor again
-	renderer->updateCursorVisibility(false);
+	ui->createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
 }
 
 void MenuSystem::initHelpScreen() {

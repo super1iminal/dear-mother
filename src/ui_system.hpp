@@ -27,6 +27,8 @@ public:
 		TEXTURE_ASSET_ID texture_id,
 		SCENE_TYPE scene_type);
 
+	Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
+
 private:
 	RenderSystem* renderer;
 
