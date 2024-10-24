@@ -48,10 +48,9 @@ std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
 	return Clock::now();
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window, UISystem* ui) {
+void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	this->renderer = renderer_arg;
 	this->window = window;
-	this->ui = ui;
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
@@ -229,12 +228,13 @@ void WorldSystem::restart_game() {
 	}
 	
 	initGameUI();
-	ui->createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
+	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::initGameUI() {
 	// Add the base UI
-	Entity base_ui = ui->createPanel(
+	Entity base_ui = UISystem::createPanel(
+		renderer,
 		SCENE_TYPE::GAME,
 		vec2(window_width_px / 2, BASE_UI_HEIGHT / 2),
 		0.f,
@@ -249,7 +249,8 @@ void WorldSystem::initGameUI() {
 	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
-	this->health_ui = ui->createUIElement(
+	this->health_ui = UISystem::createUIElement(
+		renderer,
 		vec2(window_width_px / 10, window_height_px / 11),
 		vec2(165.f, 40.f),
 		"health_ui",
@@ -257,7 +258,8 @@ void WorldSystem::initGameUI() {
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
-	scrap_ui = ui->createUIElement(
+	scrap_ui = UISystem::createUIElement(
+		renderer,
 		vec2(375.f, window_height_px / 20),
 		vec2(25.f, 25.f),
 		"scrap_ui",
@@ -265,7 +267,8 @@ void WorldSystem::initGameUI() {
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
-	level_ui = ui->createUIElement(
+	level_ui = UISystem::createUIElement(
+		renderer,
 		vec2(375.f, window_height_px / 10),
 		vec2(25.f, 30.f),
 		"level_ui",
@@ -275,7 +278,8 @@ void WorldSystem::initGameUI() {
 	// create item_ui entities
 	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
-	item_ui = ui->createTexturedUIElement(
+	item_ui = UISystem::createTexturedUIElement(
+		renderer,
 		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
 		vec2(75.f, 75.f),
 		"item_one_ui",

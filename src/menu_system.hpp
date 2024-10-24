@@ -9,7 +9,7 @@ public:
 	~MenuSystem();
 
 	// initialize
-	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg, UISystem* ui_arg);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
 
 	void initStartMenu();
 
@@ -18,7 +18,6 @@ public:
 
 private:
 	RenderSystem* renderer;
-	UISystem* ui;
 
 	// Window handle
 	GLFWwindow* window;

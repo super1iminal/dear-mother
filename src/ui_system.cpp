@@ -13,15 +13,21 @@ UISystem::~UISystem() {
 
 }
 
-void UISystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
-	this->renderer = renderer_arg;
+void UISystem::init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
 	this->window = window_arg;
 	this->scene = scene_arg;
 }
 
 // creates a basic panel with the given texture
 // used to render base UI components ex. the start menu background
-Entity UISystem::createPanel(SCENE_TYPE scene_type, vec2 pos, float angle, vec2 scale, std::string name, TEXTURE_ASSET_ID texture)
+Entity UISystem::createPanel(
+	RenderSystem* renderer, 
+	SCENE_TYPE scene_type, 
+	vec2 pos, 
+	float angle, 
+	vec2 scale, 
+	std::string name, 
+	TEXTURE_ASSET_ID texture)
 {
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -51,7 +57,6 @@ Entity UISystem::createPanel(SCENE_TYPE scene_type, vec2 pos, float angle, vec2 
 	worldobject.angle = angle;
 	worldobject.scale = scale;
 
-
 	registry.renderRequests.insert(
 		entity,
 		{ texture,
@@ -61,7 +66,13 @@ Entity UISystem::createPanel(SCENE_TYPE scene_type, vec2 pos, float angle, vec2 
 	return entity;
 }
 
-Entity UISystem::createUIElement(vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type) {
+Entity UISystem::createUIElement(
+	RenderSystem* renderer, 
+	vec2 pos, 
+	vec2 scale, 
+	std::string element_name, 
+	float element_value, 
+	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -100,7 +111,13 @@ Entity UISystem::createUIElement(vec2 pos, vec2 scale, std::string element_name,
 	return entity;
 }
 
-Entity UISystem::createTexturedUIElement(vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type) {
+Entity UISystem::createTexturedUIElement(
+	RenderSystem* renderer, 
+	vec2 pos, 
+	vec2 scale, 
+	std::string element_name, 
+	TEXTURE_ASSET_ID texture_id, 
+	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -141,6 +158,7 @@ Entity UISystem::createTexturedUIElement(vec2 pos, vec2 scale, std::string eleme
 }
 
 Entity UISystem::createButton(
+	RenderSystem* renderer,
 	vec2 pos, 
 	vec2 scale, 
 	std::function<void()> action, 

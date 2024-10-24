@@ -13,13 +13,36 @@ public:
 	~UISystem();
 
 	// intialize
-	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
+	void init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
 
-	Entity createPanel(SCENE_TYPE scene_type, vec2 pos, float angle, vec2 scale, std::string name, TEXTURE_ASSET_ID texture);
-	Entity createUIElement(vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type);
-	Entity createTexturedUIElement(vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type);
+	static Entity createPanel(
+		RenderSystem* renderer,
+		SCENE_TYPE scene_type,
+		vec2 pos,
+		float angle,
+		vec2 scale,
+		std::string name,
+		TEXTURE_ASSET_ID texture);
 
-	Entity createButton(
+	static Entity 
+		createUIElement(
+			RenderSystem* renderer,
+			vec2 pos,
+			vec2 scale,
+			std::string element_name,
+			float element_value,
+			SCENE_TYPE scene_type);
+
+	static Entity createTexturedUIElement(
+			RenderSystem* renderer,
+			vec2 pos,
+			vec2 scale,
+			std::string element_name,
+			TEXTURE_ASSET_ID texture_id,
+			SCENE_TYPE scene_type);
+
+	static Entity createButton(
+		RenderSystem* renderer,
 		vec2 pos,
 		vec2 scale,
 		std::function<void()> action,
@@ -27,11 +50,9 @@ public:
 		TEXTURE_ASSET_ID texture_id,
 		SCENE_TYPE scene_type);
 
-	Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
+	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
 
 private:
-	RenderSystem* renderer;
-
 	// Window handle
 	GLFWwindow* window;
 

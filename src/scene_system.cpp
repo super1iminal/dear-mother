@@ -43,11 +43,11 @@ bool SceneSystem::init()
 	renderer.init(window);
 
 	// Intialize ui
-	ui.init(&renderer, window, &scene);
+	ui.init(window, &scene);
 
 	// initialize menu and world
-	menu.init(&renderer, window, &scene, &ui);
-	world.init(&renderer, window, &ui);
+	menu.init(&renderer, window, &scene);
+	world.init(&renderer, window);
 
 	menu.initStartMenu();
 

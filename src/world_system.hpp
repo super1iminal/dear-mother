@@ -25,7 +25,7 @@ public:
 	WorldSystem();
 
 	// starts the game
-	void init(RenderSystem* renderer_arg, GLFWwindow* window, UISystem* ui);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -74,7 +74,6 @@ private:
 
 	// Game state
 	RenderSystem* renderer;
-	UISystem* ui;
 	float current_speed;
 	uint level = 1;
 	uint scrap = 28;

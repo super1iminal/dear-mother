@@ -140,7 +140,6 @@ struct TexturedVertex
 struct UIElement {
 	std::string name;
 	float value;
-	std::function<void()> action;
 };
 
 // contains information relating to UI buttons

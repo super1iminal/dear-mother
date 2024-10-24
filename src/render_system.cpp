@@ -298,7 +298,9 @@ void RenderSystem::draw(SCENE_TYPE scene)
 			render_list.push_back(entity);
 		}
 		// then UI elements, starting with the base UI
-		render_list.push_back(registry.baseUI.entities[0]);
+		for (Entity entity : registry.baseUI.entities) {
+			render_list.push_back(entity);
+		}
 		for (Entity entity : registry.uiElements.entities) {
 			render_list.push_back(entity);
 		}

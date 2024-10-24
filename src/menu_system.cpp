@@ -11,16 +11,16 @@ MenuSystem::~MenuSystem() {
 
 }
 
-void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg, UISystem* ui_arg) {
+void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
 	this->renderer = renderer_arg;
 	this->window = window_arg;
 	this->scene = scene_arg;
-	this->ui = ui_arg;
 }
 
 void MenuSystem::initStartMenu()
 {
-	Entity base_ui = ui->createPanel(
+	Entity base_ui = UISystem::createPanel(
+		renderer,
 		SCENE_TYPE::MENU,
 		vec2(window_width_px / 2, window_height_px / 2),
 		0.f,
@@ -29,7 +29,8 @@ void MenuSystem::initStartMenu()
 		TEXTURE_ASSET_ID::START_MENU
 	);
 
-	ui->createButton(
+	UISystem::createButton(
+		renderer,
 		vec2(window_width_px / 2 - 1.f, 275.f),
 		vec2(162.f, 42.f),
 		[&]() {
@@ -40,7 +41,8 @@ void MenuSystem::initStartMenu()
 		SCENE_TYPE::MENU
 	);
 
-	ui->createButton(
+	UISystem::createButton(
+		renderer,
 		vec2(window_width_px / 2 + 3.f, 322.f),
 		vec2(90.f, 44.f),
 		[&]() {
@@ -52,7 +54,8 @@ void MenuSystem::initStartMenu()
 		SCENE_TYPE::MENU
 	);
 
-	ui->createButton(
+	UISystem::createButton(
+		renderer,
 		vec2(window_width_px / 2, 372.f),
 		vec2(165.f, 44.f),
 		[&]() {
@@ -63,7 +66,8 @@ void MenuSystem::initStartMenu()
 		SCENE_TYPE::MENU
 	);
 
-	ui->createButton(
+	UISystem::createButton(
+		renderer,
 		vec2(window_width_px / 2 + 7.f, 420.f),
 		vec2(90.f, 44.f),
 		[&]() {
@@ -74,11 +78,12 @@ void MenuSystem::initStartMenu()
 		SCENE_TYPE::MENU
 	);
 
-	ui->createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
+	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
 }
 
 void MenuSystem::initHelpScreen() {
-	ui->createPanel(
+	UISystem::createPanel(
+		renderer,
 		SCENE_TYPE::MENU,
 		vec2(window_width_px / 2, window_height_px / 2),
 		0.f,
@@ -87,7 +92,8 @@ void MenuSystem::initHelpScreen() {
 		TEXTURE_ASSET_ID::HELP_SCREEN
 	);
 
-	ui->createButton(
+	UISystem::createButton(
+		renderer,
 		vec2(window_width_px - (window_width_px / 5), window_height_px - (window_height_px / 3)),
 		vec2(90.f, 44.f),
 		[&]() {
