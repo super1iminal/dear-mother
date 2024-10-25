@@ -319,12 +319,26 @@ void RenderSystem::draw(SCENE_TYPE scene)
 	}
 	else if (scene == SCENE_TYPE::MENU) {
 		// draw menu
-		for (Entity entity : registry.menuSceneComponents.entities)
+
+		Entity crosshair_entity;
+		for (Entity entity : registry.menuSceneComponents.entities) {
+			// this is a very hack-y check to put the crosshair at the very end of the render list
+			// so that it doesn't disappear when new menu panels are rendered.
+			// TODO: this should be changed once we get z-buffering
+			if (!registry.crosshairs.has(entity)) {
+				render_list.push_back(entity);
+			}
+			else {
+				crosshair_entity = entity;
+			}
+		}
+		
+		render_list.push_back(crosshair_entity);
+
+		for (Entity entity : render_list)
 		{
-			if (!registry.worldObjects.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
-			// Note, its not very efficient to access elements indirectly via the entity
-			// albeit iterating through all Sprites in sequence. A good point to optimize
 			drawTexturedMesh(entity, projection_2D);
 		}
 	}

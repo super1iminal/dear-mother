@@ -72,11 +72,13 @@ private:
 	// Player health displayed on window
 	unsigned int player_health;
 
+	void increaseScrap(int amt);
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
 	uint level = 1;
-	uint scrap = 28;
+	uint scrap = 0;
 	Entity items [8];
 	Entity player;
 	Entity floor;
@@ -89,6 +91,9 @@ private:
 
 	// initialize HUD
 	void initGameUI();
+
+	// update HUD
+	void updateGameUI();
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);

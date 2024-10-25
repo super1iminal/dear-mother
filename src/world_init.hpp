@@ -47,7 +47,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size);
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int));
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value);
 
 // Projectiles
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly);

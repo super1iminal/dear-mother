@@ -190,7 +190,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	return floor;
 }
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int)) {
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
 	registry.gameSceneComponents.emplace(interactable_entity);
@@ -200,7 +200,8 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 
 	Interactable& interactable = registry.interactables.emplace(interactable_entity);
 	interactable.range = 50.f;
-	interactable.interaction = a;
+	interactable.interaction = function;
+	interactable.value = value;
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& interactable_object = registry.worldObjects.emplace(interactable_entity);

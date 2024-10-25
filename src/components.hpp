@@ -102,6 +102,8 @@ struct Interactable {
 	float range;
 	// placeholder, not sure what we want the interaction function to do yet
 	std::function<void(int)> interaction;
+	// value to be used in function call
+	int value;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -246,7 +248,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HELP_BUTTON = START_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
-	TEXTURE_COUNT = QUIT_BUTTON + 1,
+	BACK_BUTTON = QUIT_BUTTON + 1,
+	TEXTURE_COUNT = BACK_BUTTON + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
