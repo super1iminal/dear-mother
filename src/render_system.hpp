@@ -15,6 +15,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <map>
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -71,6 +72,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
+		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water") };
@@ -96,6 +98,8 @@ public:
 
 	void initializeGlMeshes();
 
+	void initFont(const std::string& font_filename, unsigned int font_default_size);
+
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
@@ -112,9 +116,6 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	// show/hide mouse cursor
-	void updateCursorVisibility(bool visible);
-
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection);
@@ -129,6 +130,9 @@ private:
 	GLuint off_screen_render_buffer_depth;
 
 	Entity screen_state_entity;
+
+	// font characters
+	std::map<char, Character> m_ftCharacters;
 };
 
 bool loadEffectFromFile(

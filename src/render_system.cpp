@@ -149,10 +149,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 
 		GLint value_loc = glGetUniformLocation(program, "value");
-		//assert(value_loc >= 0);
+
 		UIElement& ui_element = registry.uiElements.get(entity);
 		glUniform1f(value_loc, ui_element.value);
 		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
+		// render text
+
 	}
 	else
 	{
