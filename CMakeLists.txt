@@ -39,7 +39,7 @@ if (IS_OS_MAC)
   link_directories(/opt/homebrew/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_system.cpp" "src/scene_system.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "ext/freetype/include/ft2build.h" "ext/freetype/include/freetype/freetype.h" "ext/freetype/include/freetype/ftadvanc.h" "ext/freetype/include/freetype/ftbbox.h" "ext/freetype/include/freetype/ftbdf.h" "ext/freetype/include/freetype/ftbitmap.h" "ext/freetype/include/freetype/ftbzip2.h" "ext/freetype/include/freetype/ftcache.h" "ext/freetype/include/freetype/ftchapters.h" "ext/freetype/include/freetype/ftcid.h" "ext/freetype/include/freetype/ftcolor.h" "ext/freetype/include/freetype/ftdriver.h" "ext/freetype/include/freetype/fterrdef.h" "ext/freetype/include/freetype/fterrors.h" "ext/freetype/include/freetype/ftfntfmt.h" "ext/freetype/include/freetype/ftgasp.h" "ext/freetype/include/freetype/ftglyph.h" "ext/freetype/include/freetype/ftgxval.h" "ext/freetype/include/freetype/ftgzip.h" "ext/freetype/include/freetype/ftimage.h" "ext/freetype/include/freetype/ftincrem.h" "ext/freetype/include/freetype/ftlcdfil.h" "ext/freetype/include/freetype/ftlist.h" "ext/freetype/include/freetype/ftlogging.h" "ext/freetype/include/freetype/ftlzw.h" "ext/freetype/include/freetype/ftmac.h" "ext/freetype/include/freetype/ftmm.h" "ext/freetype/include/freetype/ftmodapi.h" "ext/freetype/include/freetype/ftmoderr.h" "ext/freetype/include/freetype/ftotval.h" "ext/freetype/include/freetype/ftoutln.h" "ext/freetype/include/freetype/ftparams.h" "ext/freetype/include/freetype/ftpfr.h" "ext/freetype/include/freetype/ftrender.h" "ext/freetype/include/freetype/ftsizes.h" "ext/freetype/include/freetype/ftsnames.h" "ext/freetype/include/freetype/ftstroke.h" "ext/freetype/include/freetype/ftsynth.h" "ext/freetype/include/freetype/ftsystem.h" "ext/freetype/include/freetype/fttrigon.h" "ext/freetype/include/freetype/fttypes.h" "ext/freetype/include/freetype/ftwinfnt.h" "ext/freetype/include/freetype/otsvg.h" "ext/freetype/include/freetype/t1tables.h" "ext/freetype/include/freetype/ttnameid.h" "ext/freetype/include/freetype/tttables.h" "ext/freetype/include/freetype/tttags.h" "ext/freetype/include/freetype/config/ftconfig.h" "ext/freetype/include/freetype/config/ftheader.h" "ext/freetype/include/freetype/config/ftmodule.h" "ext/freetype/include/freetype/config/ftoption.h" "ext/freetype/include/freetype/config/ftstdlib.h" "ext/freetype/include/freetype/config/integer-types.h" "ext/freetype/include/freetype/config/mac-support.h" "ext/freetype/include/freetype/config/public-macros.h")
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_system.cpp" "src/scene_system.hpp" "src/ui_system.cpp" "src/menu_system.cpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 
 # Added this so policy CMP0065 doesn't scream
@@ -106,6 +106,10 @@ elseif (IS_OS_WINDOWS)
 	set(SDL2MIXER_DLL "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/lib/SDL2_mixer-x86.dll")
     endif()
 
+    # FreeType - Windows-specific (x64 only)
+    set (FREETYPE_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+    set (FREETYPE_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/release static/vs2015-2022/win64/freetype.lib")
+
     # Copy and rename dlls
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -146,6 +150,30 @@ if (NOT GLFW_FOUND OR NOT SDL2_FOUND)
       message(FATAL_ERROR "Can't find SDL2." )
    endif()
 endif()
+
+find_package(Freetype REQUIRED)
+
+if(TARGET Freetype AND NOT TARGET Freetype::Freetype)
+     add_library(Freetype::Freetype ALIAS freetype) # target freetype is defined by freetype-targets.cmake
+     # might need to add freetype to global scope if cmake errors here
+     # alternativly if the above does not work for you you can use
+     # add_library(Freetype::Freetype INTERFACE IMPORTED)
+     # target_link_libraries(Freetype::Freetype INTERFACE freetype)
+endif()
+ 
+if(NOT TARGET Freetype::Freetype)
+     # insert error here
+     # or create the target correctly (see cmakes newer FindFreetype.cmake)
+     message(FATAL_ERROR "Can't find FreeType (fonts)." )
+endif()
+ 
+ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES} ${SDL2_LIBRARIES} ${SDL2MIXER_LIBRARIES} glm::glm ${FREETYPE_LIBRARY})
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
