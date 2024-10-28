@@ -6,8 +6,6 @@
 #include <cassert>
 #include <sstream>
 #include <chrono>
-
-#include "physics_system.hpp"
 #include <iostream>
 
 // Game configuration
@@ -16,7 +14,8 @@
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
-	, player_health(0) {
+	, player_health(0)
+	, current_speed(1.0) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -32,19 +31,6 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(salmon_eat_sound);
 
 	Mix_CloseAudio();
-
-	// Destroy all created components
-	registry.clear_all_components();
-
-	// Close the window
-	glfwDestroyWindow(window);
-}
-
-// Debugging
-namespace {
-	void glfw_err_cb(int error, const char* desc) {
-		fprintf(stderr, "%d: %s", error, desc);
-	}
 }
 
 void WorldSystem::set_last_shot_time(Entity& entity) {
@@ -61,58 +47,20 @@ std::chrono::steady_clock::time_point WorldSystem::get_curr_time() {
 	return Clock::now();
 }
 
-
-// World initialization
-// Note, this has a lot of OpenGL specific things, could be moved to the renderer
-GLFWwindow* WorldSystem::create_window() {
-	///////////////////////////////////////
-	// Initialize GLFW
-	glfwSetErrorCallback(glfw_err_cb);
-	if (!glfwInit()) {
-		fprintf(stderr, "Failed to initialize GLFW");
-		return nullptr;
-	}
-
-	//-------------------------------------------------------------------------
-	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
-	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
-	// GLFW / OGL Initialization
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-#if __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-	glfwWindowHint(GLFW_RESIZABLE, 0);
-
-	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Salmon Game Assignment", nullptr, nullptr);
-	if (window == nullptr) {
-		fprintf(stderr, "Failed to glfwCreateWindow");
-		return nullptr;
-	}
-
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, on_mouse_button);
-
+void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
+	this->renderer = renderer_arg;
+	this->window = window;
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
-		return nullptr;
+		exit(1);
+		// return nullptr;
 	}
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
 		fprintf(stderr, "Failed to open audio device");
-		return nullptr;
+		exit(1);
+		// return nullptr;
 	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
@@ -124,24 +72,24 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("music.wav").c_str(),
 			audio_path("death_sound.wav").c_str(),
 			audio_path("eat_sound.wav").c_str());
-		return nullptr;
+		exit(1);
+		// return nullptr;
 	}
 
-	return window;
-}
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
-	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
+	// Create Item Set
+	srand(time(0));
+	buildItemSet();
 	// Set all states to default
 	restart_game();
 }
 
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update) {
+bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
@@ -150,13 +98,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
+	title_ss << " FPS: " << fps;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
 	for (Entity entity : registry.debugComponents.entities) {
 		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
-	cleanup();
+	// cleanup();
+
+
 	// Removing out of screen entities
 	auto& worldObjects_registry = registry.worldObjects;
 
@@ -247,7 +198,7 @@ void WorldSystem::restart_game() {
 	for (Entity entity : registry.worldObjects.entities) {
 		registry.pendingRemoves.emplace_with_duplicates(entity);
 	}
-	WorldSystem::cleanup();
+	// cleanup();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -313,7 +264,7 @@ void WorldSystem::restart_game() {
 		TEXTURE_ASSET_ID::ITEM);
 
 	// add crosshair
-	crosshair = createCrosshair(renderer);
+	createCrosshair(renderer);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
@@ -390,21 +341,14 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	return;
 }
 
-// Returns the local bounding coordinates scaled by the current size of the entity
-vec2 get_bounding_box_w(const WorldObject& worldobject)
-{
-	// abs is to avoid negative scale due to the facing direction.
-	return { abs(worldobject.scale.x), abs(worldobject.scale.y) };
-}
-
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
 
 	// Get the bounding boxes (sizes) of both entities
-	vec2 bbox_actor = get_bounding_box_w(worldobject_actor);
-	vec2 bbox_blocker = get_bounding_box_w(worldobject_blocker);
+	vec2 bbox_actor = get_bounding_box(worldobject_actor);
+	vec2 bbox_blocker = get_bounding_box(worldobject_blocker);
 
 	// Compute half sizes for easier calculation
 	float half_width_actor = bbox_actor.x / 2.0f;
@@ -479,6 +423,32 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	return;
 }
 
+void WorldSystem::handle_item_pickup(Entity item) {
+	// Pick up item and apply effects to the player
+	Inventory& player_inventory = registry.inventory.get(player);
+	ItemStat new_item = registry.itemStats.get(item);
+	if ((player_inventory.items.size() < 8) && (new_item.type != "health_pack")) {
+		player_inventory.items.push_back(new_item);
+		update_player_modifier();
+		registry.pendingRemoves.emplace_with_duplicates(item);
+		std::cout << "Picked up: " << new_item.name << std::endl;
+	}
+	else if (new_item.type == "health_pack") {
+		// Apply health pack item
+		Health& player_health = registry.healthComponents.get(player);
+		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
+			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+		}
+		else {
+			player_health.curr_health = player_health.max_health;
+		}
+		registry.pendingRemoves.emplace_with_duplicates(item);
+	}
+	else {
+		std::cout << "Already have 8 items" << std::endl;
+	}
+}
+
 void WorldSystem::handle_interactions() {
 	auto& interactablesRegistry = registry.interactables;
 	for (Entity interactableEntity : interactablesRegistry.entities) {
@@ -491,8 +461,60 @@ void WorldSystem::handle_interactions() {
 
 		float dist = distance(playerWorldObject.position, interactableObject.position);
 		if (dist < range) {
-			interactable.interaction(6);
+			if (registry.itemStats.has(interactableEntity)) {
+				handle_item_pickup(interactableEntity);
+			}
 		}
+	}
+}
+
+// Call everytime the player inventory is going to be modified. So when an item is being picked up or dropped
+void WorldSystem::update_player_modifier() const {
+	int new_damage_flat = 0;
+
+	float new_speed_flat = 0;
+	float new_speed_percent = 0;
+
+	float new_fire_rate_flat = 0;
+	float new_fire_rate_percent = 0;
+
+	float new_range_flat = 0;
+	float new_range_percent = 0;
+
+	float new_accuracy = 0;
+
+	for (ItemStat item : registry.inventory.get(player).items) {
+		new_damage_flat += item.flat_damage_mod;
+
+		new_speed_flat += item.flat_speed_mod;
+		new_speed_percent += item.percent_speed_mod;
+
+		new_fire_rate_flat += item.flat_fire_rate;
+		new_fire_rate_percent += item.percent_fire_rate;
+
+		new_range_flat += item.flat_range;
+		new_range_percent += item.percent_range;
+
+		new_accuracy += item.accuracy;
+	}
+	Modifier& player_modifier = registry.modifiers.get(player);
+
+	player_modifier.damage_modifier_flat = new_damage_flat;
+
+	player_modifier.speed_modifier_flat = new_speed_flat;
+	player_modifier.speed_modifier_percent = new_speed_percent;
+
+	player_modifier.range_modifier_flat = new_range_flat;
+	player_modifier.range_modifier_percent = new_range_percent;
+
+	player_modifier.fire_rate_modifier_flat = new_fire_rate_flat;
+	player_modifier.fire_rate_modifier_percent = new_fire_rate_percent;
+
+	if (new_accuracy >= 0) {
+		player_modifier.accuracy_modifier = new_accuracy;
+	}
+	else {
+		player_modifier.accuracy_modifier = 0;
 	}
 }
 
@@ -512,16 +534,14 @@ void WorldSystem::handle_deaths() {
 			else {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
+					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng);
+					}
 				}
 				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
 		}
 	}
-}
-
-// Should the game be over ?
-bool WorldSystem::is_over() const {
-	return bool(glfwWindowShouldClose(window));
 }
 
 void WorldSystem::shoot(Entity& entity) {
@@ -532,13 +552,24 @@ void WorldSystem::shoot(Entity& entity) {
 
 	if (registry.players.has(entity)) {
 		if (left_mouse_button) {
-			if ((elapsed_ms >= registry.shooters.get(entity).fire_rate) || first_shot) {
+			// Apply fire rate modifier 
+			float old_fire_rate = registry.shooters.get(entity).fire_rate;
+			Modifier player_modifier = registry.modifiers.get(entity);
+			float new_fire_rate = old_fire_rate - player_modifier.fire_rate_modifier_flat - (old_fire_rate * player_modifier.fire_rate_modifier_percent);
+			if ((elapsed_ms >= new_fire_rate) || first_shot) {
 				double xpos, ypos;
 				glfwGetCursorPos(window, &xpos, &ypos);
 				float angle = atan2(ypos - entity_object.position.y, xpos - entity_object.position.x);
-				createProjectile(renderer, entity_object.position, angle, 350.0f, true);
-				first_shot = false;
 
+				// Apply modifiers to player bullets
+				Modifier projectile_mod = registry.modifiers.get(player);
+				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true);
+				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
+				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
+				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
+				
+				first_shot = false;
 				set_last_shot_time(entity);
 			}
 		}
@@ -564,11 +595,10 @@ void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 }
 
-void WorldSystem::on_key(int key, int, int action, int mod) {
+// sc is scancode, we don't use it
+void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
 		restart_game();
 	}
 
@@ -592,28 +622,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			float angle = atan2f(dy, dx);
 			if (angle < 0)
 				angle += 2 * M_PI;
-			player_motion.target_velocity = v_from_sa(player_motion.max_speed, angle);
+			// Apply speed modifier
+			Modifier& speed_modifier = registry.modifiers.get(player);
+			float new_max_speed = player_motion.max_speed + speed_modifier.speed_modifier_flat + (player_motion.max_speed * speed_modifier.speed_modifier_percent);
+			player_motion.target_velocity = v_from_sa(new_max_speed, angle);
 		}
-	}
-
-	// List all components
-	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-		registry.list_all_components();
 	}
 
 	// Interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions();
-	}
-
-	// Close window
-	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
-
-	// Debugging mode toggle
-	if (key == GLFW_KEY_X) {
-		debugging.in_debug_mode = (action != GLFW_RELEASE);
 	}
 
 	// Adjust current speed with `<` and `>`
@@ -630,23 +648,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// Update the position of the crosshair
-	WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-	if (mouse_position.x > 0 && mouse_position.x < window_width_px && mouse_position.y > BASE_UI_HEIGHT && mouse_position.y < window_height_px)
-		crosshair_object.position = mouse_position;
+	// nothing yet
 }
 
-// cleanup all entities to be removed. will prevent so many errors. 
-// works fine with duplicate entries in removes
-void WorldSystem::cleanup() {
-	// Make a copy of the entities to remove
-	auto entities_to_remove = registry.pendingRemoves.entities; // Copy the list
-
-	// Remove components of each entity
-	for (Entity entity : entities_to_remove) {
-		registry.remove_all_components_of(entity);
-	}
-
-	// Clear the removes container
-	registry.pendingRemoves.clear();
-}
