@@ -79,12 +79,15 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
+	// Create Item Set
+	srand(time(0));
+	buildItemSet();
 	// Set all states to default
 	restart_game();
 }
 
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update) {
+bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
@@ -93,6 +96,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
+	title_ss << " FPS: " << fps;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -443,6 +447,32 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	return;
 }
 
+void WorldSystem::handle_item_pickup(Entity item) {
+	// Pick up item and apply effects to the player
+	Inventory& player_inventory = registry.inventory.get(player);
+	ItemStat new_item = registry.itemStats.get(item);
+	if ((player_inventory.items.size() < 8) && (new_item.type != "health_pack")) {
+		player_inventory.items.push_back(new_item);
+		update_player_modifier();
+		registry.pendingRemoves.emplace_with_duplicates(item);
+		std::cout << "Picked up: " << new_item.name << std::endl;
+	}
+	else if (new_item.type == "health_pack") {
+		// Apply health pack item
+		Health& player_health = registry.healthComponents.get(player);
+		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
+			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+		}
+		else {
+			player_health.curr_health = player_health.max_health;
+		}
+		registry.pendingRemoves.emplace_with_duplicates(item);
+	}
+	else {
+		std::cout << "Already have 8 items" << std::endl;
+	}
+}
+
 void WorldSystem::handle_interactions() {
 	auto& interactablesRegistry = registry.interactables;
 	for (Entity interactableEntity : interactablesRegistry.entities) {
@@ -455,8 +485,60 @@ void WorldSystem::handle_interactions() {
 
 		float dist = distance(playerWorldObject.position, interactableObject.position);
 		if (dist < range) {
-			interactable.interaction(6);
+			if (registry.itemStats.has(interactableEntity)) {
+				handle_item_pickup(interactableEntity);
+			}
 		}
+	}
+}
+
+// Call everytime the player inventory is going to be modified. So when an item is being picked up or dropped
+void WorldSystem::update_player_modifier() const {
+	int new_damage_flat = 0;
+
+	float new_speed_flat = 0;
+	float new_speed_percent = 0;
+
+	float new_fire_rate_flat = 0;
+	float new_fire_rate_percent = 0;
+
+	float new_range_flat = 0;
+	float new_range_percent = 0;
+
+	float new_accuracy = 0;
+
+	for (ItemStat item : registry.inventory.get(player).items) {
+		new_damage_flat += item.flat_damage_mod;
+
+		new_speed_flat += item.flat_speed_mod;
+		new_speed_percent += item.percent_speed_mod;
+
+		new_fire_rate_flat += item.flat_fire_rate;
+		new_fire_rate_percent += item.percent_fire_rate;
+
+		new_range_flat += item.flat_range;
+		new_range_percent += item.percent_range;
+
+		new_accuracy += item.accuracy;
+	}
+	Modifier& player_modifier = registry.modifiers.get(player);
+
+	player_modifier.damage_modifier_flat = new_damage_flat;
+
+	player_modifier.speed_modifier_flat = new_speed_flat;
+	player_modifier.speed_modifier_percent = new_speed_percent;
+
+	player_modifier.range_modifier_flat = new_range_flat;
+	player_modifier.range_modifier_percent = new_range_percent;
+
+	player_modifier.fire_rate_modifier_flat = new_fire_rate_flat;
+	player_modifier.fire_rate_modifier_percent = new_fire_rate_percent;
+
+	if (new_accuracy >= 0) {
+		player_modifier.accuracy_modifier = new_accuracy;
+	}
+	else {
+		player_modifier.accuracy_modifier = 0;
 	}
 }
 
@@ -476,6 +558,9 @@ void WorldSystem::handle_deaths() {
 			else {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
+					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng);
+					}
 				}
 				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
@@ -491,13 +576,24 @@ void WorldSystem::shoot(Entity& entity) {
 
 	if (registry.players.has(entity)) {
 		if (left_mouse_button) {
-			if ((elapsed_ms >= registry.shooters.get(entity).fire_rate) || first_shot) {
+			// Apply fire rate modifier 
+			float old_fire_rate = registry.shooters.get(entity).fire_rate;
+			Modifier player_modifier = registry.modifiers.get(entity);
+			float new_fire_rate = old_fire_rate - player_modifier.fire_rate_modifier_flat - (old_fire_rate * player_modifier.fire_rate_modifier_percent);
+			if ((elapsed_ms >= new_fire_rate) || first_shot) {
 				double xpos, ypos;
 				glfwGetCursorPos(window, &xpos, &ypos);
 				float angle = atan2(ypos - entity_object.position.y, xpos - entity_object.position.x);
-				createProjectile(renderer, entity_object.position, angle, 350.0f, true);
-				first_shot = false;
 
+				// Apply modifiers to player bullets
+				Modifier projectile_mod = registry.modifiers.get(player);
+				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true);
+				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
+				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
+				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
+				
+				first_shot = false;
 				set_last_shot_time(entity);
 			}
 		}
@@ -550,7 +646,10 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 			float angle = atan2f(dy, dx);
 			if (angle < 0)
 				angle += 2 * M_PI;
-			player_motion.target_velocity = v_from_sa(player_motion.max_speed, angle);
+			// Apply speed modifier
+			Modifier& speed_modifier = registry.modifiers.get(player);
+			float new_max_speed = player_motion.max_speed + speed_modifier.speed_modifier_flat + (player_motion.max_speed * speed_modifier.speed_modifier_percent);
+			player_motion.target_velocity = v_from_sa(new_max_speed, angle);
 		}
 	}
 
