@@ -185,6 +185,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// update HUD
+	updateGameUI();
+
 	return true;
 }
 
@@ -214,9 +217,10 @@ void WorldSystem::restart_game() {
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
-	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
-		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl; }
-	);
+	// function to use for interactable
+	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
+	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1);
+
 	// top wall
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
 	// bottom wall
@@ -233,6 +237,12 @@ void WorldSystem::restart_game() {
 	
 	initGameUI();
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
+}
+
+void WorldSystem::increaseScrap(int amt) 
+{
+	scrap += amt;
+	std::cout << scrap << std::endl;
 }
 
 void WorldSystem::initGameUI() {
@@ -253,7 +263,7 @@ void WorldSystem::initGameUI() {
 	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
-	this->health_ui = UISystem::createUIElement(
+	health_ui = UISystem::createUIElement(
 		renderer,
 		vec2(window_width_px / 10, window_height_px / 11),
 		vec2(165.f, 40.f),
@@ -289,6 +299,16 @@ void WorldSystem::initGameUI() {
 		"item_one_ui",
 		TEXTURE_ASSET_ID::ITEM,
 		SCENE_TYPE::GAME);
+}
+
+void WorldSystem::updateGameUI() {
+	// this updates health and scrap
+	// items are updated when an item is picked up
+	UIElement& health_elt = registry.uiElements.get(health_ui);
+	health_elt.value = static_cast<float>(player_health);
+
+	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
+	scrap_elt.value = static_cast<float>(scrap);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions

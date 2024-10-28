@@ -122,6 +122,8 @@ struct Interactable {
 	float range;
 	// placeholder, not sure what we want the interaction function to do yet
 	std::function<void(int)> interaction;
+	// value to be used in function call
+	int value;
 };
 
 struct ItemStat {
@@ -241,6 +243,15 @@ struct Crosshair {
 
 };
 
+// font character structure
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -288,7 +299,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HELP_BUTTON = START_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
-	TEXTURE_COUNT = QUIT_BUTTON + 1,
+	BACK_BUTTON = QUIT_BUTTON + 1,
+	TEXTURE_COUNT = BACK_BUTTON + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -296,7 +308,8 @@ enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
 	UI_ELEMENT = EGG + 1,
-	SALMON = UI_ELEMENT + 1,
+	FONT = UI_ELEMENT + 1,
+	SALMON = FONT + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	EFFECT_COUNT = WATER + 1

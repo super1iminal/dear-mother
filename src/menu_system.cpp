@@ -94,14 +94,14 @@ void MenuSystem::initHelpScreen() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - (window_width_px / 5), window_height_px - (window_height_px / 3)),
-		vec2(90.f, 44.f),
+		vec2(window_width_px - 330.f, window_height_px - 268.f),
+		vec2(234.f, 60.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
 			closeHelpScreen();
 		},
 		"return_to_menu_button",
-		TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+		TEXTURE_ASSET_ID::BACK_BUTTON,
 		SCENE_TYPE::MENU
 	);
 }
