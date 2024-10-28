@@ -8,6 +8,8 @@
 #include <iostream>
 #include <chrono>
 
+enum class TEXTURE_ASSET_ID;
+
 // Player component
 struct Player
 {
@@ -29,7 +31,14 @@ struct Health
 // anything that is deadly to the player
 struct Deadly
 {
-
+	DeadlyState state = DeadlyState::idle;
+	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point t_patrol;
+};
+struct Animation {
+	float angle;
+	float speed;
+	TEXTURE_ASSET_ID type;
 };
 
 // All data relevant to the motion of entities
@@ -216,7 +225,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ITEM = VERT_WALL + 1,
 	HIT_PARTICLE = ITEM + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	TEXTURE_COUNT = HIT_PARTICLE_PLAYER + 1,
+	ALERT = HIT_PARTICLE_PLAYER + 1,
+	TEXTURE_COUNT = ALERT + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

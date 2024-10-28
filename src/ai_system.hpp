@@ -14,5 +14,7 @@ public:
 
 	vector<vec2> bfs(vec2 start, vec2 target);
 
+	void pathfinding(Entity& entity);
+	void handleStateChange(Entity& entity);
 	void step(float elapsed_ms);
 };

@@ -45,6 +45,7 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("alert.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

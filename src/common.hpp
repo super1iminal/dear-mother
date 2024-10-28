@@ -32,6 +32,7 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 const int window_width_px = 1280;
 const int window_height_px = 720;
 
+
 // gravity
 #ifndef M_G
 #define M_G 9.81f
@@ -71,4 +72,13 @@ enum class COLLISION_TYPE {
 	DEADLY_BLOCKER = PLAYER_BLOCKER + 1,
 	PLAYER_DEADLY = DEADLY_BLOCKER + 1,
 	COLLISION_COUNT = PLAYER_DEADLY + 1
+};
+
+enum class DeadlyState {
+	idle = 0,
+	patrol_left = idle + 1,
+	patrol_right = patrol_left + 1,
+	attack_still = patrol_right + 1,
+	attack_moving = attack_still + 1,
+	rage = attack_moving + 1
 };
