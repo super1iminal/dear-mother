@@ -32,6 +32,12 @@ const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 // wall stuff
 const float WALL_WIDTH = 75.f;
 
+// Item drop chance
+const float DROP_CHANCE = 15;
+
+// Builds all items
+void buildItemSet();
+
 // the particles
 void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type);
 
@@ -51,6 +57,9 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 
 // Projectiles
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly);
+
+// items
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

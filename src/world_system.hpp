@@ -31,7 +31,7 @@ public:
 	~WorldSystem();
 
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms);
+	bool step(float elapsed_ms, double fps);
 
 	// Check for collisions
 	void handle_collisions();
@@ -62,6 +62,10 @@ private:
 	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
+
+	// Item stuff
+	void update_player_modifier() const;
+	void handle_item_pickup(Entity item);
 
 	// OpenGL window handle
 	GLFWwindow* window;
