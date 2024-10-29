@@ -12,6 +12,11 @@
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include <SDL_mixer.h>
+#include <map>
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -40,9 +45,11 @@ class RenderSystem {
 			textures_path("bounding_box.png"),
 			textures_path("floor_1.png"),
 			textures_path("bounding_box_blue.png"),
-			textures_path("bullet_friendly.png"), 
+			textures_path("bullet_friendly.png"),
 			textures_path("bullet_enemy.png"),
-			textures_path("crosshair003.png"),
+			textures_path("/crosshairs/crosshair003.png"),
+			textures_path("/crosshairs/crosshair193.png"),
+			textures_path("/crosshairs/crosshair070.png"),
 			textures_path("base_UI.png"),
 			textures_path("enemy_robot.png"),
 			textures_path("horz_wall.png"),
@@ -50,6 +57,13 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("start_screen_bg.png"),
+			textures_path("help_screen.png"),
+			textures_path("/buttons/start_button.png"),
+			textures_path("/buttons/help_button.png"),
+			textures_path("/buttons/upgrade_button.png"),
+			textures_path("/buttons/quit_button.png"),
+			textures_path("/buttons/back_button.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -58,6 +72,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
+		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("water") };
@@ -67,6 +82,10 @@ class RenderSystem {
 	std::array<Mesh, geometry_count> meshes;
 
 public:
+
+	// Creates a window
+	GLFWwindow* create_window();
+
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -78,6 +97,9 @@ public:
 	void initializeGlEffects();
 
 	void initializeGlMeshes();
+
+	void initFont(const std::string& font_filename, unsigned int font_default_size);
+
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
@@ -90,12 +112,9 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw();
+	void draw(SCENE_TYPE scene);
 
 	mat3 createProjectionMatrix();
-
-	// Creates a window
-	GLFWwindow* create_window();
 
 private:
 	// Internal drawing functions for each entity type
@@ -111,6 +130,9 @@ private:
 	GLuint off_screen_render_buffer_depth;
 
 	Entity screen_state_entity;
+
+	// font characters
+	std::map<char, Character> m_ftCharacters;
 };
 
 bool loadEffectFromFile(

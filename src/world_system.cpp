@@ -7,6 +7,7 @@
 #include <sstream>
 #include <chrono>
 #include <iostream>
+#include <ui_system.hpp>
 
 // Game configuration
 // add variables here
@@ -55,12 +56,10 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		exit(1);
-		// return nullptr;
 	}
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
 		fprintf(stderr, "Failed to open audio device");
 		exit(1);
-		// return nullptr;
 	}
 
 	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
@@ -73,7 +72,6 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 			audio_path("death_sound.wav").c_str(),
 			audio_path("eat_sound.wav").c_str());
 		exit(1);
-		// return nullptr;
 	}
 
 
@@ -102,10 +100,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
-	for (Entity entity : registry.debugComponents.entities) {
-		registry.pendingRemoves.emplace_with_duplicates(entity);
-	}
+	//for (Entity entity : registry.debugComponents.entities) {
+	//	registry.pendingRemoves.emplace_with_duplicates(entity);
+	//}
 	// cleanup();
+	 
+
+
+	// Remove debug info from the last step. Need to iterate backwards to avoid catastrophic error
+		// Remove debug info from the last step
+	while (registry.debugComponents.entities.size() > 0)
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 
 	// Removing out of screen entities
@@ -135,7 +140,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		}
 	}
 
-
 	// Shoot if LMB is clicked
 	for (Entity entity : registry.shooters.entities) {
 		shoot(entity);
@@ -146,7 +150,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f);
 	}
 
-	// Processing the salmon state
+	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
 	ScreenState& screen = registry.screenStates.components[0];
 	screen.health_status = player_health;
@@ -181,6 +185,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// update HUD
+	updateGameUI();
+
 	return true;
 }
 
@@ -195,10 +202,11 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// i.e. All world objects
-	for (Entity entity : registry.worldObjects.entities) {
-		registry.pendingRemoves.emplace_with_duplicates(entity);
+
+	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
+		Entity entity = registry.gameSceneWorldObjects.entities[i];
+		registry.remove_all_components_of(entity);
 	}
-	// cleanup();
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -209,9 +217,10 @@ void WorldSystem::restart_game() {
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
-	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f },
-		[](int a) {std::cout << "Player interacted with interactable! Int passed in: " << a << std::endl; }
-	);
+	// function to use for interactable
+	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
+	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1);
+
 	// top wall
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
 	// bottom wall
@@ -226,45 +235,80 @@ void WorldSystem::restart_game() {
 		set_last_shot_time(entity);
 	}
 	
+	initGameUI();
+	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
+}
 
+void WorldSystem::increaseScrap(int amt) 
+{
+	scrap += amt;
+	std::cout << scrap << std::endl;
+}
+
+void WorldSystem::initGameUI() {
 	// Add the base UI
-	Entity base_ui = createBaseUI(renderer);
+	Entity base_ui = UISystem::createPanel(
+		renderer,
+		SCENE_TYPE::GAME,
+		vec2(window_width_px / 2, BASE_UI_HEIGHT / 2),
+		0.f,
+		vec2(window_width_px, BASE_UI_HEIGHT),
+		"game_HUD",
+		TEXTURE_ASSET_ID::UI
+	);
 
-	// set initial player health
-	player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+	// grab player health
+	// TODO must update this when any UI elements change
+	// maybe make a gameUI update fn
+	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
-	health_ui = createTexturedUIElement(renderer,
+	health_ui = UISystem::createUIElement(
+		renderer,
 		vec2(window_width_px / 10, window_height_px / 11),
 		vec2(165.f, 40.f),
 		"health_ui",
-		static_cast<float>(player_health));
+		static_cast<float>(player_health),
+		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
-	scrap_ui = createTexturedUIElement(renderer,
+	scrap_ui = UISystem::createUIElement(
+		renderer,
 		vec2(375.f, window_height_px / 20),
 		vec2(25.f, 25.f),
 		"scrap_ui",
-		static_cast<float>(scrap));
+		static_cast<float>(scrap),
+		SCENE_TYPE::GAME);
 
 	// create level_ui entity
-	level_ui = createTexturedUIElement(renderer,
+	level_ui = UISystem::createUIElement(
+		renderer,
 		vec2(375.f, window_height_px / 10),
 		vec2(25.f, 30.f),
 		"level_ui",
-		static_cast<float>(level));
+		static_cast<float>(level),
+		SCENE_TYPE::GAME);
 
 	// create item_ui entities
 	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
-	Entity item_ui = createTexturedUIElement(renderer,
+	item_ui = UISystem::createTexturedUIElement(
+		renderer,
 		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
 		vec2(75.f, 75.f),
 		"item_one_ui",
-		TEXTURE_ASSET_ID::ITEM);
+		TEXTURE_ASSET_ID::ITEM,
+		SCENE_TYPE::GAME);
+}
 
-	// add crosshair
-	createCrosshair(renderer);
+void WorldSystem::updateGameUI() {
+	// this updates health and scrap
+	// items are updated when an item is picked up
+	UIElement& health_elt = registry.uiElements.get(health_ui);
+	health_elt.value = static_cast<float>(player_health);
+
+	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
+	scrap_elt.value = static_cast<float>(scrap);
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions

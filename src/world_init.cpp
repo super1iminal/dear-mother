@@ -2,6 +2,8 @@
 #include "tiny_ecs_registry.hpp"
 
 #include <iostream>
+#include <ui_system.hpp>
+#include <world_system.hpp>
 
 void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
 	auto entity = Entity();
@@ -191,7 +193,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	return floor;
 }
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int)) {
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
 	registry.gameSceneComponents.emplace(interactable_entity);
@@ -201,7 +203,8 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void
 
 	Interactable& interactable = registry.interactables.emplace(interactable_entity);
 	interactable.range = 50.f;
-	interactable.interaction = a;
+	interactable.interaction = function;
+	interactable.value = value;
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& interactable_object = registry.worldObjects.emplace(interactable_entity);
@@ -265,45 +268,6 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 		{ (TEXTURE_ASSET_ID)item.item_texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
-
-Entity createCrosshair(RenderSystem* renderer, SCENE_TYPE scene_type) {
-	auto entity = Entity();
-	switch (scene_type) {
-		case SCENE_TYPE::GAME:
-			registry.gameSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::MENU:
-			registry.menuSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::PAUSE:
-			registry.pauseSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::TEST:
-			registry.testSceneComponents.emplace(entity);
-			break;
-	}
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-	registry.crosshairs.emplace(entity);
-
-	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = { -1.f, -1.f }; // initializing position to off screen
-	worldobject.angle = 0.f; 
-	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
-
-	registry.renderRequests.insert(
-		entity,
-		{
-			TEXTURE_ASSET_ID::CROSSHAIR,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
-		});
 
 	return entity;
 }
@@ -385,124 +349,6 @@ Entity createLine(vec2 position, vec2 scale)
 	worldobject.scale = scale;
 
 	registry.debugComponents.emplace(entity);
-	return entity;
-}
-
-Entity createBaseUI(RenderSystem* renderer, SCENE_TYPE scene_type)
-{
-	Entity entity = Entity();
-	switch (scene_type) {
-		case SCENE_TYPE::GAME:
-			registry.gameSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::MENU:
-			registry.menuSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::PAUSE:
-			registry.pauseSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::TEST:
-			registry.testSceneComponents.emplace(entity);
-			break;
-	}
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-	registry.baseUI.emplace(entity);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = vec2(window_width_px / 2, BASE_UI_HEIGHT/2); // should be based on texture size later
-	worldobject.angle = 0.f;
-	worldobject.scale.x = window_width_px;
-	worldobject.scale.y = BASE_UI_HEIGHT; // later this should be based on texture height
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::UI,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
-
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type) {
-	// Store a reference to the potentially re-used mesh object
-	Entity entity = Entity();
-	switch (scene_type) {
-		case SCENE_TYPE::GAME:
-			registry.gameSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::MENU:
-			registry.menuSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::PAUSE:
-			registry.pauseSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::TEST:
-			registry.testSceneComponents.emplace(entity);
-			break;
-	}
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = pos;
-	worldobject.scale = scale;
-
-	// setting health value for UI
-	UIElement& health_ui_elt = registry.uiElements.emplace(entity);
-	health_ui_elt.name = element_name;
-	health_ui_elt.value = static_cast<float>(element_value);
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::UI_ELEMENT,
-			GEOMETRY_BUFFER_ID::SQUARE });
-
-	return entity;
-}
-
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type) {
-	// Store a reference to the potentially re-used mesh object
-	Entity entity = Entity();
-	switch (scene_type) {
-		case SCENE_TYPE::GAME:
-			registry.gameSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::MENU:
-			registry.menuSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::PAUSE:
-			registry.pauseSceneComponents.emplace(entity);
-			break;
-		case SCENE_TYPE::TEST:
-			registry.testSceneComponents.emplace(entity);
-			break;
-	}
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = pos;
-	worldobject.scale = scale;
-
-	// setting value for UI
-	UIElement& ui_element = registry.uiElements.emplace(entity);
-	ui_element.name = element_name;
-	ui_element.value = static_cast<float>(texture_id);
-
-	registry.renderRequests.insert(
-		entity,
-		{ texture_id,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
 	return entity;
 }
 

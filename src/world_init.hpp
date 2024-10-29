@@ -12,8 +12,6 @@ const float PLAYER_MAX_SPEED = 300.f;
 
 const float PLAYER_SIZE = 100.f;
 
-// moved base UI height and crosshair size to common.hpp
-
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
 const int NUM_PARTICLES_OFFSET = 1;
@@ -52,28 +50,16 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed);
 
-// the crosshair
-Entity createCrosshair(RenderSystem* renderer, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size);
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, void (*a)(int));
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value);
 
 // Projectiles
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly);
 
+// items
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);
+
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
-
-// create base UI that other UI elements will be layered on
-Entity createBaseUI(RenderSystem* renderer, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
-// create UI element
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, float element_value, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
-// create UI element using texture
-Entity createTexturedUIElement(RenderSystem* renderer, vec2 pos, vec2 scale, std::string element_name, TEXTURE_ASSET_ID texture_id, SCENE_TYPE scene_type = SCENE_TYPE::GAME);
-
-// create Item element
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);

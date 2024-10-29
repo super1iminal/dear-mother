@@ -44,6 +44,9 @@ private:
     bool registered = false;
 
     std::vector<Entity> components_entities;
+
+    std::vector<std::function<void(Entity)>> onEntityAddedCallbacks;
+    std::vector<std::function<void(Entity)>> onEntityRemovedCallbacks;
 public:
     // Container of all components of type 'Component'
     std::vector<Component> components;
@@ -72,6 +75,10 @@ public:
         map_entity_componentID.insert(std::make_pair(e, (unsigned int)components.size()));
         components.push_back(std::move(c));
         components_entities.push_back(e);
+        // add to filtered components
+        for (auto& callback : onEntityAddedCallbacks) {
+            callback(e);
+        }
         return components.back();
     };
 
@@ -110,6 +117,9 @@ public:
     // Remove a component and pack the container to re-use the empty space
     void remove(Entity e)
     {
+		if (!has(e)) {
+			return;
+		}
         auto range = map_entity_componentID.equal_range(e);
         std::vector<unsigned int> indices_to_remove;
         for (auto it = range.first; it != range.second; ++it) {
@@ -147,11 +157,14 @@ public:
             components.pop_back();
             components_entities.pop_back();
         }
-        // Remove entity from entities vector if no more components associated with it
+        // Remove entity from entities vector and filteredcomponents if no more components associated with it
         if (map_entity_componentID.count(e) == 0) {
             auto it = std::find(entities.begin(), entities.end(), e);
             if (it != entities.end()) {
                 entities.erase(it);
+            }
+            for (auto& callback : onEntityRemovedCallbacks) {
+                callback(e);
             }
         }
     };
@@ -198,4 +211,112 @@ public:
             map_entity_componentID.insert(std::make_pair(components_entities[i], i));
         }
     }
+    void registerOnAddCallback(const std::function<void(Entity)>& callback) {
+        onEntityAddedCallbacks.push_back(callback);
+    }
+
+    void registerOnRemoveCallback(const std::function<void(Entity)>& callback) {
+        onEntityRemovedCallbacks.push_back(callback);
+    }
 };
+
+// get and get all return components from the Component (not the FilterComponent).
+// don't need to implment insert, get, remove and get all, should honestly remove em
+template <typename Component, typename FilterComponent>
+class FilteredComponentContainer : public ContainerInterface {
+private:
+    ComponentContainer<Component>& componentCC;
+    ComponentContainer<FilterComponent>& filterCC;
+
+    // Callback functions
+    void onComponentAdded(Entity e) {
+        if (filterCC.has(e)) {
+            if (std::find(entities.begin(), entities.end(), e) == entities.end()) {
+                entities.push_back(e);
+            }
+        }
+    }
+
+    void onComponentRemoved(Entity e) {
+        if (!componentCC.has(e) || !filterCC.has(e)) {
+            auto it = std::find(entities.begin(), entities.end(), e);
+            if (it != entities.end()) {
+                entities.erase(it);
+            }
+        }
+    }
+
+    void onFilterComponentAdded(Entity e) {
+        if (componentCC.has(e)) {
+            if (std::find(entities.begin(), entities.end(), e) == entities.end()) {
+                entities.push_back(e);
+            }
+        }
+    }
+
+    void onFilterComponentRemoved(Entity e) {
+        if (!componentCC.has(e) || !filterCC.has(e)) {
+            auto it = std::find(entities.begin(), entities.end(), e);
+            if (it != entities.end()) {
+                entities.erase(it);
+            }
+        }
+    }
+
+public:
+    // Store entities that have both components
+    std::vector<Entity> entities;
+    FilteredComponentContainer(ComponentContainer<Component>& componentCC,
+        ComponentContainer<FilterComponent>& filterCC)
+        : componentCC(componentCC), filterCC(filterCC) {
+        // Register callbacks
+        componentCC.registerOnAddCallback([this](Entity e) { onComponentAdded(e); });
+        componentCC.registerOnRemoveCallback([this](Entity e) { onComponentRemoved(e); });
+        filterCC.registerOnAddCallback([this](Entity e) { onFilterComponentAdded(e); });
+        filterCC.registerOnRemoveCallback([this](Entity e) { onFilterComponentRemoved(e); });
+
+        // Initialize entities vector
+        for (const auto& e : componentCC.entities) {
+            if (filterCC.has(e)) {
+                entities.push_back(e);
+            }
+        }
+    }
+
+    // Implement required methods from ContainerInterface
+    void clear() override {
+        entities.clear();
+    }
+
+    size_t size() override {
+        return entities.size();
+    }
+
+    bool has(Entity e) override {
+        return std::find(entities.begin(), entities.end(), e) != entities.end();
+    }
+
+    void remove(Entity e) override {
+        componentCC.remove(e);
+        filterCC.remove(e);
+        auto it = std::find(entities.begin(), entities.end(), e);
+        if (it != entities.end()) {
+            entities.erase(it);
+        }
+    }
+
+    // Access components
+    Component& get(Entity e) {
+        assert(has(e) && "Entity not contained in filtered container");
+        return componentCC.get(e);
+    }
+
+    std::vector<Component*> get_all(Entity e) {
+        assert(has(e) && "Entity not contained in filtered container");
+        return componentCC.get_all(e);
+    }
+
+    // You can add insert methods if needed, ensuring they update both base containers
+};
+
+

@@ -122,6 +122,8 @@ struct Interactable {
 	float range;
 	// placeholder, not sure what we want the interaction function to do yet
 	std::function<void(int)> interaction;
+	// value to be used in function call
+	int value;
 };
 
 struct ItemStat {
@@ -184,6 +186,12 @@ struct UIElement {
 	float value;
 };
 
+// contains information relating to UI buttons
+struct UIButton {
+	std::string name;
+	std::function<void()> action;
+};
+
 struct PendingRemove {
 
 };
@@ -228,11 +236,20 @@ struct Wall
 
 struct BaseUI
 {
-
+	std::string name;
 };
 
 struct Crosshair {
 
+};
+
+// font character structure
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };
 
 /**
@@ -266,15 +283,24 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	BOUNDBOX_BLUE = FLOOR + 1,
 	BULLET_FRIENDLY = BOUNDBOX_BLUE + 1,
 	BULLET_ENEMY = BULLET_FRIENDLY + 1,
-	CROSSHAIR = BULLET_ENEMY + 1,
-	UI = CROSSHAIR + 1,
+	GAME_CROSSHAIR = BULLET_ENEMY + 1,
+	MENU_CROSSHAIR = GAME_CROSSHAIR + 1,
+	MENU_HOVER_CROSSHAIR = MENU_CROSSHAIR + 1,
+	UI = MENU_HOVER_CROSSHAIR + 1,
 	ENEMY = UI + 1,
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
 	ITEM = VERT_WALL + 1,
 	HIT_PARTICLE = ITEM + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	TEXTURE_COUNT = HIT_PARTICLE_PLAYER + 1,
+	START_MENU = HIT_PARTICLE_PLAYER + 1,
+	HELP_SCREEN = START_MENU + 1,
+	START_BUTTON = HELP_SCREEN + 1,
+	HELP_BUTTON = START_BUTTON + 1,
+	SHOP_BUTTON = HELP_BUTTON + 1,
+	QUIT_BUTTON = SHOP_BUTTON + 1,
+	BACK_BUTTON = QUIT_BUTTON + 1,
+	TEXTURE_COUNT = BACK_BUTTON + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -282,7 +308,8 @@ enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,
 	UI_ELEMENT = EGG + 1,
-	SALMON = UI_ELEMENT + 1,
+	FONT = UI_ELEMENT + 1,
+	SALMON = FONT + 1,
 	TEXTURED = SALMON + 1,
 	WATER = TEXTURED + 1,
 	EFFECT_COUNT = WATER + 1
