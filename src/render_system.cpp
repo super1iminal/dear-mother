@@ -4,6 +4,47 @@
 
 #include "tiny_ecs_registry.hpp"
 
+// Debugging
+namespace {
+	void glfw_err_cb(int error, const char* desc) {
+		fprintf(stderr, "%d: %s", error, desc);
+	}
+}
+
+// World initialization
+// Note, this has a lot of OpenGL specific things, could be moved to the renderer
+GLFWwindow* RenderSystem::create_window() {
+	///////////////////////////////////////
+	// Initialize GLFW
+	glfwSetErrorCallback(glfw_err_cb);
+	if (!glfwInit()) {
+		fprintf(stderr, "Failed to initialize GLFW");
+		return nullptr;
+	}
+
+	//-------------------------------------------------------------------------
+	// If you are on Linux or Windows, you can change these 2 numbers to 4 and 3 and
+	// enable the glDebugMessageCallback to have OpenGL catch your mistakes for you.
+	// GLFW / OGL Initialization
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#if __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+	glfwWindowHint(GLFW_RESIZABLE, 0);
+
+	// Create the main window (for rendering, keyboard, and mouse input)
+	GLFWwindow* window = glfwCreateWindow(window_width_px, window_height_px, "Dear Mother", nullptr, nullptr);
+	if (window == nullptr) {
+		fprintf(stderr, "Failed to glfwCreateWindow");
+		return nullptr;
+	}
+
+	return window;
+}
+
 void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection)
 {
@@ -108,10 +149,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 
 		GLint value_loc = glGetUniformLocation(program, "value");
-		//assert(value_loc >= 0);
+
 		UIElement& ui_element = registry.uiElements.get(entity);
 		glUniform1f(value_loc, ui_element.value);
 		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
+		// render text
+
 	}
 	else
 	{
@@ -205,7 +250,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::draw(SCENE_TYPE scene)
 {
 	// Getting size of window
 	int w, h;
@@ -226,59 +271,86 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
-	mat3 projection_2D = createProjectionMatrix();
-	//// Draw all textured meshes that have a position and size component
-	//for (Entity entity : registry.renderRequests.entities)
-	//{
-	//	if (!registry.worldObjects.has(entity))
-	//		continue;
-	//	// Note, its not very efficient to access elements indirectly via the entity
-	//	// albeit iterating through all Sprites in sequence. A good point to optimize
-	//	drawTexturedMesh(entity, projection_2D);
-	//}
 
+	mat3 projection_2D = createProjectionMatrix();
 	std::vector<Entity> render_list = {};
 
-	// add floor first
-	render_list.push_back(registry.floors.entities[0]);
-	// then interactables
-	for (Entity entity : registry.interactables.entities) {
-		render_list.push_back(entity);
-	}
-	// then particles
-	for (Entity entity : registry.particles.entities) {
-		render_list.push_back(entity);
-	}
-	// then the player
-	render_list.push_back(registry.players.entities[0]);
-	// then enemies
-	for (Entity entity : registry.deadlys.entities) {
-		render_list.push_back(entity);
-	}
-	// then projectiles
-	for (Entity entity : registry.projectiles.entities) {
-		render_list.push_back(entity);
-	}
-	// then walls
-	for (Entity entity : registry.walls.entities) {
-		render_list.push_back(entity);
-	}
-	// then UI elements, starting with the base UI
-	render_list.push_back(registry.baseUI.entities[0]);
-	for (Entity entity : registry.uiElements.entities) {
-		render_list.push_back(entity);
-	}
-	// finally, the crosshair
-	render_list.push_back(registry.crosshair.entities[0]);
+	if (scene == SCENE_TYPE::GAME) {
+		// draw game
+		// add floor first
+		render_list.push_back(registry.floors.entities[0]);
+		// then interactables
+		for (Entity entity : registry.interactables.entities) {
+			render_list.push_back(entity);
+		}
+		// then particles
+		for (Entity entity : registry.particles.entities) {
+			render_list.push_back(entity);
+		}
+		// then the player
+		render_list.push_back(registry.players.entities[0]);
+		// then enemies
+		for (Entity entity : registry.deadlys.entities) {
+			render_list.push_back(entity);
+		}
+		// then projectiles
+		for (Entity entity : registry.projectiles.entities) {
+			render_list.push_back(entity);
+		}
+		// then walls
+		for (Entity entity : registry.walls.entities) {
+			render_list.push_back(entity);
+		}
+		// then UI elements, starting with the base UI
+		for (Entity entity : registry.baseUI.entities) {
+			render_list.push_back(entity);
+		}
+		for (Entity entity : registry.uiElements.entities) {
+			render_list.push_back(entity);
+		}
+		// finally, the crosshair
+		for (Entity entity : registry.crosshairs.entities) {
+			render_list.push_back(entity);
+		}
 
-	// Draw all textured meshes that have a position and size component
-	for (Entity entity : render_list)
-	{
-		if (!registry.worldObjects.has(entity))
-			continue;
-		// Note, its not very efficient to access elements indirectly via the entity
-		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
+		// Draw all textured meshes that have a position and size component
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
+	else if (scene == SCENE_TYPE::MENU) {
+		// draw menu
+
+		Entity crosshair_entity;
+		for (Entity entity : registry.menuSceneComponents.entities) {
+			// this is a very hack-y check to put the crosshair at the very end of the render list
+			// so that it doesn't disappear when new menu panels are rendered.
+			// TODO: this should be changed once we get z-buffering
+			if (!registry.crosshairs.has(entity)) {
+				render_list.push_back(entity);
+			}
+			else {
+				crosshair_entity = entity;
+			}
+		}
+		
+		render_list.push_back(crosshair_entity);
+
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
+	else if (scene == SCENE_TYPE::PAUSE) {
+		// draw pause menu
+	}
+	else if (scene == SCENE_TYPE::TEST) {
+		// draw test scene
 	}
 
 	// Truely render to the screen

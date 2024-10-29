@@ -13,6 +13,9 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "collision_system.hpp"
+#include "physics_system.hpp"
+#include "ui_system.hpp"
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -21,17 +24,14 @@ class WorldSystem
 public:
 	WorldSystem();
 
-	// Creates a window
-	GLFWwindow* create_window();
-
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 
 	// Releases all associated resources
 	~WorldSystem();
 
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms);
+	bool step(float elapsed_ms, double fps);
 
 	// Check for collisions
 	void handle_collisions();
@@ -42,19 +42,15 @@ public:
 	// check for interactions
 	void handle_interactions();
 
-	// Should the game be over ?
-	bool is_over()const;
-
-	void cleanup();
-
-private:
 	// Input callback functions
-	void on_key(int key, int, int action, int mod);
+	void on_key(int key, int sc, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
+private:
+
 	// restart level
-	void restart_game();
+	void WorldSystem::restart_game();
 
 	// Shooting stuff
 	bool left_mouse_button = false;
@@ -67,6 +63,10 @@ private:
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
 
+	// Item stuff
+	void update_player_modifier() const;
+	void handle_item_pickup(Entity item);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -76,21 +76,28 @@ private:
 	// Player health displayed on window
 	unsigned int player_health;
 
+	void increaseScrap(int amt);
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	int level = 1;
-	int scrap = 28;
+	uint level = 1;
+	uint scrap = 0;
 	Entity items [8];
 	Entity player;
 	Entity floor;
-    Entity crosshair;
 
-	// UI entities
+	// HUD
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
 	Entity item_ui;
+
+	// initialize HUD
+	void initGameUI();
+
+	// update HUD
+	void updateGameUI();
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);

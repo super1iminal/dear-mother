@@ -8,6 +8,7 @@ class ECSRegistry
 {
 	// Callbacks to remove a particular or all entities in the system
 	std::vector<ContainerInterface*> registry_list;
+	std::vector<ContainerInterface*> registry_filtered; // auto-cleared, doesn't need to be a member of registry list
 
 public:
 	// Manually created list of all components this game has
@@ -19,6 +20,7 @@ public:
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<UIElement> uiElements;
+	ComponentContainer<UIButton> uiButtons;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Deadly> deadlys;
@@ -31,16 +33,48 @@ public:
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
 	ComponentContainer<BaseUI> baseUI;
-	ComponentContainer<Crosshair> crosshair;
+	ComponentContainer<Crosshair> crosshairs;
 	ComponentContainer<Lifetime> lifetimes;
 	ComponentContainer<Particle> particles;
 	ComponentContainer<PendingRemove> pendingRemoves;
 	ComponentContainer<Friction> frictions;
 	ComponentContainer<Shooter> shooters;
+	ComponentContainer<GameScene> gameSceneComponents;
+	ComponentContainer<MenuScene> menuSceneComponents;
+	ComponentContainer<PauseScene> pauseSceneComponents;
+	ComponentContainer<TestScene> testSceneComponents;
+	ComponentContainer<Modifier> modifiers;
+	ComponentContainer<Inventory> inventory;
+	ComponentContainer<ItemStat> itemStats;
+
+	// Set of all items
+	std::vector<ItemStat> all_items;
+
+	// Set of all damage items
+	std::vector<ItemStat> damage_items;
+
+	// Set of all speed items
+	std::vector<ItemStat> speed_items;
+
+	// Set of all range items
+	std::vector<ItemStat> range_items;
+
+	// Set of all fire rate items
+	std::vector<ItemStat> fire_rate_items;
+
+	// Set of all healing items
+	std::vector<ItemStat> healing_items;
+
+
+	// filtered containers
+	FilteredComponentContainer<RenderRequest, GameScene> gameSceneRenderRequests;
+	FilteredComponentContainer<WorldObject, GameScene> gameSceneWorldObjects;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
-	ECSRegistry()
+	ECSRegistry() : 
+		gameSceneRenderRequests(renderRequests, gameSceneComponents),
+		gameSceneWorldObjects(worldObjects, gameSceneComponents)
 	{
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
@@ -50,6 +84,7 @@ public:
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&uiElements);
+		registry_list.push_back(&uiButtons);
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&interactables);
 		registry_list.push_back(&deadlys);
@@ -62,12 +97,23 @@ public:
 		registry_list.push_back(&floors);
 		registry_list.push_back(&walls);
 		registry_list.push_back(&baseUI);
-		registry_list.push_back(&crosshair);
+		registry_list.push_back(&crosshairs);
 		registry_list.push_back(&lifetimes);
 		registry_list.push_back(&particles);
 		registry_list.push_back(&pendingRemoves);
 		registry_list.push_back(&frictions);
 		registry_list.push_back(&shooters);
+		registry_list.push_back(&modifiers);
+		registry_list.push_back(&inventory);
+		registry_list.push_back(&itemStats);
+		registry_list.push_back(&gameSceneComponents);
+		registry_list.push_back(&menuSceneComponents);
+		registry_list.push_back(&pauseSceneComponents);
+		registry_list.push_back(&testSceneComponents);
+
+		// filtered components
+		registry_filtered.push_back(&gameSceneRenderRequests);
+		registry_filtered.push_back(&gameSceneWorldObjects);
 	}
 
 	void clear_all_components() {
@@ -78,6 +124,9 @@ public:
 	void list_all_components() {
 		printf("Debug info on all registry entries:\n");
 		for (ContainerInterface* reg : registry_list)
+			if (reg->size() > 0)
+				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
+		for (ContainerInterface* reg : registry_filtered)
 			if (reg->size() > 0)
 				printf("%4d components of type %s\n", (int)reg->size(), typeid(*reg).name());
 	}

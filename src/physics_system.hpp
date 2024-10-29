@@ -5,7 +5,7 @@
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
 
-// A simple physics system that moves rigid bodies and checks for collision
+// A simple physics system that moves rigid bodies
 class PhysicsSystem
 {
 private:

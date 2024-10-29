@@ -58,6 +58,12 @@ struct Transform {
 	void translate(vec2 offset);
 };
 
+// constants
+const float CROSSHAIR_SIZE = 75.f;
+const float BASE_UI_HEIGHT = 120.f;
+
+
+
 bool gl_has_errors();
 
 vec2 v_from_sa(float speed, float angle);
@@ -74,6 +80,7 @@ enum class COLLISION_TYPE {
 	COLLISION_COUNT = PLAYER_DEADLY + 1
 };
 
+
 enum class DeadlyState {
 	idle = 0,
 	patrol_left = idle + 1,
@@ -82,3 +89,12 @@ enum class DeadlyState {
 	attack_moving = attack_still + 1,
 	rage = attack_moving + 1
 };
+
+enum class SCENE_TYPE {
+	GAME = 0,
+	MENU = GAME + 1,
+	PAUSE = MENU + 1,
+	TEST = PAUSE + 1,
+	SCENE_COUNT = TEST + 1
+};
+
