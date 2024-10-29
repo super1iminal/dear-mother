@@ -59,7 +59,7 @@ private:
 
 	// Time management
 	std::chrono::steady_clock::time_point t;
-	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
+	std::chrono::steady_clock::time_point get_curr_time();
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
 
@@ -109,6 +109,7 @@ private:
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
 
 	void handleProjectilePlayer(Entity projectile, Entity player);
+
 
 	// music references
 	Mix_Music* background_music;

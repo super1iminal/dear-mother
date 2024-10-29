@@ -146,7 +146,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	}
 
 	// spawn two enemies
-	if (registry.deadlys.components.size() < 2) {
+	if (registry.deadlys.components.size() < 1) {
 		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f);
 	}
 
