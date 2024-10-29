@@ -102,10 +102,13 @@ Entity UISystem::createUIElement(
 	ui_elt.name = element_name;
 	ui_elt.value = static_cast<float>(element_value);
 
+	vec3& ui_color = registry.colors.emplace(entity);
+	ui_color = vec3(1.0f, 1.0f, 1.0f);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::UI_ELEMENT,
+			EFFECT_ASSET_ID::FONT,
 			GEOMETRY_BUFFER_ID::SQUARE });
 
 	return entity;

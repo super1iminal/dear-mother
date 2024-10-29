@@ -98,7 +98,7 @@ public:
 
 	void initializeGlMeshes();
 
-	void initFont(const std::string& font_filename, unsigned int font_default_size);
+	void initFont(const std::string font_filename, unsigned int font_default_size);
 
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 

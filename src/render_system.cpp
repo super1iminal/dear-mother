@@ -155,8 +155,61 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
-		// render text
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
 
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		gl_has_errors();
+
+		// render text
+		std::cout << "rendering text" << std::endl;
+		std::string text = std::to_string(registry.uiElements.get(entity).value);
+
+		// iterate through all characters
+		std::string::const_iterator c;
+		for (c = text.begin(); c != text.end(); c++)
+		{
+			Character ch = m_ftCharacters[*c];
+
+			float xpos = worldobject.position.x + ch.Bearing.x * worldobject.scale.x;
+			float ypos = worldobject.position.y - (ch.Size.y - ch.Bearing.y) * worldobject.scale.y;
+
+			float w = ch.Size.x * worldobject.scale.x;
+			float h = ch.Size.y * worldobject.scale.y;
+			// update VBO for each character
+			float vertices[6][4] = {
+				{ xpos,     ypos + h,   0.0f, 0.0f },
+				{ xpos,     ypos,       0.0f, 1.0f },
+				{ xpos + w, ypos,       1.0f, 1.0f },
+
+				{ xpos,     ypos + h,   0.0f, 0.0f },
+				{ xpos + w, ypos,       1.0f, 1.0f },
+				{ xpos + w, ypos + h,   1.0f, 0.0f }
+			};
+
+			// render glyph texture over quad
+			glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+			std::cout << "binding texture: " << ch.character << " = " << ch.TextureID << std::endl;
+
+			// update content of VBO memory
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+			// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+			worldobject.position.x += (ch.Advance >> 6) * worldobject.scale.x; // bitshift by 6 to get value in pixels (2^6 = 64)
+		}
 	}
 	else
 	{

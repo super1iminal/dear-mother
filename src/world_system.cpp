@@ -182,7 +182,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// update HUD
-	updateGameUI();
+	//updateGameUI();
 
 	return true;
 }
@@ -254,8 +254,6 @@ void WorldSystem::initGameUI() {
 	);
 
 	// grab player health
-	// TODO must update this when any UI elements change
-	// maybe make a gameUI update fn
 	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity

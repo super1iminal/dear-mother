@@ -48,6 +48,13 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 		printf("window width_height = %d,%d\n", window_width_px, window_height_px);
 	}
 
+	// enable blending or you will just get solid boxes instead of text
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// disable byte-alignment restriction in OpenGL
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 	// Hint: Ask your TA for how to setup pretty OpenGL error callbacks. 
 	// This can not be done in macOS, so do not enable
 	// it unless you are on Linux or Windows. You will need to change the window creation
@@ -65,7 +72,10 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
-	// init font
+
+	// initialize font
+	initFont(PROJECT_SOURCE_DIR +
+		std::string("data/fonts/Kenney_Mini.ttf"), 24);
 
 	return true;
 }
@@ -234,25 +244,37 @@ void RenderSystem::initializeGlGeometryBuffers()
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
 }
 
-void RenderSystem::initFont(const std::string& font_filename, unsigned int font_default_size) {
+void RenderSystem::initFont(const std::string font_filename, unsigned int font_default_size) {
 	// init FreeType fonts
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
 	{
 		std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		return;
 	}
 
 	FT_Face face;
 	if (FT_New_Face(ft, font_filename.c_str(), 0, &face))
 	{
 		std::cerr << "ERROR::FREETYPE: Failed to load font: " << font_filename << std::endl;
+		FT_Done_FreeType(ft);
+		return;
 	}
 
-	// extract a default size
-	FT_Set_Pixel_Sizes(face, 0, font_default_size);
+	// Check if face is valid before setting pixel sizes
+	if (face == nullptr) {
+		std::cerr << "ERROR::FREETYPE: Face object is null" << std::endl;
+		FT_Done_FreeType(ft); // Clean up FreeType
+		return;
+	}
 
-	// disable byte-alignment restriction in OpenGL
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	// Extract a default size
+	if (FT_Set_Pixel_Sizes(face, 0, font_default_size)) {
+		std::cerr << "ERROR::FREETYPE: Failed to set pixel sizes" << std::endl;
+		FT_Done_Face(face);  // Clean up face
+		FT_Done_FreeType(ft);  // Clean up FreeType
+		return;  // Exit early if setting pixel sizes fails
+	}
 
 	// load each of the chars - note only first 128 ASCII chars
 	for (unsigned char c = (unsigned char)0; c < (unsigned char)128; c++)
@@ -298,14 +320,13 @@ void RenderSystem::initFont(const std::string& font_filename, unsigned int font_
 			(char)c
 		};
 		m_ftCharacters.insert(std::pair<char, Character>(c, character));
-
-		// bind these textures after our asset textures
-		glBindTexture(GL_TEXTURE_2D, texture_count + 1);
-
-		// clean up
-		FT_Done_Face(face);
-		FT_Done_FreeType(ft);
 	}
+	// bind these textures after our asset textures
+	glBindTexture(GL_TEXTURE_2D, texture_count + 1);
+
+	// clean up
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
 }
 
 RenderSystem::~RenderSystem()
@@ -420,7 +441,7 @@ bool loadEffectFromFile(
 	}
 	if (!gl_compile_shader(fragment))
 	{
-		fprintf(stderr, "Vertex compilation failed");
+		fprintf(stderr, "Fragment compilation failed");
 		assert(false);
 		return false;
 	}
