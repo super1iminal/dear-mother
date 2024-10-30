@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iostream>
 #include <ui_system.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 // Game configuration
 // add variables here
@@ -186,7 +187,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// update HUD
-	//updateGameUI();
+	updateGameUI();
 
 	return true;
 }
@@ -242,7 +243,8 @@ void WorldSystem::restart_game() {
 void WorldSystem::increaseScrap(int amt) 
 {
 	scrap += amt;
-	std::cout << scrap << std::endl;
+	updateGameUI();
+	std::cout <<  "scrap: " << scrap << std::endl;
 }
 
 void WorldSystem::initGameUI() {
@@ -290,23 +292,37 @@ void WorldSystem::initGameUI() {
 	// create item_ui entities
 	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
-	item_ui = UISystem::createTexturedUIElement(
-		renderer,
-		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
-		vec2(75.f, 75.f),
-		"item_one_ui",
-		TEXTURE_ASSET_ID::ITEM,
-		SCENE_TYPE::GAME);
+	Inventory& player_inventory = registry.inventory.get(player);
+	for (uint i = 0; i < player_inventory.items.size(); i++) {
+		UISystem::createTexturedUIElement(
+			renderer,
+			vec2(window_width_px - ((i + 1) * window_width_px / 22), window_height_px / 11),
+			vec2(75.f, 75.f),
+			"item_ui_" + std::to_string(i),
+			player_inventory.items[i].item_texture,
+			SCENE_TYPE::GAME);
+	}
 }
 
 void WorldSystem::updateGameUI() {
-	// this updates health and scrap
-	// items are updated when an item is picked up
+	// this updates health, scrap, and items
 	UIElement& health_elt = registry.uiElements.get(health_ui);
 	health_elt.value = static_cast<float>(player_health);
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = static_cast<float>(scrap);
+
+	// re render the items
+	Inventory& player_inventory = registry.inventory.get(player);
+	for (uint i = 0; i < player_inventory.items.size(); i++) {
+		UISystem::createTexturedUIElement(
+			renderer,
+			vec2(window_width_px - ((i + 1)*window_width_px / 22), window_height_px / 11),
+			vec2(75.f, 75.f),
+			"item_ui_" + std::to_string(i),
+			player_inventory.items[i].item_texture,
+			SCENE_TYPE::GAME);
+	}
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
@@ -370,6 +386,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	for (Entity entity : entities) {
 		if (!registry.invincibleTimers.has(entity)) {
 			registry.healthComponents.get(entity).curr_health -= 1;
+			updateGameUI();
 			if (registry.players.has(entity)) {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
 			}
@@ -460,6 +477,8 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
 	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
 
+	updateGameUI();
+
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
@@ -489,6 +508,8 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	else {
 		std::cout << "Already have 8 items" << std::endl;
 	}
+
+	updateGameUI();
 }
 
 void WorldSystem::handle_interactions() {
@@ -505,6 +526,9 @@ void WorldSystem::handle_interactions() {
 		if (dist < range) {
 			if (registry.itemStats.has(interactableEntity)) {
 				handle_item_pickup(interactableEntity);
+			}
+			else {
+				interactable.interaction(interactable.value);
 			}
 		}
 	}
@@ -568,6 +592,7 @@ void WorldSystem::handle_deaths() {
 		{
 			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
+				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);

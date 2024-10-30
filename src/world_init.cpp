@@ -359,7 +359,7 @@ void buildItemSet() {
 	shattered_quartz.flat_damage_mod = 1;
 	shattered_quartz.flat_range = -100;	// May change debuff to just accuracy 
 	shattered_quartz.accuracy = 0.05;
-	shattered_quartz.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	shattered_quartz.item_texture = TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(shattered_quartz);
 	registry.damage_items.push_back(shattered_quartz);
 
@@ -367,7 +367,7 @@ void buildItemSet() {
 	creaky_wheel.name = "Creaky Wheel";
 	creaky_wheel.type = "speed";
 	creaky_wheel.percent_speed_mod = 0.2;
-	creaky_wheel.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	creaky_wheel.item_texture = TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(creaky_wheel);
 	registry.speed_items.push_back(creaky_wheel);
 
@@ -375,7 +375,7 @@ void buildItemSet() {
 	heatsink.name = "Heatsink";
 	heatsink.type = "fire_rate";
 	heatsink.percent_fire_rate = 0.1;
-	heatsink.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	heatsink.item_texture = TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(heatsink);
 	registry.fire_rate_items.push_back(heatsink);
 
@@ -383,7 +383,7 @@ void buildItemSet() {
 	repeater.name = "Repeater";
 	repeater.type = "range";
 	repeater.flat_range = 100;
-	repeater.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
+	repeater.item_texture = TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(repeater);
 	registry.range_items.push_back(repeater);
 
@@ -391,7 +391,7 @@ void buildItemSet() {
 	battery_pack.name = "Battery Pack";
 	battery_pack.type = "health_pack";
 	battery_pack.heal_size = 1;
-	battery_pack.item_texture = (int)TEXTURE_ASSET_ID::ITEM;
+	battery_pack.item_texture = TEXTURE_ASSET_ID::ITEM;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
 }
