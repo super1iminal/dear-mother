@@ -55,6 +55,10 @@ class RenderSystem {
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
 			textures_path("battery.png"),
+			textures_path("battery.png"), // Repeated for other items for now, should be SHATTERED_QUARTZ. Do double check.
+			textures_path("battery.png"), // Repeated for other items for now, should be CREAKY_WHEEL
+			textures_path("battery.png"), // Repeated for other items for now, should be HEATSINK
+			textures_path("battery.png"), // Repeated for other items for now, should be REPEATER
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
@@ -64,7 +68,7 @@ class RenderSystem {
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
-      textures_path("alert.png")
+      //textures_path("alert.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

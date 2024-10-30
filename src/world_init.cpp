@@ -216,7 +216,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 
 	registry.renderRequests.insert(
 		interactable_entity,
-		{ TEXTURE_ASSET_ID::ITEM,
+		{ TEXTURE_ASSET_ID::BATTERY_PACK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -265,9 +265,29 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	interactable_object.angle = 0.f;
 	interactable_object.scale = size;
 
+	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+	switch (item.name)
+	{
+	case ITEM_NAME::BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+		break;
+	case ITEM_NAME::SHATTERED_QUARTZ:
+		item_texture = TEXTURE_ASSET_ID::SHATTERED_QUARTZ;
+		break;
+	case ITEM_NAME::REPEATER:
+		item_texture = TEXTURE_ASSET_ID::REPEATER;
+		break;
+	case ITEM_NAME::CREAKY_WHEEL:
+		item_texture = TEXTURE_ASSET_ID::CREAKY_WHEEL;
+		break;
+	case ITEM_NAME::HEATSINK:
+		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	}
+
 	registry.renderRequests.insert(
 		entity,
-		{ (TEXTURE_ASSET_ID)item.item_texture,
+		{ item_texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -356,44 +376,39 @@ Entity createLine(vec2 position, vec2 scale)
 
 void buildItemSet() {
 	ItemStat shattered_quartz;
-	shattered_quartz.name = "Shattered Quartz";
-	shattered_quartz.type = "damage";
+	shattered_quartz.name = ITEM_NAME::SHATTERED_QUARTZ;
+	shattered_quartz.type = ITEM_TYPE::DAMAGE;
 	shattered_quartz.flat_damage_mod = 1;
 	shattered_quartz.flat_range = -100;	// May change debuff to just accuracy 
 	shattered_quartz.accuracy = 0.05;
-	shattered_quartz.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(shattered_quartz);
 	registry.damage_items.push_back(shattered_quartz);
 
 	ItemStat creaky_wheel;
-	creaky_wheel.name = "Creaky Wheel";
-	creaky_wheel.type = "speed";
+	creaky_wheel.name = ITEM_NAME::CREAKY_WHEEL;
+	creaky_wheel.type = ITEM_TYPE::SPEED;
 	creaky_wheel.percent_speed_mod = 0.2;
-	creaky_wheel.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(creaky_wheel);
 	registry.speed_items.push_back(creaky_wheel);
 
 	ItemStat heatsink;
-	heatsink.name = "Heatsink";
-	heatsink.type = "fire_rate";
+	heatsink.name = ITEM_NAME::HEATSINK;
+	heatsink.type = ITEM_TYPE::FIRE_RATE;
 	heatsink.percent_fire_rate = 0.1;
-	heatsink.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(heatsink);
 	registry.fire_rate_items.push_back(heatsink);
 
 	ItemStat repeater;
-	repeater.name = "Repeater";
-	repeater.type = "range";
+	repeater.name = ITEM_NAME::REPEATER;
+	repeater.type = ITEM_TYPE::RANGE;
 	repeater.flat_range = 100;
-	repeater.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(repeater);
 	registry.range_items.push_back(repeater);
 
 	ItemStat battery_pack;
-	battery_pack.name = "Battery Pack";
-	battery_pack.type = "health_pack";
+	battery_pack.name = ITEM_NAME::BATTERY_PACK;
+	battery_pack.type = ITEM_TYPE::HEALTH_PACK;
 	battery_pack.heal_size = 1;
-	battery_pack.item_texture = (int)TEXTURE_ASSET_ID::ITEM;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
 }

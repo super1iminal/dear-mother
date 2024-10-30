@@ -136,8 +136,8 @@ struct Interactable {
 };
 
 struct ItemStat {
-	std::string name;
-	std::string type;
+	ITEM_NAME name;
+	ITEM_TYPE type;
 
 	int flat_damage_mod = 0;
 
@@ -153,8 +153,6 @@ struct ItemStat {
 	float accuracy = 0;
 
 	int heal_size = 0;
-
-	int item_texture;
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -299,8 +297,12 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY = UI + 1,
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
-	ITEM = VERT_WALL + 1,
-	HIT_PARTICLE = ITEM + 1,
+	BATTERY_PACK = VERT_WALL + 1,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
+	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -309,8 +311,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
-	ALERT = BACK_BUTTON + 1,
-  TEXTURE_COUNT = ALERT + 1,
+	//ALERT = BACK_BUTTON + 1,
+  TEXTURE_COUNT = BACK_BUTTON + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

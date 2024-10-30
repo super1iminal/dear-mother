@@ -170,11 +170,14 @@ void SceneSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 
 bool SceneSystem::step(float elapsed_ms, double fps)
 {
+	std::stringstream title_ss;
+	title_ss << " FPS: " << fps;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
 	switch (scene) {
 		case SCENE_TYPE::GAME: 
 		{
 			// Update the game
-			world.step(elapsed_ms, fps);
+			world.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			collisions.add_collisions();
