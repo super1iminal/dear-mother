@@ -72,6 +72,8 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;
+			// TODO: SAVE GAME!!
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		},
 		"quit_button",
 		TEXTURE_ASSET_ID::QUIT_BUTTON,

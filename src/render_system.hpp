@@ -64,7 +64,7 @@ class RenderSystem {
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
-      textures_path("alert.png")
+			// textures_path("alert.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

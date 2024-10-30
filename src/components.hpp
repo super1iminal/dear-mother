@@ -309,8 +309,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
-	ALERT = BACK_BUTTON + 1,
-  TEXTURE_COUNT = ALERT + 1,
+	// ALERT = BACK_BUTTON + 1,
+  TEXTURE_COUNT = BACK_BUTTON + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

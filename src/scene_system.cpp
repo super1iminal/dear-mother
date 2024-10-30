@@ -57,6 +57,7 @@ bool SceneSystem::init()
 void SceneSystem::on_key(int key, int sc, int action, int mod) {
 	// Close window
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+		// TODO: SAVE HERE!!
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 	// Debugging mode toggle
