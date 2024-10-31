@@ -186,7 +186,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// update HUD
-	//updateGameUI();
+	updateGameUI();
 
 	return true;
 }
@@ -261,30 +261,32 @@ void WorldSystem::initGameUI() {
 	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
+	// TODO see if we can fix how text is rendered
+	// so that the position and scale vectors aren't so funky
 	health_ui = UISystem::createUIElement(
 		renderer,
-		vec2(window_width_px / 10, window_height_px / 11),
-		vec2(165.f, 40.f),
+		vec2(60.f, 324.f),
+		vec2(2.f, 40.f),
 		"health_ui",
-		static_cast<float>(player_health),
+		static_cast<int>(player_health),
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createUIElement(
 		renderer,
-		vec2(375.f, window_height_px / 20),
-		vec2(25.f, 25.f),
+		vec2(180.f, 336.f),
+		vec2(2.f, 0.f),
 		"scrap_ui",
-		static_cast<float>(scrap),
+		scrap,
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
 	level_ui = UISystem::createUIElement(
 		renderer,
-		vec2(375.f, window_height_px / 10),
-		vec2(25.f, 30.f),
+		vec2(184.f, 316.f),
+		vec2(2.f, 0.f),
 		"level_ui",
-		static_cast<float>(level),
+		level,
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities

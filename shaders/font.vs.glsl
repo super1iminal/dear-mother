@@ -1,15 +1,13 @@
 #version 330 core
 /* simpleGL freetype font vertex shader */
-in vec3 in_position;
-in vec2 in_texcoord;
-out vec2 texcoord;
+layout (location = 0) in vec4 vertex;	// vec4 = vec2 pos (xy) + vec2 tex (zw)
+out vec2 TexCoords;
 
-uniform mat3 transform;
-uniform mat3 projection;
+uniform mat4 projection;
+uniform mat4 transform;
 
 void main()
 {
-	texcoord = in_texcoord;
-	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
-	gl_Position = vec4(pos.xy, in_position.z, 1.0);
+	gl_Position = projection * transform * vec4(vertex.xy, 0.0, 1.0);
+	TexCoords = vertex.zw;
 }

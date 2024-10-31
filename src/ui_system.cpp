@@ -71,7 +71,7 @@ Entity UISystem::createUIElement(
 	vec2 pos, 
 	vec2 scale, 
 	std::string element_name, 
-	float element_value, 
+	int element_value, 
 	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
@@ -100,7 +100,7 @@ Entity UISystem::createUIElement(
 	// setting value for UI
 	UIElement& ui_elt = registry.uiElements.emplace(entity);
 	ui_elt.name = element_name;
-	ui_elt.value = static_cast<float>(element_value);
+	ui_elt.value = element_value;
 
 	vec3& ui_color = registry.colors.emplace(entity);
 	ui_color = vec3(1.0f, 1.0f, 1.0f);

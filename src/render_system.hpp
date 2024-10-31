@@ -129,10 +129,24 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
+	GLuint mainVAO;
+
+	// text rendering
+	GLuint fontShaderProgram;
+	GLuint fontVAO;
+	GLuint fontVBO;
+
 	Entity screen_state_entity;
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;
+
+	// text entities to render
+	std::vector<Entity> text_to_render;
+
+	void drawText();
+
+	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };
 
 bool loadEffectFromFile(

@@ -30,7 +30,7 @@ public:
 			vec2 pos,
 			vec2 scale,
 			std::string element_name,
-			float element_value,
+			int element_value,
 			SCENE_TYPE scene_type);
 
 	static Entity createTexturedUIElement(
