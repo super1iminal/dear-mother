@@ -83,7 +83,6 @@ private:
 	float current_speed;
 	uint level = 1;
 	uint scrap = 0;
-	Entity items [8];
 	Entity player;
 	Entity floor;
 
@@ -91,7 +90,7 @@ private:
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
-	Entity item_ui;
+	std::vector<Entity> items_ui;
 
 	// initialize HUD
 	void initGameUI();

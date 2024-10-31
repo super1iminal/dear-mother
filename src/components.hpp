@@ -126,28 +126,6 @@ struct Interactable {
 	int value;
 };
 
-struct ItemStat {
-	std::string name;
-	std::string type;
-
-	int flat_damage_mod = 0;
-
-	float flat_speed_mod = 0;
-	float percent_speed_mod = 0;
-
-	float flat_fire_rate = 0;
-	float percent_fire_rate = 0;
-
-	float flat_range = 0;
-	float percent_range = 0;
-
-	float accuracy = 0;
-
-	int heal_size = 0;
-
-	int item_texture;
-};
-
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -331,5 +309,30 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+};
+
+
+// moved here bc we need TEXTURE_ASSET_ID to be defined before this
+
+struct ItemStat {
+	std::string name;
+	std::string type;
+
+	int flat_damage_mod = 0;
+
+	float flat_speed_mod = 0;
+	float percent_speed_mod = 0;
+
+	float flat_fire_rate = 0;
+	float percent_fire_rate = 0;
+
+	float flat_range = 0;
+	float percent_range = 0;
+
+	float accuracy = 0;
+
+	int heal_size = 0;
+
+	TEXTURE_ASSET_ID item_texture;
 };
 
