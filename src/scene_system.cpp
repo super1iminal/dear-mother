@@ -227,7 +227,7 @@ bool SceneSystem::step(float elapsed_ms, double fps)
 			break;
 		}
 	}
-	renderer.draw(scene);
+	renderer.draw(scene, elapsed_ms);
 	cleanup(); // remove dead entities and entities we want to remove
 	return true;
 }

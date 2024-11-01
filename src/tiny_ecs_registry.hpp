@@ -12,6 +12,7 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
+	ComponentContainer<Animation> animations;
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<WorldObject> worldObjects;
@@ -77,6 +78,7 @@ public:
 		gameSceneRenderRequests(renderRequests, gameSceneComponents),
 		gameSceneWorldObjects(worldObjects, gameSceneComponents)
 	{
+		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);

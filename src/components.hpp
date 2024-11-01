@@ -68,6 +68,13 @@ struct WorldObject {
 	vec2 scale = { 10, 10 };
 };
 
+// information relating to animation
+// i.e. rows and cols in spritesheet
+struct Animation {
+	int rows;
+	int cols;
+};
+
 struct Projectile
 {
 	bool friendly = true;

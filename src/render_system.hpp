@@ -116,13 +116,13 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw(SCENE_TYPE scene);
+	void draw(SCENE_TYPE scene, float elapsed_ms);
 
 	mat3 createProjectionMatrix();
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3& projection, float elapsed_ms);
 	void drawToScreen();
 
 	// Window handle
@@ -141,6 +141,12 @@ private:
 	GLuint fontVBO;
 
 	Entity screen_state_entity;
+
+	int current_frame;
+
+	int frame_duration = 100;
+
+	int time_since_last_frame;
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;

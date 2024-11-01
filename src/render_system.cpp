@@ -44,11 +44,16 @@ GLFWwindow* RenderSystem::create_window() {
 		return nullptr;
 	}
 
+	current_frame = 0;
+
+	time_since_last_frame = 0;
+
 	return window;
 }
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
+									const mat3 &projection,
+									float elapsed_ms)
 {
 	WorldObject &worldobject = registry.worldObjects.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
@@ -113,8 +118,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ANIM) {
-		int current_frame = 0;
-		int frameDuration = 100;
+		std::cout << elapsed_ms << std::endl;
+		time_since_last_frame += elapsed_ms;
+		if (time_since_last_frame > frame_duration) {
+			current_frame = (current_frame + 1) % 4;
+			time_since_last_frame = 0;
+		}
 
 		float frame_width = 1.0f / 4;
 		float frame_height = 1.0f;
@@ -311,7 +320,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw(SCENE_TYPE scene)
+void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 {
 	// Getting size of window
 	int w, h;
@@ -379,7 +388,7 @@ void RenderSystem::draw(SCENE_TYPE scene)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
 				continue;
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
 	}
 	else if (scene == SCENE_TYPE::MENU) {
@@ -404,7 +413,7 @@ void RenderSystem::draw(SCENE_TYPE scene)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
 	}
 	else if (scene == SCENE_TYPE::HELP) {
@@ -428,7 +437,7 @@ void RenderSystem::draw(SCENE_TYPE scene)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
 				continue;
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
 	}
 	else if (scene == SCENE_TYPE::PAUSE) {
