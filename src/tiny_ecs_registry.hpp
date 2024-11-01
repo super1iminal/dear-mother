@@ -41,6 +41,7 @@ public:
 	ComponentContainer<Shooter> shooters;
 	ComponentContainer<GameScene> gameSceneComponents;
 	ComponentContainer<MenuScene> menuSceneComponents;
+	ComponentContainer<HelpScene> helpSceneComponents;
 	ComponentContainer<PauseScene> pauseSceneComponents;
 	ComponentContainer<TestScene> testSceneComponents;
 	ComponentContainer<Modifier> modifiers;
@@ -108,6 +109,7 @@ public:
 		registry_list.push_back(&itemStats);
 		registry_list.push_back(&gameSceneComponents);
 		registry_list.push_back(&menuSceneComponents);
+		registry_list.push_back(&helpSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);
 		registry_list.push_back(&testSceneComponents);
 

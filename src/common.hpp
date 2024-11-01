@@ -82,7 +82,17 @@ enum class COLLISION_TYPE {
 enum class SCENE_TYPE {
 	GAME = 0,
 	MENU = GAME + 1,
-	PAUSE = MENU + 1,
+	HELP = MENU + 1,
+	PAUSE = HELP + 1,
 	TEST = PAUSE + 1,
 	SCENE_COUNT = TEST + 1
+};
+
+// font character structure
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };

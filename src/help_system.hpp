@@ -1,21 +1,23 @@
-#include <render_system.hpp>
-#include <ui_system.hpp>
-class MenuSystem
-{
+#include <scene_system.hpp>
+
+#ifndef HELP_SYSTEM_HEADER
+#define HELP_SYSTEM_HEADER
+
+class HelpSystem {
 public:
-	MenuSystem();
+	HelpSystem();
 
 	// Releases all associated resources
-	~MenuSystem();
+	~HelpSystem();
 
 	// initialize
 	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
 
-	void initStartMenu();
+	// open help screen
+	void initHelpMenu();
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
-
 private:
 	RenderSystem* renderer;
 
@@ -28,3 +30,5 @@ private:
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 };
+
+#endif

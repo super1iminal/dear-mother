@@ -47,9 +47,11 @@ bool SceneSystem::init()
 
 	// initialize menu and world
 	menu.init(&renderer, window, &scene);
+	help.init(&renderer, window, &scene);
 	world.init(&renderer, window);
 
 	menu.initStartMenu();
+	help.initHelpMenu();
 
 	return true;
 }
@@ -77,6 +79,11 @@ void SceneSystem::on_key(int key, int sc, int action, int mod) {
 			case SCENE_TYPE::MENU:
 			{
 				// Update the menu screen
+				break;
+			}
+			case SCENE_TYPE::HELP:
+			{
+				// Update the help screen
 				break;
 			}
 			case SCENE_TYPE::PAUSE:
@@ -118,6 +125,12 @@ void SceneSystem::on_mouse_move(vec2 pos) {
 			menu.on_mouse_move(pos);
 			break;
 		}
+		case SCENE_TYPE::HELP:
+		{
+			// Update the help screen
+			help.on_mouse_move(pos);
+			break;
+		}
 		case SCENE_TYPE::PAUSE: 
 		{
 			// Update the pause screen
@@ -147,6 +160,12 @@ void SceneSystem::on_mouse_button(GLFWwindow* window, int button, int action, in
 		{
 			// Update the menu screen
 			menu.on_mouse_button(window, button, action, mods);
+			break;
+		}
+		case SCENE_TYPE::HELP:
+		{
+			// Update the help screen
+			help.on_mouse_button(window, button, action, mods);
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 
@@ -185,6 +204,11 @@ bool SceneSystem::step(float elapsed_ms, double fps)
 		case SCENE_TYPE::MENU: 
 		{
 			// Update the menu screen
+			break;
+		}
+		case SCENE_TYPE::HELP:
+		{
+			// Update the help screen
 			break;
 		}
 		case SCENE_TYPE::PAUSE: 

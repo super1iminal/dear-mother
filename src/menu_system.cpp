@@ -47,7 +47,7 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
-			initHelpScreen();
+			*(this->scene) = SCENE_TYPE::HELP;
 		},
 		"help_button",
 		TEXTURE_ASSET_ID::HELP_BUTTON,
@@ -79,55 +79,6 @@ void MenuSystem::initStartMenu()
 	);
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
-}
-
-void MenuSystem::initHelpScreen() {
-	UISystem::createPanel(
-		renderer,
-		SCENE_TYPE::MENU,
-		vec2(window_width_px / 2, window_height_px / 2),
-		0.f,
-		vec2(window_width_px, window_height_px),
-		"help_screen",
-		TEXTURE_ASSET_ID::HELP_SCREEN
-	);
-
-	UISystem::createButton(
-		renderer,
-		vec2(window_width_px - 330.f, window_height_px - 268.f),
-		vec2(234.f, 60.f),
-		[&]() {
-			std::cout << "Back button pressed!" << std::endl;
-			closeHelpScreen();
-		},
-		"return_to_menu_button",
-		TEXTURE_ASSET_ID::BACK_BUTTON,
-		SCENE_TYPE::MENU
-	);
-}
-
-void MenuSystem::closeHelpScreen() {
-	// remove the help panel
-	for (Entity entity : registry.menuSceneComponents.entities) {
-		if (registry.baseUI.has(entity)) {
-			BaseUI button = registry.baseUI.get(entity);
-			if (button.name == "help_screen") {
-				registry.pendingRemoves.emplace(entity);
-				break;
-			}
-		}
-	}
-
-	// remove the back button
-	for (Entity entity : registry.menuSceneComponents.entities) {
-		if (registry.uiButtons.has(entity)) {
-			UIButton button = registry.uiButtons.get(entity);
-			if (button.name == "return_to_menu_button") {
-				registry.pendingRemoves.emplace(entity);
-				break;
-			}
-		}
-	}
 }
 
 void MenuSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)

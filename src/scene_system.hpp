@@ -9,6 +9,7 @@
 #include "tiny_ecs_registry.hpp"
 #include "tiny_ecs.hpp"
 #include <menu_system.hpp>
+#include <help_system.hpp>
 
 class SceneSystem
 {
@@ -25,6 +26,7 @@ private:
 	AISystem ai;
 
 	MenuSystem menu;
+	HelpSystem help;
 
 	// Scene systems
 	CollisionSystem collisions;

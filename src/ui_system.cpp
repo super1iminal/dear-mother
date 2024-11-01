@@ -37,6 +37,9 @@ Entity UISystem::createPanel(
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
@@ -81,6 +84,9 @@ Entity UISystem::createUIElement(
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
@@ -130,6 +136,9 @@ Entity UISystem::createTexturedUIElement(
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
@@ -177,6 +186,9 @@ Entity UISystem::createButton(
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
@@ -215,6 +227,9 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
