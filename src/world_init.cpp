@@ -123,8 +123,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.modifiers.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::PLAYER_WALK,
+			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;

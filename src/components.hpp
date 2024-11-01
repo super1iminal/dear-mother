@@ -273,7 +273,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
-	TEXTURE_COUNT = BACK_BUTTON + 1,
+	PLAYER_WALK = BACK_BUTTON + 1,
+	ENEMY_WALK = PLAYER_WALK + 1,
+	ENEMY_ATTACK = ENEMY_WALK + 1,
+	TEXTURE_COUNT = ENEMY_ATTACK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -284,7 +287,8 @@ enum class EFFECT_ASSET_ID {
 	FONT = UI_ELEMENT + 1,
 	SALMON = FONT + 1,
 	TEXTURED = SALMON + 1,
-	WATER = TEXTURED + 1,
+	ANIM = TEXTURED + 1,
+	WATER = ANIM + 1,
 	EFFECT_COUNT = WATER + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;

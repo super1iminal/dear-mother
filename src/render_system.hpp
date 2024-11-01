@@ -63,7 +63,10 @@ class RenderSystem {
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
-			textures_path("/buttons/back_button.png")
+			textures_path("/buttons/back_button.png"),
+			textures_path("/anims/walk/player_robot_walk.png"),
+			textures_path("/anims/walk/enemy_robot_walk.png"),
+			textures_path("/anims/attack/enemy_robot_attack.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -75,6 +78,7 @@ class RenderSystem {
 		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
+		shader_path("textured_anim"),
 		shader_path("water") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
