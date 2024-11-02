@@ -96,3 +96,20 @@ struct Character {
 	unsigned int Advance;    // Offset to advance to next glyph
 	char character;
 };
+
+
+enum class ITEM_NAME {
+	BATTERY_PACK = 0,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
+};
+
+enum class ITEM_TYPE {
+	DAMAGE = 0,
+	SPEED = DAMAGE + 1,
+	FIRE_RATE = SPEED + 1,
+	RANGE = FIRE_RATE + 1,
+	HEALTH_PACK = RANGE + 1,
+};

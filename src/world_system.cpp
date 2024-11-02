@@ -247,6 +247,29 @@ void WorldSystem::increaseScrap(int amt)
 	std::cout <<  "scrap: " << scrap << std::endl;
 }
 
+TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
+	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+	switch (item.name)
+	{
+	case ITEM_NAME::BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+		break;
+	case ITEM_NAME::SHATTERED_QUARTZ:
+		item_texture = TEXTURE_ASSET_ID::SHATTERED_QUARTZ;
+		break;
+	case ITEM_NAME::REPEATER:
+		item_texture = TEXTURE_ASSET_ID::REPEATER;
+		break;
+	case ITEM_NAME::CREAKY_WHEEL:
+		item_texture = TEXTURE_ASSET_ID::CREAKY_WHEEL;
+		break;
+	case ITEM_NAME::HEATSINK:
+		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	}
+	return item_texture;
+}
+
 void WorldSystem::initGameUI() {
 	// Add the base UI
 	Entity base_ui = UISystem::createPanel(
@@ -301,7 +324,7 @@ void WorldSystem::initGameUI() {
 			vec2(window_width_px - ((i + 1) * window_width_px / 22), window_height_px / 11),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
-			player_inventory.items[i].item_texture,
+			getItemTexture(player_inventory.items[i]),
 			SCENE_TYPE::GAME);
 	}
 }
@@ -322,7 +345,7 @@ void WorldSystem::updateGameUI() {
 			vec2(window_width_px - ((i + 1)*window_width_px / 22), window_height_px / 11),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
-			player_inventory.items[i].item_texture,
+			getItemTexture(player_inventory.items[i]),
 			SCENE_TYPE::GAME);
 	}
 }
@@ -490,13 +513,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	// Pick up item and apply effects to the player
 	Inventory& player_inventory = registry.inventory.get(player);
 	ItemStat new_item = registry.itemStats.get(item);
-	if ((player_inventory.items.size() < 8) && (new_item.type != "health_pack")) {
+	if ((player_inventory.items.size() < 8) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
 		player_inventory.items.push_back(new_item);
 		update_player_modifier();
 		registry.pendingRemoves.emplace_with_duplicates(item);
-		std::cout << "Picked up: " << new_item.name << std::endl;
 	}
-	else if (new_item.type == "health_pack") {
+	else if (new_item.type == ITEM_TYPE::HEALTH_PACK) {
 		// Apply health pack item
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {

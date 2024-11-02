@@ -270,8 +270,12 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY = UI + 1,
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
-	ITEM = VERT_WALL + 1,
-	HIT_PARTICLE = ITEM + 1,
+	BATTERY_PACK = VERT_WALL + 1,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
+	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -321,8 +325,8 @@ struct RenderRequest {
 // moved here bc we need TEXTURE_ASSET_ID to be defined before this
 
 struct ItemStat {
-	std::string name;
-	std::string type;
+	ITEM_NAME name;
+	ITEM_TYPE type;
 
 	int flat_damage_mod = 0;
 
@@ -338,7 +342,5 @@ struct ItemStat {
 	float accuracy = 0;
 
 	int heal_size = 0;
-
-	TEXTURE_ASSET_ID item_texture;
 };
 

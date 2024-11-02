@@ -63,3 +63,6 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
+
+// create all item components
+void buildItemSet();
