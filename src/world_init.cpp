@@ -121,6 +121,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
+	Animation& player_animation = registry.animations.emplace(entity);
+	player_animation.cols = 4;
+	player_animation.rows = 1;
+	player_animation.frames = 1;
+	player_animation.current_frame = 0;
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
@@ -158,13 +164,18 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
+
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 4;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 1;
+	enemy_animation.current_frame = 0;
+
 	registry.renderRequests.insert(
 		entity,
-		{
-			TEXTURE_ASSET_ID::ENEMY,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
-		});
+		{ TEXTURE_ASSET_ID::ENEMY_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }

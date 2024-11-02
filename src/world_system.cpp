@@ -327,6 +327,70 @@ void WorldSystem::updateGameUI() {
 	}
 }
 
+void WorldSystem::update_animations() {
+	updatePlayerAnimation();
+
+	// update enemy animations
+	auto& enemyRegistry = registry.deadlys;
+	auto& collisionsRegistry = registry.collisions;
+	for (Entity entity : enemyRegistry.entities) {
+		Deadly deadly = registry.deadlys.get(entity);
+		if (deadly.attacking) {
+			// play attack animation
+			playEnemyAttack(entity);
+		}
+		else {
+			updateEnemyAnimation(entity);
+		}
+	}
+}
+
+void WorldSystem::updatePlayerAnimation() {
+	Animation& player_animation = registry.animations.get(player);
+	Motion player_motion = registry.motions.get(player);
+	if (player_motion.target_velocity.x != 0.f || player_motion.target_velocity.y != 0.f) {
+		// player is moving; play walking animation (4 frames)
+		player_animation.frames = player_animation.cols * player_animation.rows;
+	}
+	else {
+		// player is still; use only 1 frame
+		player_animation.frames = 1;
+	}
+}
+
+void WorldSystem::updateEnemyAnimation(Entity enemy) {
+	Animation& enemy_animation = registry.animations.get(enemy);
+	Motion enemy_motion = registry.motions.get(enemy);
+	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+
+	// reset to walking texture
+	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+	enemy_animation.cols = 4;
+	enemy_animation.frames = 4;
+
+	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
+		// enemy is moving; play walking animation (4 frames)
+		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
+	}
+	else {
+		// enemy is still; use only 1 frame
+		enemy_animation.frames = 1;
+	}
+}
+
+void WorldSystem::playEnemyAttack(Entity enemy) {
+	Animation& enemy_animation = registry.animations.get(enemy);
+	Deadly& deadly = registry.deadlys.get(enemy);
+	Motion enemy_motion = registry.motions.get(enemy);
+	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+
+	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+	enemy_animation.cols = 7;
+	enemy_animation.frames = 7;
+
+	deadly.attacking = false;
+}
+
 // Compute collisions between entities, called after physics_system::step which checks for collisions
 void WorldSystem::handle_collisions() {
 	// god damn. 

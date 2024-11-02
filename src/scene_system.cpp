@@ -197,6 +197,7 @@ bool SceneSystem::step(float elapsed_ms, double fps)
 			ai.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			collisions.add_collisions();
+			world.update_animations();
 			world.handle_collisions();
 			world.handle_deaths();
 			break;

@@ -33,6 +33,9 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms, double fps);
 
+	// update animations
+	void update_animations();
+
 	// Check for collisions
 	void handle_collisions();
 
@@ -62,6 +65,11 @@ private:
 	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
+
+	// animation updates
+	void updatePlayerAnimation();
+	void updateEnemyAnimation(Entity enemy);
+	void playEnemyAttack(Entity enemy);
 
 	// Item stuff
 	void update_player_modifier() const;

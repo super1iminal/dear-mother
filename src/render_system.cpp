@@ -44,8 +44,6 @@ GLFWwindow* RenderSystem::create_window() {
 		return nullptr;
 	}
 
-	current_frame = 0;
-
 	time_since_last_frame = 0;
 
 	return window;
@@ -118,18 +116,30 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::ANIM) {
-		std::cout << elapsed_ms << std::endl;
-		time_since_last_frame += elapsed_ms;
-		if (time_since_last_frame > frame_duration) {
-			current_frame = (current_frame + 1) % 4;
-			time_since_last_frame = 0;
-		}
+		int rows = 1;
+		int cols = 1;
+		int frames = 1;
+		int current_frame = 0;
 
-		float frame_width = 1.0f / 4;
-		float frame_height = 1.0f;
+		if (registry.animations.has(entity)) {
+			Animation& entity_animation = registry.animations.get(entity);
+			rows = entity_animation.rows;
+			cols = entity_animation.cols;
+			frames = entity_animation.frames;
+			current_frame = entity_animation.current_frame;
+
+			time_since_last_frame += elapsed_ms;
+			if (time_since_last_frame > frame_duration) {
+				entity_animation.current_frame = (entity_animation.current_frame + 1) % (frames);
+				time_since_last_frame = 0;
+			}
+		}
 		
-		int col = current_frame % 4;
-		int row = current_frame / 4;
+		float frame_width = 1.0f / cols;
+		float frame_height = 1.0f / rows;
+		
+		int col = current_frame % cols;
+		int row = current_frame / rows;
 
 		float u_offset = col * frame_width;
 		float v_offset = row * frame_height;

@@ -49,7 +49,7 @@ struct Inventory {
 // anything that is deadly to the player
 struct Deadly
 {
-
+	bool attacking = false;
 };
 
 // All data relevant to the motion of entities
@@ -69,10 +69,16 @@ struct WorldObject {
 };
 
 // information relating to animation
-// i.e. rows and cols in spritesheet
+// rows and cols are for the spritesheet
+// frames is the # of frames that the animation will cycle through
+// current frame is the current frame for this animation.
+// it must be specific to this animation to avoid other animations
+// playing when they're not supposed to.
 struct Animation {
 	int rows;
 	int cols;
+	int frames;
+	int current_frame; // starts at 0
 };
 
 struct Projectile

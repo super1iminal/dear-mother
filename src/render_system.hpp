@@ -142,8 +142,6 @@ private:
 
 	Entity screen_state_entity;
 
-	int current_frame;
-
 	int frame_duration = 100;
 
 	int time_since_last_frame;
