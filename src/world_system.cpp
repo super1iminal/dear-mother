@@ -11,6 +11,7 @@
 
 // Game configuration
 // add variables here
+int enemies = 3;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -102,7 +103,7 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	restart_game();
 }
 
-int enemies = 3;
+
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get Player
@@ -272,6 +273,9 @@ void WorldSystem::restart_game() {
 	for (Entity entity : registry.shooters.entities) {
 		set_last_shot_time(entity);
 	}
+
+	// Set enemy number to 3
+	enemies = 3;
 	
 	initGameUI();
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
