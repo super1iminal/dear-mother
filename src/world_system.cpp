@@ -164,7 +164,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Set music based on whether or not there are enemies alive
-	if (registry.deadlys.components.size() > 0) {
+	int activeDeadlyCounter = 0;
+	for (Entity entity : registry.deadlys.entities) {
+		if (registry.activeComponents.has(entity)) {
+			activeDeadlyCounter++;
+		}
+	}
+	if (activeDeadlyCounter > 0) {
 		if (!in_combat) {
 			Mix_VolumeMusic(8);
 			Mix_FadeInMusic(combat_music, -1, 2500);
@@ -611,7 +617,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 			registry.healthComponents.get(entity).curr_health -= 1;
 			updateGameUI();
 			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
 			}
 			else {
@@ -932,6 +938,9 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(post_combat_music, -1, 5000);
+		in_combat = false;
 	}
 
 	// Interaction

@@ -108,10 +108,6 @@ struct Modifier {
 	float accuracy_modifier = 0;  // 0 would be perfect accuracy
 };
 
-struct Inventory {
-	std::vector<struct ItemStat> items;
-};
-
 // anything that is deadly to the player
 struct Deadly
 {
@@ -129,26 +125,6 @@ struct Interactable {
 	std::function<void(int)> interaction;
 	// value to be used in function call
 	int value;
-};
-
-struct ItemStat {
-	ITEM_NAME name;
-	ITEM_TYPE type;
-
-	int flat_damage_mod = 0;
-
-	float flat_speed_mod = 0;
-	float percent_speed_mod = 0;
-
-	float flat_fire_rate = 0;
-	float percent_fire_rate = 0;
-
-	float flat_range = 0;
-	float percent_range = 0;
-
-	float accuracy = 0;
-
-	int heal_size = 0;
 };
 
 // A timer that will be associated to dying salmon
@@ -327,12 +303,6 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HEATSINK = CREAKY_WHEEL + 1,
 	REPEATER = HEATSINK + 1,
 	HIT_PARTICLE = REPEATER + 1,
-	BATTERY_PACK = VERT_WALL + 1,
-	SHATTERED_QUARTZ = BATTERY_PACK + 1,
-	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
-	HEATSINK = CREAKY_WHEEL + 1,
-	REPEATER = HEATSINK + 1,
-	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -401,3 +371,7 @@ struct ItemStat {
 	int heal_size = 0;
 };
 
+
+struct Inventory {
+	std::vector<struct ItemStat> items;
+};
