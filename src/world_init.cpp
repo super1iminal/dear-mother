@@ -5,9 +5,21 @@
 #include <ui_system.hpp>
 #include <world_system.hpp>
 
-void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+// WHEN ADDING A CREATE FUNCTION:
+// 1. Add the function prototype to world_init.hpp
+// 2. Add the function definition to world_init.cpp
+// 3. Add to gameSceneComponents
+// 4. Add meshPtrs
+// 5. Add the position of the room it's in (specified in parameters)
+// 6. Assign a component (wall/player/enemy/etc) to the entity
+// 7. Add to renderRequests ordering
+// 
+
+void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	// Adding meshptr component
@@ -55,17 +67,19 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
-void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES) + NUM_PARTICLES_OFFSET;
 	for (int i = 0; i < num_particles; i++) {
-		createParticle(renderer, pos, uniform_dist, rng, type);
+		createParticle(renderer, pos, uniform_dist, rng, type, room_coord);
 	}
 }
 
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
-Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type) {
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -94,6 +108,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -136,10 +151,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
+Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 room_coord)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -159,7 +176,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 
 	// create an empty Enemy component to be able to refer to all enemies
 	registry.deadlys.emplace(entity);
+	// setting last shot time:
 	auto& shooter = registry.shooters.emplace(entity);
+	using Clock = std::chrono::high_resolution_clock;
+	shooter.t = Clock::now();
 	shooter.fire_rate = 10000.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
@@ -180,10 +200,13 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	return entity;
 }
 
-Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
 	registry.gameSceneComponents.emplace(floor);
+	registry.roomCoords.emplace(floor, room_coord);
+	registry.activeComponents.emplace(floor);
+
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(floor, &mesh);
@@ -204,10 +227,59 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	return floor;
 }
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value) {
+// need to add to collisions
+Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation) {
+	// create an entity in order to render the floor background
+	auto door = Entity();
+	registry.gameSceneComponents.emplace(door);
+	registry.roomCoords.emplace(door, room_coord);
+	registry.activeComponents.emplace(door);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(door, &mesh);
+	registry.doors.emplace(door, leads_to, orientation);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(door);
+	switch (orientation) {
+	case DIRECTION::UP:
+		worldobject.position = { window_width_px/2.f, BASE_UI_HEIGHT + WALL_WIDTH/2.f };
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		break;
+	case DIRECTION::DOWN:
+		worldobject.position = { window_width_px / 2.f, window_height_px - WALL_WIDTH/2.f};
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		break;
+	case DIRECTION::LEFT:
+		worldobject.position = { WALL_WIDTH / 2.f, (window_height_px-BASE_UI_HEIGHT)/2.f + BASE_UI_HEIGHT};
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		break;
+	case DIRECTION::RIGHT:
+		worldobject.position = { window_width_px - WALL_WIDTH / 2.f, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		break;
+	}
+
+	registry.renderRequests.insert(
+		door,
+		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return door;
+}
+
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value, ivec2 room_coord) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
 	registry.gameSceneComponents.emplace(interactable_entity);
+	registry.roomCoords.emplace(interactable_entity, room_coord);
+	registry.activeComponents.emplace(interactable_entity);
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(interactable_entity, &mesh);
@@ -232,10 +304,12 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
 	// create an interactable entity
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -303,10 +377,12 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly)
+Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -360,6 +436,7 @@ Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	registry.renderRequests.insert(

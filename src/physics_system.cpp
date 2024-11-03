@@ -22,6 +22,10 @@ void PhysicsSystem::step(float elapsed_ms)
 	for (Entity entity : registry.motions.entities)
 	{
 		assert(world_object_registry.has(entity) && "Motion Entity has no worldobject component");
+		// skip inactive entities
+		if (!registry.activeComponents.has(entity)) {
+			continue;
+		}
 		Motion& motion = motion_registry.get(entity);
 		WorldObject& worldobject = world_object_registry.get(entity);
 

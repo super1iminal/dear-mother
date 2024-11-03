@@ -1,17 +1,28 @@
 #pragma once
-#include "physics_system.hpp"
-#include "render_system.hpp"
-#include "world_system.hpp"
-#include "ai_system.hpp"
-#include "ui_system.hpp"
-#include "collision_system.hpp"
+
+// include literally everything
 #include "common.hpp"
+#include "render_system.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "tiny_ecs.hpp"
-#include <menu_system.hpp>
-#include <help_system.hpp>
 
-class SceneSystem
+// game stuff
+#include "world_system.hpp"
+#include "ai_system.hpp"
+#include "physics_system.hpp"
+#include "collision_system.hpp"
+
+// ui stuff
+#include "ui_system.hpp"
+#include "tiny_ecs.hpp"
+#include "menu_system.hpp"
+#include "help_system.hpp"
+#include "pause_system.hpp"
+
+// scene stuff
+#include "scene_manager.hpp"
+
+class GameManager
 {
 private:
 	// Input callback functions
@@ -25,8 +36,13 @@ private:
 	PhysicsSystem physics;
 	AISystem ai;
 
+	// when adding here, remember to add init calls in init() function and add the mouse and keyboard callbacks in the switch statements
+	// you'll also need to add the scene name in the enum in common.hpp
+	// 
 	MenuSystem menu;
 	HelpSystem help;
+	PauseSystem pause;
+
 
 	// Scene systems
 	CollisionSystem collisions;
@@ -37,11 +53,10 @@ private:
 	GLFWwindow* window;
 
 public:
-	SceneSystem();
+	GameManager();
 	// Releases all associated resources
-	~SceneSystem();
+	~GameManager();
 	bool init();
-	SCENE_TYPE scene;
 	bool is_over()const;
 	bool step(float elapsed_ms, double fps);
 

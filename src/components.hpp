@@ -8,13 +8,79 @@
 #include <iostream>
 #include <chrono>
 
+// All data relevant to the motion of entities
+struct Motion {
+	float max_speed;
+	vec2 velocity = { 0.f, 0.f };
+	vec2 target_velocity = { 0.f, 0.f };
+	vec2 acceleration = { 0.0f, 0.0f };
+	float mass;
+};
+
+// a worldobject has a position, angle, and scale
+struct WorldObject {
+	vec2 position = { 0, 0 };
+	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
+// Data structure for toggling debug mode
+struct Debug {
+	bool in_debug_mode = 0;
+	bool in_freeze_mode = 0;
+};
+extern Debug debugging;
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	float darken_screen_factor = -1;
+	int health_status = 0;
+};
+
+// gamescene stuff
+struct GameScene
+{
+};
+
+// information relating to animation
+// rows and cols are for the spritesheet
+// frames is the # of frames that the animation will cycle through
+// current frame is the current frame for this animation.
+// it must be specific to this animation to avoid other animations
+// playing when they're not supposed to.
+struct Animation {
+	int rows;
+	int cols;
+	int frames;
+	int current_frame; // starts at 0
+};
+
+struct Projectile
+{
+	bool friendly = true;
+	int damage = 1;
+};
+
+// Stucture to store collision information
+struct Collision
+{
+	// Note, the first object is stored in the ECS container.entities
+	Entity other; // the second object involved in the collision
+	COLLISION_TYPE type = COLLISION_TYPE::COLLISION_COUNT;
+
+	Collision(Entity& other) { this->other = other; };
+	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
+
+};
+
 // Player component
 struct Player
 {
-	
+
 };
 struct Shooter
-{	
+{
 	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 0.0f;
 	std::chrono::steady_clock::time_point t;
@@ -52,69 +118,55 @@ struct Deadly
 	bool attacking = false;
 };
 
-// All data relevant to the motion of entities
-struct Motion {
-	float max_speed;
-	vec2 velocity = { 0.f, 0.f };
-	vec2 target_velocity = { 0.f, 0.f };
-	vec2 acceleration = { 0.0f, 0.0f };
-	float mass;
+// anything that the player can interact with
+struct Interactable {
+	// the range that the player must be within to interact
+	float range;
+	// placeholder, not sure what we want the interaction function to do yet
+	std::function<void(int)> interaction;
+	// value to be used in function call
+	int value;
 };
 
-// a worldobject has a position, angle, and scale
-struct WorldObject {
-	vec2 position = { 0, 0 };
-	float angle = 0;
-	vec2 scale = { 10, 10 };
-};
-
-// information relating to animation
-// rows and cols are for the spritesheet
-// frames is the # of frames that the animation will cycle through
-// current frame is the current frame for this animation.
-// it must be specific to this animation to avoid other animations
-// playing when they're not supposed to.
-struct Animation {
-	int rows;
-	int cols;
-	int frames;
-	int current_frame; // starts at 0
-};
-
-struct Projectile
+// A timer that will be associated to dying salmon
+struct DeathTimer
 {
-	bool friendly = true;
-	int damage = 1;
+	float counter_ms = 3000;
 };
 
-// Stucture to store collision information
-struct Collision
+// A timer that
+struct InvincibleTimer
 {
-	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
-	COLLISION_TYPE type = COLLISION_TYPE::COLLISION_COUNT;
-
-	Collision(Entity& other) { this->other = other; };
-	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
-	
+	float counter_ms = 3000;
 };
 
-// Data structure for toggling debug mode
-struct Debug {
-	bool in_debug_mode = 0;
-	bool in_freeze_mode = 0;
+struct Friction {
+	float force;
 };
-extern Debug debugging;
 
-// Sets the brightness of the screen
-struct ScreenState
+struct Lifetime
 {
-	float darken_screen_factor = -1;
-	int health_status = 0;
+	float time_remaining_ms = 0;
 };
 
-struct GameScene
+struct Particle
 {
+
+};
+
+struct Blocker
+{
+
+};
+
+struct Floor
+{
+
+};
+
+struct Wall
+{
+
 };
 
 struct MenuScene
@@ -133,14 +185,22 @@ struct TestScene
 {
 };
 
-// anything that the player can interact with
-struct Interactable {
-	// the range that the player must be within to interact
-	float range;
-	// placeholder, not sure what we want the interaction function to do yet
-	std::function<void(int)> interaction;
-	// value to be used in function call
-	int value;
+struct RoomCoordinate
+{
+	ivec2 position;
+	RoomCoordinate(ivec2 position) : position(position) {}
+};
+
+// for GAME objects that are in the current room. nothing else.
+struct Active
+{
+};
+
+struct Door
+{
+	ivec2 leads_to; // is the room coords that the door leads to
+	DIRECTION direction;
+	Door(ivec2 leads_to, DIRECTION direction) : leads_to(leads_to), direction(direction) {};
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -149,17 +209,6 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying salmon
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
-
-// A timer that
-struct InvincibleTimer
-{
-	float counter_ms = 3000;
-};
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
@@ -191,10 +240,6 @@ struct PendingRemove {
 
 };
 
-struct Friction {
-	float force;
-};
-
 // Mesh datastructure for storing vertex and index buffers
 struct Mesh
 {
@@ -204,30 +249,7 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
-struct Lifetime
-{
-	float time_remaining_ms = 0;
-};
 
-struct Particle
-{
-
-};
-
-struct Blocker
-{
-
-};
-
-struct Floor
-{
-
-};
-
-struct Wall
-{
-
-};
 
 struct BaseUI
 {
