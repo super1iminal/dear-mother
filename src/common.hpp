@@ -31,6 +31,8 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 
 const int window_width_px = 1280;
 const int window_height_px = 720;
+bool on_screen(vec2 position);
+
 
 // gravity
 #ifndef M_G
@@ -76,16 +78,8 @@ enum class COLLISION_TYPE {
 	PLAYER_BLOCKER = PROJECTILE_BLOCKER + 1,
 	DEADLY_BLOCKER = PLAYER_BLOCKER + 1,
 	PLAYER_DEADLY = DEADLY_BLOCKER + 1,
-	COLLISION_COUNT = PLAYER_DEADLY + 1
-};
-
-enum class SCENE_TYPE {
-	GAME = 0,
-	MENU = GAME + 1,
-	HELP = MENU + 1,
-	PAUSE = HELP + 1,
-	TEST = PAUSE + 1,
-	SCENE_COUNT = TEST + 1
+	PLAYER_DOOR = PLAYER_DEADLY + 1,
+	COLLISION_COUNT = PLAYER_DOOR + 1
 };
 
 // font character structure
@@ -112,4 +106,20 @@ enum class ITEM_TYPE {
 	FIRE_RATE = SPEED + 1,
 	RANGE = FIRE_RATE + 1,
 	HEALTH_PACK = RANGE + 1,
+};
+
+enum class DIRECTION {
+	UP = 1,
+	DOWN = UP + 1,
+	LEFT = DOWN + 1,
+	RIGHT = LEFT + 1
+};
+
+enum class DeadlyState {
+	idle = 0,
+	patrol_left = idle + 1,
+	patrol_right = patrol_left + 1,
+	attack_still = patrol_right + 1,
+	attack_moving = attack_still + 1,
+	rage = attack_moving + 1
 };

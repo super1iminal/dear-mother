@@ -302,12 +302,19 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
 	// Set clock
+	// fixed bug here where pause scene had dimmed screen
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "darken_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
-	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	float darken_screen_factor = -1;
+	if (scene_manager.get_scene() == SCENE_TYPE::GAME) {
+		darken_screen_factor = screen.darken_screen_factor;
+	}
+	glUniform1f(dead_timer_uloc, darken_screen_factor);
 	gl_has_errors();
+
+
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
@@ -330,7 +337,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
+void RenderSystem::draw(float elapsed_ms)
 {
 	// Getting size of window
 	int w, h;
@@ -355,10 +362,14 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 	mat3 projection_2D = createProjectionMatrix();
 	std::vector<Entity> render_list = {};
 
-	if (scene == SCENE_TYPE::GAME) {
+	switch (scene_manager.get_scene()) {
+	case SCENE_TYPE::GAME: {
 		// draw game
-		// add floor first
-		render_list.push_back(registry.floors.entities[0]);
+		// add floors first
+		for (Entity entity : registry.floors.entities) {
+			render_list.push_back(entity);
+		}
+		
 		// then interactables
 		for (Entity entity : registry.interactables.entities) {
 			render_list.push_back(entity);
@@ -383,6 +394,10 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 		}
 		// then floor items
 		for (Entity entity : registry.floorItems.entities) {
+      render_list.push_back(entity);
+    }
+    // then doors
+		for (Entity entity : registry.doors.entities) {
 			render_list.push_back(entity);
 		}
 		// then UI elements, starting with the base UI
@@ -400,14 +415,21 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 		// Draw all textured meshes that have a position and size component
 		for (Entity entity : render_list)
 		{
+			// note that activeComponents are ONLY USED for game entities
 			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
+				continue;
+			if (registry.roomCoords.has(entity)) {
+				if (!registry.activeComponents.has(entity))
+					continue;
+			}
+			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::MENU) {
+	case SCENE_TYPE::MENU: {
 		// draw menu
-
 		Entity crosshair_entity;
 		for (Entity entity : registry.menuSceneComponents.entities) {
 			// this is a very hack-y check to put the crosshair at the very end of the render list
@@ -420,7 +442,7 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 				crosshair_entity = entity;
 			}
 		}
-		
+
 		render_list.push_back(crosshair_entity);
 
 		for (Entity entity : render_list)
@@ -429,8 +451,9 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::HELP) {
+	case SCENE_TYPE::HELP: {
 		// draw help screen
 		Entity crosshair_entity;
 		for (Entity entity : registry.helpSceneComponents.entities) {
@@ -453,12 +476,37 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::PAUSE) {
-		// draw pause menu
+	case SCENE_TYPE::PAUSE: {
+		// draw help screen
+		Entity crosshair_entity;
+		for (Entity entity : registry.pauseSceneComponents.entities) {
+			// this is a very hack-y check to put the crosshair at the very end of the render list
+			// so that it doesn't disappear when new menu panels are rendered.
+			// TODO: this should be changed once we get z-buffering
+			if (!registry.crosshairs.has(entity)) {
+				render_list.push_back(entity);
+			}
+			else {
+				crosshair_entity = entity;
+			}
+		}
+
+		render_list.push_back(crosshair_entity);
+
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::TEST) {
+	case SCENE_TYPE::TEST: {
 		// draw test scene
+		break;
+	}
 	}
 
 	// Truely render to the screen

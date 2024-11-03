@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 #include "ai_system.hpp"
+#include "world_system.hpp"
+#include "world_init.hpp"
 using namespace std;
 
 struct Pair {
@@ -69,37 +71,123 @@ vector<vec2> AISystem::bfs(vec2 start, vec2 target) {
 	return {};
 }
 
+void AISystem::pathfinding(Entity& entity) {
+	auto& motionRegistry = registry.motions;
+	auto& worldObjectRegistry = registry.worldObjects;
+	auto& playerRegistry = registry.players;
+	vec2 coor_enemy = worldObjectRegistry.get(entity).position;
+	vec2 coor_player = worldObjectRegistry.get(playerRegistry.entities[0]).position;
+	int dx = coor_enemy.x - coor_player.x;
+	int dy = coor_enemy.y - coor_player.y;
+	float angle = atan2(dy, dx) - M_PI;
+	if (angle < 0)
+		angle += 2 * M_PI;
+	motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed, angle);
+}
+
+void AISystem::handleStateChange(Entity& entity) {
+	auto& deadlyRegistry = registry.deadlys;
+	auto& motionRegistry = registry.motions;
+	auto& shooterRegsitry = registry.shooters;
+	float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(entity).t)).count()/1000;
+	//switch code for different state
+	switch(deadlyRegistry.get(entity).state) {
+		case DeadlyState::idle:
+			motionRegistry.get(entity).target_velocity = { 0, 0 };
+			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			cout << "idle" << endl;
+			break;
+		case DeadlyState::patrol_left:
+			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, M_PI);
+			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			cout << "patrol left" << endl;
+			break;
+		case DeadlyState::patrol_right:
+			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, 2*M_PI);
+			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			cout << "patrol right" << endl;
+			break;
+		case DeadlyState::attack_moving:
+			shooterRegsitry.get(entity).fire_rate = 10000.0f;
+			cout << "attack_moving" << endl;
+			break;
+		case DeadlyState::attack_still:
+			motionRegistry.get(entity).target_velocity = { 0, 0 };
+			shooterRegsitry.get(entity).fire_rate = 10000.0f;
+			cout << "attack_still" << endl;
+			break;
+
+	}
+
+
+
+}
 void AISystem::step(float elapsed_ms)
 {
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
-	auto& motionRegistry = registry.motions;
 	auto& worldObjectRegistry = registry.worldObjects;
 	auto& playerRegistry = registry.players;
 	auto& deadlyRegistry = registry.deadlys;
 
-	if (playerRegistry.entities.size() > 0) {
-		Entity player = playerRegistry.entities[0]; //assuming always only 1 player
-		WorldObject wo_player = worldObjectRegistry.get(player);
-		vec2 coor_player = wo_player.position;
-		for (int i = 0; i < deadlyRegistry.entities.size(); i++) {
-			Entity enemy = deadlyRegistry.entities[i];
-			vec2 coor_enemy = worldObjectRegistry.get(enemy).position;
-			//cout << coor_enemy.x << ' ' << coor_enemy.y << endl;
-			//cout << coor_player.x << ' ' << coor_player.y << endl;
-			/*vector<vec2> path = bfs(coor_enemy, coor_player);
-			if (path.size() >= 2) {
-				pathFindingRegistry.get(enemy).direction = path[1] - path[0];
-			}*/
+	Entity& player = playerRegistry.entities[0]; //assuming always only 1 player
 
-			//worldObjectRegistry.get(enemy).angle = -M_PI/2  + atan2(coor_enemy.y - coor_player.y, coor_enemy.x - coor_player.x);
-			int dx = coor_enemy.x - coor_player.x;
-			int dy = coor_enemy.y - coor_player.y;
-			float angle = atan2(dy, dx) - M_PI;
-			if (angle < 0)
-				angle += 2 * M_PI;
-			//worldObjectRegistry.get(enemy).angle = angle;
-			motionRegistry.get(enemy).target_velocity = v_from_sa(motionRegistry.get(enemy).max_speed, angle);
-			//cout << "{" << coor_player.x << "||" << coor_player.y << "}" << "{" << coor_enemy.x << "||" << coor_enemy.y << "}" << dx <<"|"<<dy<<"|" <<angle << endl;
+	for (int i = 0; i < deadlyRegistry.entities.size(); i++) {
+		Entity& enemy = deadlyRegistry.entities[i];
+		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t)).count()/1000;
+		float elapsed_ms_patrol = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t_patrol)).count()/1000;
+		//cout << "{" << coor_player.x << "||" << coor_player.y << "}" << "{" << coor_enemy.x << "||" << coor_enemy.y << "}" << dx <<"|"<<dy<<"|" <<angle << endl;
+		float distanceToPlayer = length(worldObjectRegistry.get(player).position - worldObjectRegistry.get(enemy).position);
+		DeadlyState state = deadlyRegistry.get(enemy).state;
+		switch(state) {
+			case DeadlyState::idle:
+				if (distanceToPlayer < 300) {
+					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+				} else if (elapsed_ms > 10000) {
+					deadlyRegistry.get(enemy).state = DeadlyState::patrol_left;
+					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+				}
+				break;
+			case DeadlyState::patrol_left:
+				if (distanceToPlayer < 300) {
+					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+				} else if (elapsed_ms > 10000) {
+					deadlyRegistry.get(enemy).state = DeadlyState::idle;
+					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+				} else if (elapsed_ms_patrol > 5000) {
+					deadlyRegistry.get(enemy).state = DeadlyState::patrol_right;
+					deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now();
+				}
+				break;
+			case DeadlyState::patrol_right:
+				if (distanceToPlayer < 300) {
+					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+				} else if (elapsed_ms > 10000) {
+					deadlyRegistry.get(enemy).state = DeadlyState::idle;
+					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+				} else if (elapsed_ms_patrol > 2500) {
+					deadlyRegistry.get(enemy).state = DeadlyState::patrol_left;
+					deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now();
+				}
+				break;
+			case DeadlyState::attack_moving:
+				pathfinding(enemy);
+				if (distanceToPlayer < 200) {
+					deadlyRegistry.get(enemy).state = DeadlyState::attack_still;
+				} else if (distanceToPlayer > 400) {
+					deadlyRegistry.get(enemy).state = DeadlyState::idle;
+					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+				}
+				break;
+			case DeadlyState::attack_still:
+				if (distanceToPlayer > 200) {
+					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+				} else if (distanceToPlayer > 400) {
+					deadlyRegistry.get(enemy).state = DeadlyState::idle;
+					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+				}
+				break;
+		}
+		if (state != deadlyRegistry.get(enemy).state) {
+			handleStateChange(enemy);
 		}
 	}
 }

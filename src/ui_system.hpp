@@ -13,7 +13,7 @@ public:
 	~UISystem();
 
 	// intialize
-	void init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
+	void init(GLFWwindow* window_arg);
 
 	static Entity createPanel(
 		RenderSystem* renderer,
@@ -57,6 +57,4 @@ private:
 	GLFWwindow* window;
 
 	vec2 cursor_position;
-
-	SCENE_TYPE* scene;
 };

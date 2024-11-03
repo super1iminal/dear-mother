@@ -13,12 +13,14 @@
 
 // Game configuration
 // add variables here
+int enemies = 3;
 
 // create the underwater world
 WorldSystem::WorldSystem()
 	: points(0)
 	, player_health(0)
-	, current_speed(1.0) {
+	, current_speed(1.0)
+	, current_room({0, 0}) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -26,20 +28,20 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 
 	// destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
-	if (salmon_eat_sound != nullptr)
-		Mix_FreeChunk(salmon_eat_sound);
+	if (melee_sound != nullptr)
+		Mix_FreeChunk(melee_sound);
+	if (player_shooting_sound != nullptr)
+		Mix_FreeChunk(player_shooting_sound);
+	if (player_projectile_damage_sound != nullptr)
+		Mix_FreeChunk(player_projectile_damage_sound);
+	if (enemy_shooting_sound != nullptr)
+		Mix_FreeChunk(enemy_shooting_sound);
+	if (post_combat_music != nullptr)
+		Mix_FreeMusic(post_combat_music);
 
 	Mix_CloseAudio();
 }
 
-void WorldSystem::set_last_shot_time(Entity& entity) {
-	using Clock = std::chrono::high_resolution_clock;
-	registry.shooters.get(entity).t = Clock::now();
-}
 
 std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time(Entity& entity) {
 	return registry.shooters.get(entity).t;
@@ -64,21 +66,33 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 		exit(1);
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
-	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
+	// Audio from:
+	// https://kenney.nl/assets/category:Audio
+	// https://soundimage.org/sci-fi/
+	// https://www.youtube.com/watch?v=BSpR0DJEgxM
+	melee_sound = Mix_LoadWAV(audio_path("impactMetal_medium_003.wav").c_str());
+	player_shooting_sound = Mix_LoadWAV(audio_path("laserSmall_000.wav").c_str());
+	player_projectile_damage_sound = Mix_LoadWAV(audio_path("forceField_002.wav").c_str());
+	enemy_shooting_sound = Mix_LoadWAV(audio_path("laserLarge_000.wav").c_str());
+	post_combat_music = Mix_LoadMUS(audio_path("Factory-On-Mercury_Looping.wav").c_str());
+	combat_music = Mix_LoadMUS(audio_path("The Death of Gods Will-[AudioTrimmer.com].wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("death_sound.wav").c_str(),
-			audio_path("eat_sound.wav").c_str());
+	if (melee_sound == nullptr || player_shooting_sound == nullptr || player_projectile_damage_sound == nullptr 
+		|| enemy_shooting_sound == nullptr || post_combat_music == nullptr || combat_music == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
+			audio_path("impactMetal_medium_003.wav").c_str(),
+			audio_path("laserSmall_000.wav").c_str(),
+			audio_path("forceField_002.wav").c_str(),
+			audio_path("laserLarge_000.wav").c_str(),
+			audio_path("Factory-On-Mercury_Looping.wav").c_str(),
+			audio_path("The Death of Gods Will-[AudioTrimmer.com].wav").c_str());
 		exit(1);
 	}
 
 
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
+	Mix_FadeInMusic(post_combat_music, -1, 5000);
+	Mix_VolumeMusic(16);
 	fprintf(stderr, "Loaded music\n");
 
 	// Create Item Set
@@ -88,18 +102,19 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	restart_game();
 }
 
+
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
+bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
 	// Updating window title with points
-	std::stringstream title_ss;
+	/*std::stringstream title_ss;
 	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
 	title_ss << " FPS: " << fps;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	glfwSetWindowTitle(window, title_ss.str().c_str());*/
 
 	// Remove debug info from the last step
 	//for (Entity entity : registry.debugComponents.entities) {
@@ -144,14 +159,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 
 	// Shoot on cue
 	for (Entity entity : registry.shooters.entities) {
+		if (!registry.activeComponents.has(entity))
+			continue;
 		shoot(entity);
 	}
 
-	// spawn two enemies
-	if (registry.deadlys.components.size() < 2) {
-		float enemyX = (uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH;
-		float enemyY = ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT;
-		createEnemy(renderer, vec2(enemyX, enemyY), 100.f);
+	// Set music based on whether or not there are enemies alive
+	int activeDeadlyCounter = 0;
+	for (Entity entity : registry.deadlys.entities) {
+		if (registry.activeComponents.has(entity)) {
+			activeDeadlyCounter++;
+		}
+	}
+	if (activeDeadlyCounter > 0) {
+		if (!in_combat) {
+			Mix_VolumeMusic(8);
+			Mix_FadeInMusic(combat_music, -1, 2500);
+			in_combat = true;
+		}
+	}
+	else {
+		if (in_combat) {
+			Mix_VolumeMusic(16);
+			Mix_FadeInMusic(post_combat_music, -1, 5000);
+			in_combat = false;
+		}
+	}
+
+	if (registry.deadlys.components.size() <= 0) {
+		in_combat = false;
 	}
 
 	// Processing the player state
@@ -172,7 +208,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-			restart_game();
+			scene_manager.set_scene(SCENE_TYPE::MENU);
 			return true;
 		}
 	}
@@ -195,6 +231,92 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	return true;
 }
 
+void WorldSystem::createEnemyRoom(ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	//createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1, { 0, 0 });
+
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+	}
+}
+
+void WorldSystem::createEmptyRoom(ivec2 coord) {
+	///////// STUUUUUUUUUUUUBBBBB
+}
+
+void WorldSystem::generate_map() {
+	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
+}
+
+// 
+void WorldSystem::generate_rooms() {
+	generate_map();
+	// Iterating using structured bindings
+	for (const auto& room : roomMap) {
+		ivec2 coord = { room.first.first, room.first.second };
+		ROOM_TYPE type = room.second;
+
+		switch (type) {
+		case ROOM_TYPE::ENEMY_ROOM:
+			createEnemyRoom(coord);
+			break;
+		case ROOM_TYPE::EMPTY:
+			createEmptyRoom(coord);
+			break;
+		}
+	}
+
+
+	// need to only have the current entities as active. 
+	// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
+	registry.activeComponents.clear();
+	for (Entity entity : registry.gameSceneComponents.entities) {
+		if (!registry.roomCoords.has(entity)) {
+			registry.activeComponents.emplace(entity);
+		}
+		else if (registry.roomCoords.get(entity).position == current_room) {
+			registry.activeComponents.emplace(entity);
+		}
+	}
+}
+
+
+void WorldSystem::change_rooms(ivec2 new_room) {
+	current_room = new_room;
+	registry.activeComponents.clear();
+	for (Entity entity : registry.gameSceneComponents.entities) {
+		if (!registry.roomCoords.has(entity)) {
+			registry.activeComponents.emplace(entity);
+		}
+		else if (registry.roomCoords.get(entity).position == current_room) {
+			registry.activeComponents.emplace(entity);
+		}
+	}
+}
+
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
@@ -204,9 +326,11 @@ void WorldSystem::restart_game() {
 	// Reset the game speed
 	current_speed = 1.f;
 
+	// reset current room
+	current_room = { 0, 0 };
+
 	// Remove all entities that we created
 	// i.e. All world objects
-
 	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
 		Entity entity = registry.gameSceneWorldObjects.entities[i];
 		registry.remove_all_components_of(entity);
@@ -215,24 +339,13 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// create a floor entity
-	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f });
-
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
-	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1);
 
-	// top wall
-	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
-	// bottom wall
-	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
+	generate_rooms();
 
 	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
 	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
@@ -255,7 +368,6 @@ void WorldSystem::restart_game() {
 	}
 	
 	initGameUI();
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::increaseScrap(int amt) 
@@ -344,6 +456,8 @@ void WorldSystem::initGameUI() {
 			getItemTexture(player_inventory.items[i]),
 			SCENE_TYPE::GAME);
 	}
+
+	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::updateGameUI() {
@@ -452,6 +566,8 @@ void WorldSystem::handle_collisions() {
 			Collision collision = *collisions[j];
 			Entity entity_other = collision.other;
 			COLLISION_TYPE type = collision.type;
+			if (!registry.activeComponents.has(entity) || !registry.activeComponents.has(entity_other))
+				continue;
 
 			// Handle collisions
 					// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
@@ -476,6 +592,9 @@ void WorldSystem::handle_collisions() {
 				handleProjectilePlayer(entity, entity_other);
 				// note that this collision is only added if the projectile is not friendly
 				break;
+			case COLLISION_TYPE::PLAYER_DOOR:
+				handlePlayerDoor(entity, entity_other);
+				break;
 			default:
 				printf("Unhandled collision\n");
 				break;
@@ -497,6 +616,30 @@ void WorldSystem::handle_collisions() {
 //	return;
 //}
 
+void WorldSystem::handlePlayerDoor(Entity entity, Entity entity_other) {
+	// change rooms
+	printf("room switching\n");
+	ivec2 new_room = registry.doors.get(entity_other).leads_to;
+	WorldObject& player_worldobject = registry.worldObjects.get(entity);
+	switch (registry.doors.get(entity_other).direction) {
+	case DIRECTION::UP:
+		player_worldobject.position = { window_width_px / 2, window_height_px - (WALL_WIDTH + 80) };
+		break;
+	case DIRECTION::DOWN:
+		player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
+		break;
+	case DIRECTION::RIGHT:
+		player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		break;
+	case DIRECTION::LEFT:
+		player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT};
+		break;
+	}
+
+	change_rooms(new_room);
+
+}
+
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 
 	std::array<Entity, 2> entities = { player, deadly };
@@ -505,10 +648,11 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 			registry.healthComponents.get(entity).curr_health -= 1;
 			updateGameUI();
 			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
 			}
 			else {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 			}
 			
 		}
@@ -582,7 +726,7 @@ void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	// Decrease health of deadly
 	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
@@ -592,9 +736,10 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
 	updateGameUI();
+	Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
@@ -636,11 +781,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+			registry.pendingRemoves.emplace_with_duplicates(item);
 		}
-		else {
+		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
+			registry.pendingRemoves.emplace_with_duplicates(item);
 		}
-		registry.pendingRemoves.emplace_with_duplicates(item);
 	}
 	else {
 		std::cout << "Already have 8 items" << std::endl;
@@ -686,7 +832,7 @@ void WorldSystem::update_player_modifier() const {
 
 	float new_accuracy = 0;
 
-	for (ItemStat item : registry.inventory.get(player).items) {
+	for (ItemStat& item : registry.inventory.get(player).items) {
 		new_damage_flat += item.flat_damage_mod;
 
 		new_speed_flat += item.flat_speed_mod;
@@ -732,20 +878,26 @@ void WorldSystem::handle_deaths() {
 				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+					//Mix_PlayChannel(-1, salmon_dead_sound, 0);
 				}
 			}
 			else {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
 					}
 				}
 				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
 		}
 	}
+}
+
+void WorldSystem::set_last_shot_time(Entity& entity) {
+	auto& shooter = registry.shooters.get(entity);
+	using Clock = std::chrono::high_resolution_clock;
+	shooter.t = Clock::now();
 }
 
 void WorldSystem::shoot(Entity& entity) {
@@ -768,10 +920,12 @@ void WorldSystem::shoot(Entity& entity) {
 				// Apply modifiers to player bullets
 				Modifier projectile_mod = registry.modifiers.get(player);
 				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
-				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true);
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
 				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
+
+				Mix_Volume(Mix_PlayChannel(-1, player_shooting_sound, 0), 5);
 				
 				first_shot = false;
 				set_last_shot_time(entity);
@@ -786,7 +940,8 @@ void WorldSystem::shoot(Entity& entity) {
 			float angle = atan2(dy, dx) - M_PI;
 			if (angle < 0)
 				angle += 2 * M_PI;
-			createProjectile(renderer, entity_object.position, angle, 350.0f, false);
+			createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+			Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			set_last_shot_time(entity);
 		}
 		
@@ -831,6 +986,13 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 			float new_max_speed = player_motion.max_speed + speed_modifier.speed_modifier_flat + (player_motion.max_speed * speed_modifier.speed_modifier_percent);
 			player_motion.target_velocity = v_from_sa(new_max_speed, angle);
 		}
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+		scene_manager.set_scene(SCENE_TYPE::PAUSE);
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(post_combat_music, -1, 5000);
+		in_combat = false;
 	}
 
 	// Interaction

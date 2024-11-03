@@ -1,4 +1,4 @@
-#include <help_system.hpp>
+#include "help_system.hpp"
 
 HelpSystem::HelpSystem()
 {
@@ -9,13 +9,9 @@ HelpSystem::~HelpSystem() {
 
 }
 
-void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
+void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	this->renderer = renderer_arg;
 	this->window = window_arg;
-	this->scene = scene_arg;
-}
-
-void HelpSystem::initHelpMenu() {
 	UISystem::createPanel(
 		renderer,
 		SCENE_TYPE::HELP,
@@ -32,7 +28,7 @@ void HelpSystem::initHelpMenu() {
 		vec2(234.f, 60.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
-			*(this->scene) = SCENE_TYPE::MENU;
+			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
@@ -47,12 +43,10 @@ void HelpSystem::on_mouse_button(GLFWwindow* window, int button, int action, int
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		// if mouse position is within button boundaries
 		// activate the button's action function
-		auto& uiButtonsRegistry = registry.uiButtons;
-		auto& worldObjectsRegistry = registry.worldObjects;
-		for (uint i = 0; i < uiButtonsRegistry.size(); i++) {
-			UIButton button = uiButtonsRegistry.components[i];
-			Entity buttonEntity = uiButtonsRegistry.entities[i];
-			WorldObject buttonObject = worldObjectsRegistry.get(buttonEntity);
+		auto& uiButtonsRegistry = registry.helpSceneButtons.entities;
+		for (Entity buttonEntity : uiButtonsRegistry) {
+			UIButton button = registry.uiButtons.get(buttonEntity);
+			WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
 			if (is_mouse_within_button(buttonObject)) {
 				button.action();
 			}

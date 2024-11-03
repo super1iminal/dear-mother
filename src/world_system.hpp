@@ -16,6 +16,13 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "ui_system.hpp"
+#include "scene_manager.hpp"
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	// ...
+};
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -31,7 +38,7 @@ public:
 	~WorldSystem();
 
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms, double fps);
+	bool step(float elapsed_ms);
 
 	// update animations
 	void update_animations();
@@ -50,10 +57,10 @@ public:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
-private:
-
 	// restart level
-	void WorldSystem::restart_game();
+	void restart_game();
+
+private:
 
 	// Shooting stuff
 	bool left_mouse_button = false;
@@ -62,7 +69,7 @@ private:
 
 	// Time management
 	std::chrono::steady_clock::time_point t;
-	std::chrono::steady_clock::time_point WorldSystem::get_curr_time();
+	std::chrono::steady_clock::time_point get_curr_time();
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
 
@@ -108,21 +115,25 @@ private:
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
-
 	void handleActorBlocker(Entity actor, Entity blocker);
-
 	void handleProjectileBlocker(Entity projectile, Entity blocker);
-
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
-
 	void handleProjectilePlayer(Entity projectile, Entity player);
+	void handlePlayerDoor(Entity entity, Entity entity_other);
 
 	TEXTURE_ASSET_ID randomFloorItem();
 
 	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* salmon_dead_sound;
-	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* melee_sound;
+	Mix_Chunk* player_shooting_sound;
+	Mix_Chunk* enemy_shooting_sound;
+	Mix_Chunk* player_projectile_damage_sound;
+	Mix_Music* post_combat_music;
+	Mix_Music* combat_music;
+
+	//Music control
+	bool change_music = true;
+	bool in_combat = false;
 
 	// C++ random number generator
 	std::default_random_engine rng;
@@ -130,4 +141,13 @@ private:
 
 	// For selecting item texture
 	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
+
+	// room. generation. time to blast off. let's go00000
+	std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
+	void generate_rooms();
+	void generate_map();
+	void change_rooms(ivec2 new_room);
+	void createEnemyRoom(ivec2 coord);
+	void createEmptyRoom(ivec2 coord);
+	ivec2 current_room;
 };

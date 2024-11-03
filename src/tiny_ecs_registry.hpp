@@ -49,6 +49,10 @@ public:
 	ComponentContainer<Modifier> modifiers;
 	ComponentContainer<Inventory> inventory;
 	ComponentContainer<ItemStat> itemStats;
+	ComponentContainer<RoomCoordinate> roomCoords;
+	ComponentContainer<Active> activeComponents;
+	ComponentContainer<Door> doors;
+	ComponentContainer<MeshFlag> meshFlags;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -69,15 +73,27 @@ public:
 	std::vector<ItemStat> healing_items;
 
 
-	// filtered containers
+	// filtered containers for rendering (unused)
 	FilteredComponentContainer<RenderRequest, GameScene> gameSceneRenderRequests;
+
+	// filtered containers for worldobjects
 	FilteredComponentContainer<WorldObject, GameScene> gameSceneWorldObjects;
+
+	// filtered containers for buttons
+	FilteredComponentContainer<UIButton, MenuScene> menuSceneButtons;
+	FilteredComponentContainer<UIButton, HelpScene> helpSceneButtons;
+	FilteredComponentContainer<UIButton, PauseScene> pauseSceneButtons;
+	FilteredComponentContainer<UIButton, TestScene> testSceneButtons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry() : 
 		gameSceneRenderRequests(renderRequests, gameSceneComponents),
-		gameSceneWorldObjects(worldObjects, gameSceneComponents)
+		gameSceneWorldObjects(worldObjects, gameSceneComponents),
+		menuSceneButtons(uiButtons, menuSceneComponents),
+		helpSceneButtons(uiButtons, helpSceneComponents),
+		pauseSceneButtons(uiButtons, pauseSceneComponents),
+		testSceneButtons(uiButtons, testSceneComponents)
 	{
 		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
@@ -115,10 +131,20 @@ public:
 		registry_list.push_back(&helpSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);
 		registry_list.push_back(&testSceneComponents);
+		registry_list.push_back(&roomCoords);
+		registry_list.push_back(&activeComponents);
+		registry_list.push_back(&doors);
+		registry_list.push_back(&meshFlags);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
 		registry_filtered.push_back(&gameSceneWorldObjects);
+
+		// buttons filtered
+		registry_filtered.push_back(&menuSceneButtons);
+		registry_filtered.push_back(&helpSceneButtons);
+		registry_filtered.push_back(&pauseSceneButtons);
+		registry_filtered.push_back(&testSceneButtons);
 	}
 
 	void clear_all_components() {

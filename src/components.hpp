@@ -8,51 +8,6 @@
 #include <iostream>
 #include <chrono>
 
-// Player component
-struct Player
-{
-	
-};
-struct Shooter
-{	
-	// Fire Rate in ms (Temp: change to ranged weapon later)
-	float fire_rate = 0.0f;
-	std::chrono::steady_clock::time_point t;
-};
-// Common Health component
-struct Health
-{
-	int max_health = 0;
-	int curr_health = 0;
-};
-
-struct Modifier {
-
-	int damage_modifier_flat = 0;
-
-	float speed_modifier_flat = 0;
-	float speed_modifier_percent = 0;
-
-	float fire_rate_modifier_flat = 0;
-	float fire_rate_modifier_percent = 0;
-
-	float range_modifier_flat = 0;
-	float range_modifier_percent = 0;
-
-	float accuracy_modifier = 0;  // 0 would be perfect accuracy
-};
-
-struct Inventory {
-	std::vector<struct ItemStat> items;
-};
-
-// anything that is deadly to the player
-struct Deadly
-{
-	bool attacking = false;
-	unsigned int type = 0;
-};
-
 // All data relevant to the motion of entities
 struct Motion {
 	float max_speed;
@@ -67,6 +22,25 @@ struct WorldObject {
 	vec2 position = { 0, 0 };
 	float angle = 0;
 	vec2 scale = { 10, 10 };
+};
+
+// Data structure for toggling debug mode
+struct Debug {
+	bool in_debug_mode = 0;
+	bool in_freeze_mode = 0;
+};
+extern Debug debugging;
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	float darken_screen_factor = -1;
+	int health_status = 0;
+};
+
+// gamescene stuff
+struct GameScene
+{
 };
 
 // information relating to animation
@@ -97,25 +71,102 @@ struct Collision
 
 	Collision(Entity& other) { this->other = other; };
 	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
-	
+
 };
 
-// Data structure for toggling debug mode
-struct Debug {
-	bool in_debug_mode = 0;
-	bool in_freeze_mode = 0;
-};
-extern Debug debugging;
-
-// Sets the brightness of the screen
-struct ScreenState
+// Player component
+struct Player
 {
-	float darken_screen_factor = -1;
-	int health_status = 0;
+
+};
+struct Shooter
+{
+	// Fire Rate in ms (Temp: change to ranged weapon later)
+	float fire_rate = 0.0f;
+	std::chrono::steady_clock::time_point t;
+};
+// Common Health component
+struct Health
+{
+	int max_health = 0;
+	int curr_health = 0;
 };
 
-struct GameScene
+struct Modifier {
+
+	int damage_modifier_flat = 0;
+
+	float speed_modifier_flat = 0;
+	float speed_modifier_percent = 0;
+
+	float fire_rate_modifier_flat = 0;
+	float fire_rate_modifier_percent = 0;
+
+	float range_modifier_flat = 0;
+	float range_modifier_percent = 0;
+
+	float accuracy_modifier = 0;  // 0 would be perfect accuracy
+};
+
+// anything that is deadly to the player
+struct Deadly
 {
+	DeadlyState state = DeadlyState::idle;
+	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point t_patrol;
+	bool attacking = false;
+	unsigned int type = 0;
+};
+
+// anything that the player can interact with
+struct Interactable {
+	// the range that the player must be within to interact
+	float range;
+	// placeholder, not sure what we want the interaction function to do yet
+	std::function<void(int)> interaction;
+	// value to be used in function call
+	int value;
+};
+
+// A timer that will be associated to dying salmon
+struct DeathTimer
+{
+	float counter_ms = 3000;
+};
+
+// A timer that
+struct InvincibleTimer
+{
+	float counter_ms = 3000;
+};
+
+struct Friction {
+	float force;
+};
+
+struct Lifetime
+{
+	float time_remaining_ms = 0;
+};
+
+struct Particle
+{
+
+};
+
+struct Blocker
+{
+
+};
+
+struct Floor
+{
+
+};
+
+struct Wall
+{
+
 };
 
 struct MenuScene
@@ -134,14 +185,22 @@ struct TestScene
 {
 };
 
-// anything that the player can interact with
-struct Interactable {
-	// the range that the player must be within to interact
-	float range;
-	// placeholder, not sure what we want the interaction function to do yet
-	std::function<void(int)> interaction;
-	// value to be used in function call
-	int value;
+struct RoomCoordinate
+{
+	ivec2 position;
+	RoomCoordinate(ivec2 position) : position(position) {}
+};
+
+// for GAME objects that are in the current room. nothing else.
+struct Active
+{
+};
+
+struct Door
+{
+	ivec2 leads_to; // is the room coords that the door leads to
+	DIRECTION direction;
+	Door(ivec2 leads_to, DIRECTION direction) : leads_to(leads_to), direction(direction) {};
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -150,17 +209,6 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying salmon
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
-
-// A timer that
-struct InvincibleTimer
-{
-	float counter_ms = 3000;
-};
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
 struct ColoredVertex
@@ -192,10 +240,6 @@ struct PendingRemove {
 
 };
 
-struct Friction {
-	float force;
-};
-
 // Mesh datastructure for storing vertex and index buffers
 struct Mesh
 {
@@ -205,30 +249,11 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
-struct Lifetime
-{
-	float time_remaining_ms = 0;
-};
-
-struct Particle
-{
+struct MeshFlag {
 
 };
 
-struct Blocker
-{
 
-};
-
-struct Floor
-{
-
-};
-
-struct Wall
-{
-
-};
 
 struct FloorItem
 {
@@ -368,3 +393,7 @@ struct ItemStat {
 	int heal_size = 0;
 };
 
+
+struct Inventory {
+	std::vector<struct ItemStat> items;
+};

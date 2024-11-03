@@ -13,9 +13,8 @@ UISystem::~UISystem() {
 
 }
 
-void UISystem::init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
+void UISystem::init(GLFWwindow* window_arg) {
 	this->window = window_arg;
-	this->scene = scene_arg;
 }
 
 // creates a basic panel with the given texture
@@ -33,6 +32,7 @@ Entity UISystem::createPanel(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
@@ -81,6 +81,7 @@ Entity UISystem::createUIElement(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
@@ -132,6 +133,7 @@ Entity UISystem::createTexturedUIElement(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
@@ -182,6 +184,7 @@ Entity UISystem::createButton(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
@@ -224,6 +227,7 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);

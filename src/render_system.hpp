@@ -11,6 +11,7 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+#include "scene_manager.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -134,7 +135,7 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw(SCENE_TYPE scene, float elapsed_ms);
+	void draw(float elapsed_ms);
 
 	mat3 createProjectionMatrix();
 

@@ -1,5 +1,4 @@
 #include "menu_system.hpp"
-#include <tiny_ecs_registry.hpp>
 
 
 MenuSystem::MenuSystem()
@@ -11,14 +10,9 @@ MenuSystem::~MenuSystem() {
 
 }
 
-void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
+void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	this->renderer = renderer_arg;
 	this->window = window_arg;
-	this->scene = scene_arg;
-}
-
-void MenuSystem::initStartMenu()
-{
 	Entity base_ui = UISystem::createPanel(
 		renderer,
 		SCENE_TYPE::MENU,
@@ -34,7 +28,8 @@ void MenuSystem::initStartMenu()
 		vec2(window_width_px / 2 - 1.f, 275.f),
 		vec2(162.f, 42.f),
 		[&]() {
-			*(this->scene) = SCENE_TYPE::GAME;
+
+			scene_manager.set_scene(SCENE_TYPE::GAME);
 		},
 		"start_button",
 		TEXTURE_ASSET_ID::START_BUTTON,
@@ -47,7 +42,7 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
-			*(this->scene) = SCENE_TYPE::HELP;
+			scene_manager.set_scene(SCENE_TYPE::HELP);
 		},
 		"help_button",
 		TEXTURE_ASSET_ID::HELP_BUTTON,
@@ -72,6 +67,7 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		},
 		"quit_button",
 		TEXTURE_ASSET_ID::QUIT_BUTTON,
@@ -86,12 +82,10 @@ void MenuSystem::on_mouse_button(GLFWwindow* window, int button, int action, int
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		// if mouse position is within button boundaries
 		// activate the button's action function
-		auto& uiButtonsRegistry = registry.uiButtons;
-		auto& worldObjectsRegistry = registry.worldObjects;
-		for (uint i = 0; i < uiButtonsRegistry.size(); i++) {
-			UIButton button = uiButtonsRegistry.components[i];
-			Entity buttonEntity = uiButtonsRegistry.entities[i];
-			WorldObject buttonObject = worldObjectsRegistry.get(buttonEntity);
+		auto& uiButtonsRegistry = registry.menuSceneButtons.entities;
+		for (Entity buttonEntity : uiButtonsRegistry) {
+			UIButton button = registry.uiButtons.get(buttonEntity);
+			WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
 			if (is_mouse_within_button(buttonObject)) {
 				button.action();
 			}

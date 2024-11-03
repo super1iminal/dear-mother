@@ -1,5 +1,10 @@
-#include <render_system.hpp>
-#include <ui_system.hpp>
+#pragma once
+#include "common.hpp"
+#include "render_system.hpp"
+#include "ui_system.hpp"
+#include "tiny_ecs_registry.hpp"
+#include "scene_manager.hpp"
+
 class MenuSystem
 {
 public:
@@ -9,9 +14,7 @@ public:
 	~MenuSystem();
 
 	// initialize
-	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
-
-	void initStartMenu();
+	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg);
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
