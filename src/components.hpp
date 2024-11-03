@@ -50,6 +50,7 @@ struct Inventory {
 struct Deadly
 {
 	bool attacking = false;
+	unsigned int type = 0;
 };
 
 // All data relevant to the motion of entities

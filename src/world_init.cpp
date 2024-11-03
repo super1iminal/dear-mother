@@ -151,31 +151,54 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	motion.velocity = { 0.f, 0.f };
 	motion.acceleration = { 0.f, 0.f };
 
-	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = position;
-	worldobject.angle = 0.f;
-	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
-
 	// create an empty Enemy component to be able to refer to all enemies
 	registry.deadlys.emplace(entity);
+	registry.deadlys.get(entity).type = (int)entity % 2;
+	std::cout << (int)entity << " " << registry.deadlys.get(entity).type << std::endl;
 	auto& shooter = registry.shooters.emplace(entity);
 	shooter.fire_rate = 10000.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
 
-	Animation& enemy_animation = registry.animations.emplace(entity);
-	enemy_animation.cols = 4;
-	enemy_animation.rows = 1;
-	enemy_animation.frames = 1;
-	enemy_animation.current_frame = 0;
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = position;
+	worldobject.angle = 0.f;
+	if (registry.deadlys.get(entity).type == 0) {
+		worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	}
+	else {
+		worldobject.scale = vec2({ -ENEMY_BB_WIDTH * .8, ENEMY_BB_HEIGHT * .8 });
+	}
+	
+	if (registry.deadlys.get(entity).type == 0) {
+		Animation& enemy_animation = registry.animations.emplace(entity);
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::ENEMY_WALK,
-			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+		enemy_animation.cols = 4;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	} else {
+		Animation& enemy_animation = registry.animations.emplace(entity);
+
+		enemy_animation.cols = 1;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_2,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
 
 	return entity;
 }

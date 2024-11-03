@@ -386,11 +386,19 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	Animation& enemy_animation = registry.animations.get(enemy);
 	Motion enemy_motion = registry.motions.get(enemy);
 	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+	Deadly& deadly = registry.deadlys.get(enemy);
 
 	// reset to walking texture
-	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-	enemy_animation.cols = 4;
-	enemy_animation.frames = 4;
+	if (deadly.type == 0) {		// select robot 1
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
+	else {							// select robot 2
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2;
+		enemy_animation.cols = 1;
+		enemy_animation.frames = 1;
+	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
 		// enemy is moving; play walking animation (4 frames)
@@ -403,14 +411,17 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 }
 
 void WorldSystem::playEnemyAttack(Entity enemy) {
+
 	Animation& enemy_animation = registry.animations.get(enemy);
 	Deadly& deadly = registry.deadlys.get(enemy);
 	Motion enemy_motion = registry.motions.get(enemy);
 	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
 
-	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
-	enemy_animation.cols = 7;
-	enemy_animation.frames = 7;
+	if (deadly.type == 0) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
+	}
 
 	deadly.attacking = false;
 }
