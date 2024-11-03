@@ -55,6 +55,8 @@ class RenderSystem {
 			textures_path("enemy_robot.png"),
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
+			textures_path("door_leftright.png"),
+			textures_path("door_updown.png"),
 			textures_path("battery.png"),
 			textures_path("battery.png"), // Repeated for other items for now, should be SHATTERED_QUARTZ. Do double check.
 			textures_path("battery.png"), // Repeated for other items for now, should be CREAKY_WHEEL
@@ -69,6 +71,8 @@ class RenderSystem {
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
+			textures_path("/buttons/resume_button.png"),
+			textures_path("/buttons/main_menu_button.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png")

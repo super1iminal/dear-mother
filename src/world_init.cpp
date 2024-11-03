@@ -241,32 +241,35 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(door);
+	TEXTURE_ASSET_ID texture_id = TEXTURE_ASSET_ID::DOOR_LEFT_RIGHT;
 	switch (orientation) {
 	case DIRECTION::UP:
 		worldobject.position = { window_width_px/2.f, BASE_UI_HEIGHT + WALL_WIDTH/2.f };
 		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		worldobject.scale = vec2({ 170.f, WALL_WIDTH + 4 });
+		texture_id = TEXTURE_ASSET_ID::DOOR_UP_DOWN;
 		break;
 	case DIRECTION::DOWN:
 		worldobject.position = { window_width_px / 2.f, window_height_px - WALL_WIDTH/2.f};
-		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		worldobject.angle = M_PI;
+		worldobject.scale = vec2({ 170.f, WALL_WIDTH + 4 });
+		texture_id = TEXTURE_ASSET_ID::DOOR_UP_DOWN;
 		break;
 	case DIRECTION::LEFT:
 		worldobject.position = { WALL_WIDTH / 2.f, (window_height_px-BASE_UI_HEIGHT)/2.f + BASE_UI_HEIGHT};
 		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 170.f });
 		break;
 	case DIRECTION::RIGHT:
 		worldobject.position = { window_width_px - WALL_WIDTH / 2.f, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
-		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		worldobject.angle = M_PI;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 170.f });
 		break;
 	}
 
 	registry.renderRequests.insert(
 		door,
-		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 

@@ -224,9 +224,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// update HUD
-	updateGameUI();
-
 	return true;
 }
 
