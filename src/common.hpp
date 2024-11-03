@@ -115,4 +115,11 @@ enum class DIRECTION {
 	RIGHT = LEFT + 1
 };
 
-
+enum class DeadlyState {
+	idle = 0,
+	patrol_left = idle + 1,
+	patrol_right = patrol_left + 1,
+	attack_still = patrol_right + 1,
+	attack_moving = attack_still + 1,
+	rage = attack_moving + 1
+};

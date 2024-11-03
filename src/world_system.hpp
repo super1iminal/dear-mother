@@ -66,7 +66,6 @@ private:
 	bool left_mouse_button = false;
 	bool first_shot = true;
 	void shoot(Entity& entity);
-	void set_last_shot_time(Entity entity);
 
 	// Time management
 	std::chrono::steady_clock::time_point t;

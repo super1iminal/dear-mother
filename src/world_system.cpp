@@ -796,7 +796,7 @@ void WorldSystem::handle_deaths() {
 	}
 }
 
-void WorldSystem::set_last_shot_time(Entity entity) {
+void WorldSystem::set_last_shot_time(Entity& entity) {
 	auto& shooter = registry.shooters.get(entity);
 	using Clock = std::chrono::high_resolution_clock;
 	shooter.t = Clock::now();

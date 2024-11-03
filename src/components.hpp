@@ -118,11 +118,7 @@ struct Deadly
 	DeadlyState state = DeadlyState::idle;
 	std::chrono::steady_clock::time_point t;
 	std::chrono::steady_clock::time_point t_patrol;
-};
-struct Animation {
-	float angle;
-	float speed;
-	TEXTURE_ASSET_ID type;	bool attacking = false;
+	bool attacking = false;
 };
 
 // anything that the player can interact with
