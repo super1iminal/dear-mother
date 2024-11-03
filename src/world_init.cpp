@@ -175,12 +175,11 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// create an empty Enemy component to be able to refer to all enemies
-	registry.deadlys.emplace(entity);
-	// setting last shot time:
+	auto& deadly = registry.deadlys.emplace(entity);
+	deadly.t = std::chrono::high_resolution_clock::now();
+	deadly.t_patrol = std::chrono::high_resolution_clock::now();
 	auto& shooter = registry.shooters.emplace(entity);
-	using Clock = std::chrono::high_resolution_clock;
-	shooter.t = Clock::now();
-	shooter.fire_rate = 10000.0f;
+	shooter.fire_rate = std::numeric_limits<int>::max();
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;

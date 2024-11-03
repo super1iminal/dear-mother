@@ -115,7 +115,14 @@ struct Inventory {
 // anything that is deadly to the player
 struct Deadly
 {
-	bool attacking = false;
+	DeadlyState state = DeadlyState::idle;
+	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point t_patrol;
+};
+struct Animation {
+	float angle;
+	float speed;
+	TEXTURE_ASSET_ID type;	bool attacking = false;
 };
 
 // anything that the player can interact with
