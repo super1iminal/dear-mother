@@ -265,7 +265,7 @@ void WorldSystem::increaseScrap(int amt)
 	std::cout <<  "scrap: " << scrap << std::endl;
 }
 
-TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
+TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {	
 	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
 	switch (item.name)
 	{
