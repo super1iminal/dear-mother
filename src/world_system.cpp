@@ -141,7 +141,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		}
 	}
 
-	// Shoot if LMB is clicked
+	// Shoot on cue
 	for (Entity entity : registry.shooters.entities) {
 		shoot(entity);
 	}
@@ -150,10 +150,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	if (registry.deadlys.components.size() < 2) {
 		float enemyX = (uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH;
 		float enemyY = ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT;
-		while (abs(enemyX - registry.worldObjects.get(player).position.x < 100) || abs(enemyY - registry.worldObjects.get(player).position.y < 50)) {
-			enemyX = (uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH;
-			enemyY = ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT;
-		}
 		createEnemy(renderer, vec2(enemyX, enemyY), 100.f);
 	}
 
@@ -321,13 +317,12 @@ void WorldSystem::initGameUI() {
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
-	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i + 1) * window_width_px / 22), window_height_px / 11),
+			vec2(window_width_px - (i * 60), window_height_px / 11),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
@@ -348,7 +343,7 @@ void WorldSystem::updateGameUI() {
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i + 1)*window_width_px / 22), window_height_px / 11),
+			vec2(window_width_px - (i * 104) - 57, window_height_px / 11),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
@@ -743,7 +738,7 @@ void WorldSystem::shoot(Entity& entity) {
 			float angle = atan2(dy, dx) - M_PI;
 			if (angle < 0)
 				angle += 2 * M_PI;
-			createProjectile(renderer, entity_object.position, angle, 350.0f, false);
+			//createProjectile(renderer, entity_object.position, angle, 350.0f, false);
 			set_last_shot_time(entity);
 		}
 		

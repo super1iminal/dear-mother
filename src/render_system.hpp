@@ -52,13 +52,14 @@ class RenderSystem {
 			textures_path("/crosshairs/crosshair070.png"),
 			textures_path("base_UI.png"),
 			textures_path("enemy_robot.png"),
+			textures_path("enemy_robot_2.png"),
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
 			textures_path("battery.png"),
-			textures_path("battery.png"), // Repeated for other items for now, should be SHATTERED_QUARTZ. Do double check.
-			textures_path("battery.png"), // Repeated for other items for now, should be CREAKY_WHEEL
-			textures_path("battery.png"), // Repeated for other items for now, should be HEATSINK
-			textures_path("battery.png"), // Repeated for other items for now, should be REPEATER
+			textures_path("shattered_quartz.png"),
+			textures_path("creaky_wheel.png"),
+			textures_path("heatsink.png"), 
+			textures_path("repeater.png"), 
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
