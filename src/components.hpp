@@ -248,6 +248,10 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+struct MeshFlag {
+
+};
+
 
 
 struct BaseUI

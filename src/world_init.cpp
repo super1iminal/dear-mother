@@ -384,7 +384,8 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SALMON);
+	registry.meshFlags.emplace(entity);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion values
@@ -409,9 +410,9 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 		registry.renderRequests.insert
 		(
 			entity,
-			{ TEXTURE_ASSET_ID::BULLET_FRIENDLY,
-				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE 
+			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				EFFECT_ASSET_ID::SALMON,
+				GEOMETRY_BUFFER_ID::SALMON
 			}
 		);
 	}
@@ -420,9 +421,9 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 		registry.renderRequests.insert
 		(
 			entity,
-			{ TEXTURE_ASSET_ID::BULLET_ENEMY,
-				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE 
+			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+				EFFECT_ASSET_ID::SALMON,
+				GEOMETRY_BUFFER_ID::SALMON
 			}
 		);
 	}
