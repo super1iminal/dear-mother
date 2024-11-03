@@ -32,6 +32,10 @@ const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 // wall stuff
 const float WALL_WIDTH = 75.f;
 
+// floor item stuff
+const float FLOOR_ITEM_SIZE = 75.f;
+const float NUM_FLOOR_ITEMS = 2;
+
 // Item drop chance
 const float DROP_CHANCE = 15;
 

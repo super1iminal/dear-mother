@@ -230,6 +230,11 @@ struct Wall
 
 };
 
+struct FloorItem
+{
+
+};
+
 struct BaseUI
 {
 	std::string name;
@@ -295,7 +300,18 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	PLAYER_WALK = BACK_BUTTON + 1,
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
-	TEXTURE_COUNT = ENEMY_ATTACK + 1,
+
+	// floor items must be kept together ====================================================================
+	BROKEN_GENERATOR = ENEMY_ATTACK + 1,
+	BROKEN_CONTROL_PANEL = BROKEN_GENERATOR + 1,
+	DEAD_ROBOT = BROKEN_CONTROL_PANEL + 1,
+	FLOOR_HOLE = DEAD_ROBOT + 1,
+	FURNACE = FLOOR_HOLE + 1,
+	RUSTY_PIPES = FURNACE + 1,
+	SLAG_PIT = RUSTY_PIPES  + 1,
+	// floor items must be kept together ====================================================================
+
+	TEXTURE_COUNT = SLAG_PIT + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

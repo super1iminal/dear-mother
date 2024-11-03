@@ -1,6 +1,7 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
+#include "collision_system.hpp"
 
 // stlib
 #include <cassert>
@@ -232,6 +233,21 @@ void WorldSystem::restart_game() {
 	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL);
 	// right wall
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
+
+	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
+	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
+		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+		float xPos = minX + uniform_dist(rng) * xRange;
+		float yPos = minY + uniform_dist(rng) * yRange;
+		
+
+		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem());
+	}
 
 	// Set initial cooldown time
 	for (Entity entity : registry.shooters.entities) {
@@ -583,6 +599,27 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
+}
+
+TEXTURE_ASSET_ID WorldSystem::randomFloorItem()
+{
+	int seed = rand() % 7;
+	switch (seed) {
+	case 0:
+		return TEXTURE_ASSET_ID::FURNACE;
+	case 1: 
+		return TEXTURE_ASSET_ID::BROKEN_GENERATOR;
+	case 2:
+		return TEXTURE_ASSET_ID::DEAD_ROBOT;
+	case 3:
+		return TEXTURE_ASSET_ID::BROKEN_CONTROL_PANEL;
+	case 4:
+		return TEXTURE_ASSET_ID::FLOOR_HOLE;
+	case 5:
+		return TEXTURE_ASSET_ID::RUSTY_PIPES;
+	default:
+		return TEXTURE_ASSET_ID::SLAG_PIT;
+	}
 }
 
 void WorldSystem::handle_item_pickup(Entity item) {

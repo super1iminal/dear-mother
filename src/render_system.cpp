@@ -381,6 +381,10 @@ void RenderSystem::draw(SCENE_TYPE scene, float elapsed_ms)
 		for (Entity entity : registry.walls.entities) {
 			render_list.push_back(entity);
 		}
+		// then floor items
+		for (Entity entity : registry.floorItems.entities) {
+			render_list.push_back(entity);
+		}
 		// then UI elements, starting with the base UI
 		for (Entity entity : registry.baseUI.entities) {
 			render_list.push_back(entity);

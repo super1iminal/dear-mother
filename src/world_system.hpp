@@ -117,6 +117,8 @@ private:
 
 	void handleProjectilePlayer(Entity projectile, Entity player);
 
+	TEXTURE_ASSET_ID randomFloorItem();
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* salmon_dead_sound;

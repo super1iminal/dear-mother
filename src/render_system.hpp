@@ -71,7 +71,20 @@ class RenderSystem {
 			textures_path("/buttons/back_button.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
-			textures_path("/anims/attack/enemy_robot_attack.png")
+			textures_path("/anims/attack/enemy_robot_attack.png"),
+			
+			// floor items must be kept together ====================================================================
+			textures_path("BrokenGenerator.png"),
+			textures_path("BrokenControlPanel.png"),
+			textures_path("DeadRobot.png"),
+			textures_path("FloorHole.png"), // potential for animation
+			textures_path("Furnace.png"),
+			textures_path("RustyPipes4.png"),  // potential for animation
+			textures_path("SlagPit1.png"), // potential for animation
+			// Also potential for a floor item of variable size in conveyor belts. Not on git yet.
+			// Also potential for an interactable floor item oil spill, which the player slides across without control
+			// floor items must be kept together ====================================================================
+
 	};
 
 	std::array<GLuint, effect_count> effects;

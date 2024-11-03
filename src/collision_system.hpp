@@ -9,9 +9,10 @@
 class CollisionSystem
 {
 private:
-	bool collides(const WorldObject& object1, const WorldObject& object2);
+	
 public:
 	void add_collisions();
+	bool collides(const WorldObject& object1, const WorldObject& object2);
 
 	CollisionSystem()
 	{
