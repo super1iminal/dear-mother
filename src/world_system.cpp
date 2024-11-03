@@ -246,6 +246,22 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 	// right wall
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
+	
+	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
+	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
+		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+		float xPos = minX + uniform_dist(rng) * xRange;
+		float yPos = minY + uniform_dist(rng) * yRange;
+
+		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
+	}
+	
+
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
@@ -346,21 +362,6 @@ void WorldSystem::restart_game() {
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
 
 	generate_rooms();
-
-	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
-	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
-		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
-		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
-
-		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
-		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
-
-		float xPos = minX + uniform_dist(rng) * xRange;
-		float yPos = minY + uniform_dist(rng) * yRange;
-		
-
-		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem());
-	}
 
 	// Set initial cooldown time
 	for (Entity entity : registry.shooters.entities) {
