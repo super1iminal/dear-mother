@@ -13,9 +13,8 @@ UISystem::~UISystem() {
 
 }
 
-void UISystem::init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
+void UISystem::init(GLFWwindow* window_arg) {
 	this->window = window_arg;
-	this->scene = scene_arg;
 }
 
 // creates a basic panel with the given texture
@@ -33,9 +32,13 @@ Entity UISystem::createPanel(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
@@ -71,16 +74,20 @@ Entity UISystem::createUIElement(
 	vec2 pos, 
 	vec2 scale, 
 	std::string element_name, 
-	float element_value, 
+	int element_value, 
 	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
@@ -100,12 +107,15 @@ Entity UISystem::createUIElement(
 	// setting value for UI
 	UIElement& ui_elt = registry.uiElements.emplace(entity);
 	ui_elt.name = element_name;
-	ui_elt.value = static_cast<float>(element_value);
+	ui_elt.value = element_value;
+
+	vec3& ui_color = registry.colors.emplace(entity);
+	ui_color = vec3(1.0f, 1.0f, 1.0f);
 
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::UI_ELEMENT,
+			EFFECT_ASSET_ID::FONT,
 			GEOMETRY_BUFFER_ID::SQUARE });
 
 	return entity;
@@ -123,9 +133,13 @@ Entity UISystem::createTexturedUIElement(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
@@ -170,9 +184,13 @@ Entity UISystem::createButton(
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
@@ -209,9 +227,13 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
 		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::MENU:
 		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);

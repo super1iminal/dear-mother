@@ -31,6 +31,7 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 
 const int window_width_px = 1280;
 const int window_height_px = 720;
+bool on_screen(vec2 position);
 
 
 // gravity
@@ -77,24 +78,41 @@ enum class COLLISION_TYPE {
 	PLAYER_BLOCKER = PROJECTILE_BLOCKER + 1,
 	DEADLY_BLOCKER = PLAYER_BLOCKER + 1,
 	PLAYER_DEADLY = DEADLY_BLOCKER + 1,
-	COLLISION_COUNT = PLAYER_DEADLY + 1
+	PLAYER_DOOR = PLAYER_DEADLY + 1,
+	COLLISION_COUNT = PLAYER_DOOR + 1
+};
+
+// font character structure
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+	char character;
 };
 
 
-enum class DeadlyState {
-	idle = 0,
-	patrol_left = idle + 1,
-	patrol_right = patrol_left + 1,
-	attack_still = patrol_right + 1,
-	attack_moving = attack_still + 1,
-	rage = attack_moving + 1
+enum class ITEM_NAME {
+	BATTERY_PACK = 0,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
 };
 
-enum class SCENE_TYPE {
-	GAME = 0,
-	MENU = GAME + 1,
-	PAUSE = MENU + 1,
-	TEST = PAUSE + 1,
-	SCENE_COUNT = TEST + 1
+enum class ITEM_TYPE {
+	DAMAGE = 0,
+	SPEED = DAMAGE + 1,
+	FIRE_RATE = SPEED + 1,
+	RANGE = FIRE_RATE + 1,
+	HEALTH_PACK = RANGE + 1,
 };
+
+enum class DIRECTION {
+	UP = 1,
+	DOWN = UP + 1,
+	LEFT = DOWN + 1,
+	RIGHT = LEFT + 1
+};
+
 

@@ -5,19 +5,20 @@
 #include "tiny_ecs_registry.hpp"
 #include "scene_manager.hpp"
 
-class MenuSystem
+class PauseSystem
 {
 public:
-	MenuSystem();
+	PauseSystem();
 
 	// Releases all associated resources
-	~MenuSystem();
+	~PauseSystem();
 
 	// initialize
 	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg);
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
+	void PauseSystem::on_key(int key, int sc, int action, int mod);
 
 private:
 	RenderSystem* renderer;
@@ -26,8 +27,6 @@ private:
 	GLFWwindow* window;
 
 	vec2 cursor_position;
-
-	SCENE_TYPE* scene;
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 };

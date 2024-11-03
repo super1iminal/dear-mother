@@ -135,19 +135,21 @@ void CollisionSystem::add_collisions() {
 	{
 		WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
 		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
+		Deadly& deadly = registry.deadlys.get(entity_deadly);
 		if (collides(worldobject_deadly, worldobject_player))
 		{
-			for (Entity entity : registry.collisions.entities) {
-				Entity entity_other = registry.collisions.get(entity).other;
-				if (registry.players.has(entity) && registry.blockers.has(entity_other)) {
-				}
-			}
 			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
-			for (Entity entity : registry.collisions.entities) {
-				Entity entity_other = registry.collisions.get(entity).other;
-				if (registry.players.has(entity) && registry.blockers.has(entity_other)) {
-				}
-			}
+			deadly.attacking = true;
+		}
+	}
+
+	// next, check for player-door collisions
+	for (Entity entity_door : registry.doors.entities) {
+		WorldObject worldobject_door = registry.worldObjects.get(entity_door);
+		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
+		if (collides(worldobject_door, worldobject_player))
+		{
+			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_door, COLLISION_TYPE::PLAYER_DOOR);
 		}
 	}
 }

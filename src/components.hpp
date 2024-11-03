@@ -8,15 +8,79 @@
 #include <iostream>
 #include <chrono>
 
-enum class TEXTURE_ASSET_ID;
+// All data relevant to the motion of entities
+struct Motion {
+	float max_speed;
+	vec2 velocity = { 0.f, 0.f };
+	vec2 target_velocity = { 0.f, 0.f };
+	vec2 acceleration = { 0.0f, 0.0f };
+	float mass;
+};
+
+// a worldobject has a position, angle, and scale
+struct WorldObject {
+	vec2 position = { 0, 0 };
+	float angle = 0;
+	vec2 scale = { 10, 10 };
+};
+
+// Data structure for toggling debug mode
+struct Debug {
+	bool in_debug_mode = 0;
+	bool in_freeze_mode = 0;
+};
+extern Debug debugging;
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	float darken_screen_factor = -1;
+	int health_status = 0;
+};
+
+// gamescene stuff
+struct GameScene
+{
+};
+
+// information relating to animation
+// rows and cols are for the spritesheet
+// frames is the # of frames that the animation will cycle through
+// current frame is the current frame for this animation.
+// it must be specific to this animation to avoid other animations
+// playing when they're not supposed to.
+struct Animation {
+	int rows;
+	int cols;
+	int frames;
+	int current_frame; // starts at 0
+};
+
+struct Projectile
+{
+	bool friendly = true;
+	int damage = 1;
+};
+
+// Stucture to store collision information
+struct Collision
+{
+	// Note, the first object is stored in the ECS container.entities
+	Entity other; // the second object involved in the collision
+	COLLISION_TYPE type = COLLISION_TYPE::COLLISION_COUNT;
+
+	Collision(Entity& other) { this->other = other; };
+	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
+
+};
 
 // Player component
 struct Player
 {
-	
+
 };
 struct Shooter
-{	
+{
 	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 0.0f;
 	std::chrono::steady_clock::time_point t;
@@ -58,71 +122,7 @@ struct Deadly
 struct Animation {
 	float angle;
 	float speed;
-	TEXTURE_ASSET_ID type;
-};
-
-// All data relevant to the motion of entities
-struct Motion {
-	float max_speed;
-	vec2 velocity = { 0.f, 0.f };
-	vec2 target_velocity = { 0.f, 0.f };
-	vec2 acceleration = { 0.0f, 0.0f };
-	float mass;
-};
-
-// a worldobject has a position, angle, and scale
-struct WorldObject {
-	vec2 position = { 0, 0 };
-	float angle = 0;
-	vec2 scale = { 10, 10 };
-};
-
-struct Projectile
-{
-	bool friendly = true;
-	int damage = 1;
-};
-
-// Stucture to store collision information
-struct Collision
-{
-	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
-	COLLISION_TYPE type = COLLISION_TYPE::COLLISION_COUNT;
-
-	Collision(Entity& other) { this->other = other; };
-	Collision(Entity& other, COLLISION_TYPE type) : other(other), type(type) {}
-	
-};
-
-// Data structure for toggling debug mode
-struct Debug {
-	bool in_debug_mode = 0;
-	bool in_freeze_mode = 0;
-};
-extern Debug debugging;
-
-// Sets the brightness of the screen
-struct ScreenState
-{
-	float darken_screen_factor = -1;
-	int health_status = 0;
-};
-
-struct GameScene
-{
-};
-
-struct MenuScene
-{
-};
-
-struct PauseScene
-{
-};
-
-struct TestScene
-{
+	TEXTURE_ASSET_ID type;	bool attacking = false;
 };
 
 // anything that the player can interact with
@@ -133,34 +133,6 @@ struct Interactable {
 	std::function<void(int)> interaction;
 	// value to be used in function call
 	int value;
-};
-
-struct ItemStat {
-	std::string name;
-	std::string type;
-
-	int flat_damage_mod = 0;
-
-	float flat_speed_mod = 0;
-	float percent_speed_mod = 0;
-
-	float flat_fire_rate = 0;
-	float percent_fire_rate = 0;
-
-	float flat_range = 0;
-	float percent_range = 0;
-
-	float accuracy = 0;
-
-	int heal_size = 0;
-
-	int item_texture;
-};
-
-// A struct to refer to debugging graphics in the ECS
-struct DebugComponent
-{
-	// Note, an empty struct has size 1
 };
 
 // A timer that will be associated to dying salmon
@@ -175,47 +147,8 @@ struct InvincibleTimer
 	float counter_ms = 3000;
 };
 
-// Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
-struct ColoredVertex
-{
-	vec3 position;
-	vec3 color;
-};
-
-// Single Vertex Buffer element for textured sprites (textured.vs.glsl)
-struct TexturedVertex
-{
-	vec3 position;
-	vec2 texcoord;
-};
-
-// contains information relating to UI elements
-struct UIElement {
-	std::string name;
-	float value;
-};
-
-// contains information relating to UI buttons
-struct UIButton {
-	std::string name;
-	std::function<void()> action;
-};
-
-struct PendingRemove {
-
-};
-
 struct Friction {
 	float force;
-};
-
-// Mesh datastructure for storing vertex and index buffers
-struct Mesh
-{
-	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
-	std::vector<ColoredVertex> vertices;
-	std::vector<uint16_t> vertex_indices;
 };
 
 struct Lifetime
@@ -243,6 +176,88 @@ struct Wall
 
 };
 
+struct MenuScene
+{
+};
+
+struct HelpScene
+{
+};
+
+struct PauseScene
+{
+};
+
+struct TestScene
+{
+};
+
+struct RoomCoordinate
+{
+	ivec2 position;
+	RoomCoordinate(ivec2 position) : position(position) {}
+};
+
+// for GAME objects that are in the current room. nothing else.
+struct Active
+{
+};
+
+struct Door
+{
+	ivec2 leads_to; // is the room coords that the door leads to
+	DIRECTION direction;
+	Door(ivec2 leads_to, DIRECTION direction) : leads_to(leads_to), direction(direction) {};
+};
+
+// A struct to refer to debugging graphics in the ECS
+struct DebugComponent
+{
+	// Note, an empty struct has size 1
+};
+
+
+// Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & salmon.vs.glsl)
+struct ColoredVertex
+{
+	vec3 position;
+	vec3 color;
+};
+
+// Single Vertex Buffer element for textured sprites (textured.vs.glsl)
+struct TexturedVertex
+{
+	vec3 position;
+	vec2 texcoord;
+};
+
+// contains information relating to UI elements
+struct UIElement {
+	std::string name;
+	int value;
+};
+
+// contains information relating to UI buttons
+struct UIButton {
+	std::string name;
+	std::function<void()> action;
+};
+
+struct PendingRemove {
+
+};
+
+// Mesh datastructure for storing vertex and index buffers
+struct Mesh
+{
+	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
+	vec2 original_size = {1,1};
+	std::vector<ColoredVertex> vertices;
+	std::vector<uint16_t> vertex_indices;
+};
+
+
+
 struct BaseUI
 {
 	std::string name;
@@ -250,15 +265,6 @@ struct BaseUI
 
 struct Crosshair {
 
-};
-
-// font character structure
-struct Character {
-	unsigned int TextureID;  // ID handle of the glyph texture
-	glm::ivec2   Size;       // Size of glyph
-	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-	unsigned int Advance;    // Offset to advance to next glyph
-	char character;
 };
 
 /**
@@ -299,8 +305,12 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY = UI + 1,
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
-	ITEM = VERT_WALL + 1,
-	HIT_PARTICLE = ITEM + 1,
+	BATTERY_PACK = VERT_WALL + 1,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
+	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -309,8 +319,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
-	// ALERT = BACK_BUTTON + 1,
-  TEXTURE_COUNT = BACK_BUTTON + 1,
+	PLAYER_WALK = BACK_BUTTON + 1,
+	ENEMY_WALK = PLAYER_WALK + 1,
+	ENEMY_ATTACK = ENEMY_WALK + 1,
+	TEXTURE_COUNT = ENEMY_ATTACK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -321,7 +333,8 @@ enum class EFFECT_ASSET_ID {
 	FONT = UI_ELEMENT + 1,
 	SALMON = FONT + 1,
 	TEXTURED = SALMON + 1,
-	WATER = TEXTURED + 1,
+	ANIM = TEXTURED + 1,
+	WATER = ANIM + 1,
 	EFFECT_COUNT = WATER + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -341,5 +354,28 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+};
+
+
+// moved here bc we need TEXTURE_ASSET_ID to be defined before this
+
+struct ItemStat {
+	ITEM_NAME name;
+	ITEM_TYPE type;
+
+	int flat_damage_mod = 0;
+
+	float flat_speed_mod = 0;
+	float percent_speed_mod = 0;
+
+	float flat_fire_rate = 0;
+	float percent_fire_rate = 0;
+
+	float flat_range = 0;
+	float percent_range = 0;
+
+	float accuracy = 0;
+
+	int heal_size = 0;
 };
 

@@ -11,7 +11,7 @@
 #include "world_system.hpp"
 #include "ai_system.hpp"
 #include "collision_system.hpp"
-#include "scene_system.hpp"
+#include "game_manager.hpp"
 #include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
@@ -19,10 +19,10 @@ using Clock = std::chrono::high_resolution_clock;
 // Entry point
 int main()
 {
-	SceneSystem scene;
+	GameManager game;
 
 	// initialize the main systems
-	if (!scene.init()) {
+	if (!game.init()) {
 		// Time to read the error message
 		printf("Press any key to exit");
 		getchar();
@@ -35,7 +35,7 @@ int main()
 	double last_time = glfwGetTime();
 	int num_of_frames = 0;
 	double fps = 0;
-	while (!scene.is_over()) {
+	while (!game.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
 
@@ -56,7 +56,7 @@ int main()
 		t = now;
 
 		// Updating the game state
-		scene.step(elapsed_ms, fps);
+		game.step(elapsed_ms, fps);
 	}
 
 	return EXIT_SUCCESS;

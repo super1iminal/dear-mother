@@ -13,7 +13,7 @@ public:
 	~UISystem();
 
 	// intialize
-	void init(GLFWwindow* window_arg, SCENE_TYPE* scene_arg);
+	void init(GLFWwindow* window_arg);
 
 	static Entity createPanel(
 		RenderSystem* renderer,
@@ -30,7 +30,7 @@ public:
 			vec2 pos,
 			vec2 scale,
 			std::string element_name,
-			float element_value,
+			int element_value,
 			SCENE_TYPE scene_type);
 
 	static Entity createTexturedUIElement(
@@ -57,6 +57,4 @@ private:
 	GLFWwindow* window;
 
 	vec2 cursor_position;
-
-	SCENE_TYPE* scene;
 };

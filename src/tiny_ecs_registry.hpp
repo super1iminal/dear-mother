@@ -12,6 +12,7 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
+	ComponentContainer<Animation> animations;
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<WorldObject> worldObjects;
@@ -41,11 +42,15 @@ public:
 	ComponentContainer<Shooter> shooters;
 	ComponentContainer<GameScene> gameSceneComponents;
 	ComponentContainer<MenuScene> menuSceneComponents;
+	ComponentContainer<HelpScene> helpSceneComponents;
 	ComponentContainer<PauseScene> pauseSceneComponents;
 	ComponentContainer<TestScene> testSceneComponents;
 	ComponentContainer<Modifier> modifiers;
 	ComponentContainer<Inventory> inventory;
 	ComponentContainer<ItemStat> itemStats;
+	ComponentContainer<RoomCoordinate> roomCoords;
+	ComponentContainer<Active> activeComponents;
+	ComponentContainer<Door> doors;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -66,16 +71,29 @@ public:
 	std::vector<ItemStat> healing_items;
 
 
-	// filtered containers
+	// filtered containers for rendering (unused)
 	FilteredComponentContainer<RenderRequest, GameScene> gameSceneRenderRequests;
+
+	// filtered containers for worldobjects
 	FilteredComponentContainer<WorldObject, GameScene> gameSceneWorldObjects;
+
+	// filtered containers for buttons
+	FilteredComponentContainer<UIButton, MenuScene> menuSceneButtons;
+	FilteredComponentContainer<UIButton, HelpScene> helpSceneButtons;
+	FilteredComponentContainer<UIButton, PauseScene> pauseSceneButtons;
+	FilteredComponentContainer<UIButton, TestScene> testSceneButtons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry() : 
 		gameSceneRenderRequests(renderRequests, gameSceneComponents),
-		gameSceneWorldObjects(worldObjects, gameSceneComponents)
+		gameSceneWorldObjects(worldObjects, gameSceneComponents),
+		menuSceneButtons(uiButtons, menuSceneComponents),
+		helpSceneButtons(uiButtons, helpSceneComponents),
+		pauseSceneButtons(uiButtons, pauseSceneComponents),
+		testSceneButtons(uiButtons, testSceneComponents)
 	{
+		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -108,12 +126,22 @@ public:
 		registry_list.push_back(&itemStats);
 		registry_list.push_back(&gameSceneComponents);
 		registry_list.push_back(&menuSceneComponents);
+		registry_list.push_back(&helpSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);
 		registry_list.push_back(&testSceneComponents);
+		registry_list.push_back(&roomCoords);
+		registry_list.push_back(&activeComponents);
+		registry_list.push_back(&doors);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
 		registry_filtered.push_back(&gameSceneWorldObjects);
+
+		// buttons filtered
+		registry_filtered.push_back(&menuSceneButtons);
+		registry_filtered.push_back(&helpSceneButtons);
+		registry_filtered.push_back(&pauseSceneButtons);
+		registry_filtered.push_back(&testSceneButtons);
 	}
 
 	void clear_all_components() {

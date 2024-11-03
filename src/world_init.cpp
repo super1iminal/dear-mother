@@ -5,9 +5,21 @@
 #include <ui_system.hpp>
 #include <world_system.hpp>
 
-void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+// WHEN ADDING A CREATE FUNCTION:
+// 1. Add the function prototype to world_init.hpp
+// 2. Add the function definition to world_init.cpp
+// 3. Add to gameSceneComponents
+// 4. Add meshPtrs
+// 5. Add the position of the room it's in (specified in parameters)
+// 6. Assign a component (wall/player/enemy/etc) to the entity
+// 7. Add to renderRequests ordering
+// 
+
+void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	// Adding meshptr component
@@ -55,17 +67,19 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 			GEOMETRY_BUFFER_ID::SPRITE });
 }
 
-void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type) {
+void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES) + NUM_PARTICLES_OFFSET;
 	for (int i = 0; i < num_particles; i++) {
-		createParticle(renderer, pos, uniform_dist, rng, type);
+		createParticle(renderer, pos, uniform_dist, rng, type, room_coord);
 	}
 }
 
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
-Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type) {
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -94,6 +108,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -121,19 +136,27 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
+	Animation& player_animation = registry.animations.emplace(entity);
+	player_animation.cols = 4;
+	player_animation.rows = 1;
+	player_animation.frames = 1;
+	player_animation.current_frame = 0;
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::PLAYER,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::PLAYER_WALK,
+			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
+Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 room_coord)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -160,21 +183,29 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
+
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 4;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 1;
+	enemy_animation.current_frame = 0;
+
 	registry.renderRequests.insert(
 		entity,
-		{
-			TEXTURE_ASSET_ID::ENEMY,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
-		});
+		{ TEXTURE_ASSET_ID::ENEMY_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
 	registry.gameSceneComponents.emplace(floor);
+	registry.roomCoords.emplace(floor, room_coord);
+	registry.activeComponents.emplace(floor);
+
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(floor, &mesh);
@@ -195,10 +226,59 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size) {
 	return floor;
 }
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value) {
+// need to add to collisions
+Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation) {
+	// create an entity in order to render the floor background
+	auto door = Entity();
+	registry.gameSceneComponents.emplace(door);
+	registry.roomCoords.emplace(door, room_coord);
+	registry.activeComponents.emplace(door);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(door, &mesh);
+	registry.doors.emplace(door, leads_to, orientation);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(door);
+	switch (orientation) {
+	case DIRECTION::UP:
+		worldobject.position = { window_width_px/2.f, BASE_UI_HEIGHT + WALL_WIDTH/2.f };
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		break;
+	case DIRECTION::DOWN:
+		worldobject.position = { window_width_px / 2.f, window_height_px - WALL_WIDTH/2.f};
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		break;
+	case DIRECTION::LEFT:
+		worldobject.position = { WALL_WIDTH / 2.f, (window_height_px-BASE_UI_HEIGHT)/2.f + BASE_UI_HEIGHT};
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		break;
+	case DIRECTION::RIGHT:
+		worldobject.position = { window_width_px - WALL_WIDTH / 2.f, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		worldobject.angle = 0.f;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		break;
+	}
+
+	registry.renderRequests.insert(
+		door,
+		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return door;
+}
+
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value, ivec2 room_coord) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
 	registry.gameSceneComponents.emplace(interactable_entity);
+	registry.roomCoords.emplace(interactable_entity, room_coord);
+	registry.activeComponents.emplace(interactable_entity);
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(interactable_entity, &mesh);
@@ -216,17 +296,19 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 
 	registry.renderRequests.insert(
 		interactable_entity,
-		{ TEXTURE_ASSET_ID::ITEM,
+		{ TEXTURE_ASSET_ID::BATTERY_PACK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
 	// create an interactable entity
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
@@ -265,19 +347,41 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	interactable_object.angle = 0.f;
 	interactable_object.scale = size;
 
+	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+	switch (item.name)
+	{
+	case ITEM_NAME::BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+		break;
+	case ITEM_NAME::SHATTERED_QUARTZ:
+		item_texture = TEXTURE_ASSET_ID::SHATTERED_QUARTZ;
+		break;
+	case ITEM_NAME::REPEATER:
+		item_texture = TEXTURE_ASSET_ID::REPEATER;
+		break;
+	case ITEM_NAME::CREAKY_WHEEL:
+		item_texture = TEXTURE_ASSET_ID::CREAKY_WHEEL;
+		break;
+	case ITEM_NAME::HEATSINK:
+		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	}
+
 	registry.renderRequests.insert(
 		entity,
-		{ (TEXTURE_ASSET_ID)item.item_texture,
+		{ item_texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly)
+Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -331,6 +435,7 @@ Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
 	registry.renderRequests.insert(
@@ -356,44 +461,39 @@ Entity createLine(vec2 position, vec2 scale)
 
 void buildItemSet() {
 	ItemStat shattered_quartz;
-	shattered_quartz.name = "Shattered Quartz";
-	shattered_quartz.type = "damage";
+	shattered_quartz.name = ITEM_NAME::SHATTERED_QUARTZ;
+	shattered_quartz.type = ITEM_TYPE::DAMAGE;
 	shattered_quartz.flat_damage_mod = 1;
 	shattered_quartz.flat_range = -100;	// May change debuff to just accuracy 
 	shattered_quartz.accuracy = 0.05;
-	shattered_quartz.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(shattered_quartz);
 	registry.damage_items.push_back(shattered_quartz);
 
 	ItemStat creaky_wheel;
-	creaky_wheel.name = "Creaky Wheel";
-	creaky_wheel.type = "speed";
+	creaky_wheel.name = ITEM_NAME::CREAKY_WHEEL;
+	creaky_wheel.type = ITEM_TYPE::SPEED;
 	creaky_wheel.percent_speed_mod = 0.2;
-	creaky_wheel.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(creaky_wheel);
 	registry.speed_items.push_back(creaky_wheel);
 
 	ItemStat heatsink;
-	heatsink.name = "Heatsink";
-	heatsink.type = "fire_rate";
+	heatsink.name = ITEM_NAME::HEATSINK;
+	heatsink.type = ITEM_TYPE::FIRE_RATE;
 	heatsink.percent_fire_rate = 0.1;
-	heatsink.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(heatsink);
 	registry.fire_rate_items.push_back(heatsink);
 
 	ItemStat repeater;
-	repeater.name = "Repeater";
-	repeater.type = "range";
+	repeater.name = ITEM_NAME::REPEATER;
+	repeater.type = ITEM_TYPE::RANGE;
 	repeater.flat_range = 100;
-	repeater.item_texture = (int)TEXTURE_ASSET_ID::ITEM; // Placeholder for texture
 	registry.all_items.push_back(repeater);
 	registry.range_items.push_back(repeater);
 
 	ItemStat battery_pack;
-	battery_pack.name = "Battery Pack";
-	battery_pack.type = "health_pack";
+	battery_pack.name = ITEM_NAME::BATTERY_PACK;
+	battery_pack.type = ITEM_TYPE::HEALTH_PACK;
 	battery_pack.heal_size = 1;
-	battery_pack.item_texture = (int)TEXTURE_ASSET_ID::ITEM;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
 }

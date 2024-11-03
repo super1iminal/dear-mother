@@ -1,5 +1,4 @@
 #include "menu_system.hpp"
-#include <tiny_ecs_registry.hpp>
 
 
 MenuSystem::MenuSystem()
@@ -11,14 +10,9 @@ MenuSystem::~MenuSystem() {
 
 }
 
-void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg, SCENE_TYPE* scene_arg) {
+void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	this->renderer = renderer_arg;
 	this->window = window_arg;
-	this->scene = scene_arg;
-}
-
-void MenuSystem::initStartMenu()
-{
 	Entity base_ui = UISystem::createPanel(
 		renderer,
 		SCENE_TYPE::MENU,
@@ -34,7 +28,8 @@ void MenuSystem::initStartMenu()
 		vec2(window_width_px / 2 - 1.f, 275.f),
 		vec2(162.f, 42.f),
 		[&]() {
-			*(this->scene) = SCENE_TYPE::GAME;
+
+			scene_manager.set_scene(SCENE_TYPE::GAME);
 		},
 		"start_button",
 		TEXTURE_ASSET_ID::START_BUTTON,
@@ -47,7 +42,7 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
-			initHelpScreen();
+			scene_manager.set_scene(SCENE_TYPE::HELP);
 		},
 		"help_button",
 		TEXTURE_ASSET_ID::HELP_BUTTON,
@@ -72,7 +67,6 @@ void MenuSystem::initStartMenu()
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;
-			// TODO: SAVE GAME!!
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		},
 		"quit_button",
@@ -83,66 +77,15 @@ void MenuSystem::initStartMenu()
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
 }
 
-void MenuSystem::initHelpScreen() {
-	UISystem::createPanel(
-		renderer,
-		SCENE_TYPE::MENU,
-		vec2(window_width_px / 2, window_height_px / 2),
-		0.f,
-		vec2(window_width_px, window_height_px),
-		"help_screen",
-		TEXTURE_ASSET_ID::HELP_SCREEN
-	);
-
-	UISystem::createButton(
-		renderer,
-		vec2(window_width_px - 330.f, window_height_px - 268.f),
-		vec2(234.f, 60.f),
-		[&]() {
-			std::cout << "Back button pressed!" << std::endl;
-			closeHelpScreen();
-		},
-		"return_to_menu_button",
-		TEXTURE_ASSET_ID::BACK_BUTTON,
-		SCENE_TYPE::MENU
-	);
-}
-
-void MenuSystem::closeHelpScreen() {
-	// remove the help panel
-	for (Entity entity : registry.menuSceneComponents.entities) {
-		if (registry.baseUI.has(entity)) {
-			BaseUI button = registry.baseUI.get(entity);
-			if (button.name == "help_screen") {
-				registry.pendingRemoves.emplace(entity);
-				break;
-			}
-		}
-	}
-
-	// remove the back button
-	for (Entity entity : registry.menuSceneComponents.entities) {
-		if (registry.uiButtons.has(entity)) {
-			UIButton button = registry.uiButtons.get(entity);
-			if (button.name == "return_to_menu_button") {
-				registry.pendingRemoves.emplace(entity);
-				break;
-			}
-		}
-	}
-}
-
 void MenuSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		// if mouse position is within button boundaries
 		// activate the button's action function
-		auto& uiButtonsRegistry = registry.uiButtons;
-		auto& worldObjectsRegistry = registry.worldObjects;
-		for (uint i = 0; i < uiButtonsRegistry.size(); i++) {
-			UIButton button = uiButtonsRegistry.components[i];
-			Entity buttonEntity = uiButtonsRegistry.entities[i];
-			WorldObject buttonObject = worldObjectsRegistry.get(buttonEntity);
+		auto& uiButtonsRegistry = registry.menuSceneButtons.entities;
+		for (Entity buttonEntity : uiButtonsRegistry) {
+			UIButton button = registry.uiButtons.get(buttonEntity);
+			WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
 			if (is_mouse_within_button(buttonObject)) {
 				button.action();
 			}

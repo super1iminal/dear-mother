@@ -3,6 +3,8 @@
 #include <SDL.h>
 
 #include "tiny_ecs_registry.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 // Debugging
 namespace {
@@ -42,11 +44,14 @@ GLFWwindow* RenderSystem::create_window() {
 		return nullptr;
 	}
 
+	time_since_last_frame = 0;
+
 	return window;
 }
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
+									const mat3 &projection,
+									float elapsed_ms)
 {
 	WorldObject &worldobject = registry.worldObjects.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
@@ -66,6 +71,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Setting shaders
 	glUseProgram(program);
+	gl_has_errors();
+
+	glBindVertexArray(mainVAO);
 	gl_has_errors();
 
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
@@ -95,6 +103,70 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
 			(void *)sizeof(
 				vec3)); // note the stride to skip the preceeding vertex position
+
+		// Enabling and binding texture to slot 0
+		glActiveTexture(GL_TEXTURE0);
+		gl_has_errors();
+
+		assert(registry.renderRequests.has(entity));
+		GLuint texture_id =
+			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		gl_has_errors();
+	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ANIM) {
+		int rows = 1;
+		int cols = 1;
+		int frames = 1;
+		int current_frame = 0;
+
+		if (registry.animations.has(entity)) {
+			Animation& entity_animation = registry.animations.get(entity);
+			rows = entity_animation.rows;
+			cols = entity_animation.cols;
+			frames = entity_animation.frames;
+			current_frame = entity_animation.current_frame;
+
+			time_since_last_frame += elapsed_ms;
+			if (time_since_last_frame > frame_duration) {
+				entity_animation.current_frame = (entity_animation.current_frame + 1) % (frames);
+				time_since_last_frame = 0;
+			}
+		}
+		
+		float frame_width = 1.0f / cols;
+		float frame_height = 1.0f / rows;
+		
+		int col = current_frame % cols;
+		int row = current_frame / rows;
+
+		float u_offset = col * frame_width;
+		float v_offset = row * frame_height;
+
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		gl_has_errors();
+		assert(in_texcoord_loc >= 0);
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(TexturedVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_texcoord_loc);
+		glVertexAttribPointer(
+			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+			(void*)sizeof(
+				vec3)); // note the stride to skip the preceeding vertex position
+
+		unsigned int uvOffsetLoc =
+			glGetUniformLocation(program, "uvOffset");
+		glUniform2f(uvOffsetLoc, u_offset, v_offset);
+
+		unsigned int uvScaleLoc =
+			glGetUniformLocation(program, "uvScale");
+		glUniform2f(uvScaleLoc, frame_width, frame_height);
 
 		// Enabling and binding texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
@@ -155,8 +227,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
-		// render text
-
+		// let renderText() handle this
+		text_to_render.push_back(entity);
+		
+		glBindVertexArray(0);
+		return;
 	}
 	else
 	{
@@ -188,6 +263,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
+	glBindVertexArray(0);
+	gl_has_errors();
 }
 
 // draw the intermediate texture to the screen, with some distortion to simulate
@@ -197,6 +274,9 @@ void RenderSystem::drawToScreen()
 	// Setting shaders
 	// get the water texture, sprite mesh, and program
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::WATER]);
+	gl_has_errors();
+
+	glBindVertexArray(mainVAO);
 	gl_has_errors();
 	// Clearing backbuffer
 	int w, h;
@@ -222,12 +302,19 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 	const GLuint water_program = effects[(GLuint)EFFECT_ASSET_ID::WATER];
 	// Set clock
+	// fixed bug here where pause scene had dimmed screen
 	GLuint time_uloc = glGetUniformLocation(water_program, "time");
 	GLuint dead_timer_uloc = glGetUniformLocation(water_program, "darken_screen_factor");
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	ScreenState &screen = registry.screenStates.get(screen_state_entity);
-	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	float darken_screen_factor = -1;
+	if (scene_manager.get_scene() == SCENE_TYPE::GAME) {
+		darken_screen_factor = screen.darken_screen_factor;
+	}
+	glUniform1f(dead_timer_uloc, darken_screen_factor);
 	gl_has_errors();
+
+
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
 	GLint in_position_loc = glGetAttribLocation(water_program, "in_position");
@@ -250,7 +337,7 @@ void RenderSystem::drawToScreen()
 
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw(SCENE_TYPE scene)
+void RenderSystem::draw(float elapsed_ms)
 {
 	// Getting size of window
 	int w, h;
@@ -275,10 +362,14 @@ void RenderSystem::draw(SCENE_TYPE scene)
 	mat3 projection_2D = createProjectionMatrix();
 	std::vector<Entity> render_list = {};
 
-	if (scene == SCENE_TYPE::GAME) {
+	switch (scene_manager.get_scene()) {
+	case SCENE_TYPE::GAME: {
 		// draw game
-		// add floor first
-		render_list.push_back(registry.floors.entities[0]);
+		// add floors first
+		for (Entity entity : registry.floors.entities) {
+			render_list.push_back(entity);
+		}
+		
 		// then interactables
 		for (Entity entity : registry.interactables.entities) {
 			render_list.push_back(entity);
@@ -301,6 +392,9 @@ void RenderSystem::draw(SCENE_TYPE scene)
 		for (Entity entity : registry.walls.entities) {
 			render_list.push_back(entity);
 		}
+		for (Entity entity : registry.doors.entities) {
+			render_list.push_back(entity);
+		}
 		// then UI elements, starting with the base UI
 		for (Entity entity : registry.baseUI.entities) {
 			render_list.push_back(entity);
@@ -316,14 +410,21 @@ void RenderSystem::draw(SCENE_TYPE scene)
 		// Draw all textured meshes that have a position and size component
 		for (Entity entity : render_list)
 		{
+			// note that activeComponents are ONLY USED for game entities
 			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
 				continue;
-			drawTexturedMesh(entity, projection_2D);
+			if (registry.roomCoords.has(entity)) {
+				if (!registry.activeComponents.has(entity))
+					continue;
+			}
+			if (!on_screen(registry.worldObjects.get(entity).position))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::MENU) {
+	case SCENE_TYPE::MENU: {
 		// draw menu
-
 		Entity crosshair_entity;
 		for (Entity entity : registry.menuSceneComponents.entities) {
 			// this is a very hack-y check to put the crosshair at the very end of the render list
@@ -336,29 +437,171 @@ void RenderSystem::draw(SCENE_TYPE scene)
 				crosshair_entity = entity;
 			}
 		}
-		
+
 		render_list.push_back(crosshair_entity);
 
 		for (Entity entity : render_list)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
-			drawTexturedMesh(entity, projection_2D);
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::PAUSE) {
-		// draw pause menu
+	case SCENE_TYPE::HELP: {
+		// draw help screen
+		Entity crosshair_entity;
+		for (Entity entity : registry.helpSceneComponents.entities) {
+			// this is a very hack-y check to put the crosshair at the very end of the render list
+			// so that it doesn't disappear when new menu panels are rendered.
+			// TODO: this should be changed once we get z-buffering
+			if (!registry.crosshairs.has(entity)) {
+				render_list.push_back(entity);
+			}
+			else {
+				crosshair_entity = entity;
+			}
+		}
+
+		render_list.push_back(crosshair_entity);
+
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
+		break;
 	}
-	else if (scene == SCENE_TYPE::TEST) {
+	case SCENE_TYPE::PAUSE: {
+		// draw help screen
+		Entity crosshair_entity;
+		for (Entity entity : registry.pauseSceneComponents.entities) {
+			// this is a very hack-y check to put the crosshair at the very end of the render list
+			// so that it doesn't disappear when new menu panels are rendered.
+			// TODO: this should be changed once we get z-buffering
+			if (!registry.crosshairs.has(entity)) {
+				render_list.push_back(entity);
+			}
+			else {
+				crosshair_entity = entity;
+			}
+		}
+
+		render_list.push_back(crosshair_entity);
+
+		for (Entity entity : render_list)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
+		break;
+	}
+	case SCENE_TYPE::TEST: {
 		// draw test scene
+		break;
+	}
 	}
 
 	// Truely render to the screen
 	drawToScreen();
 
+	// render all text
+	drawText();
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+void RenderSystem::drawText() {
+	for (uint i = 0; i < text_to_render.size(); i++) {
+		UIElement ui_elt = registry.uiElements.get(text_to_render[i]);
+		WorldObject world_object = registry.worldObjects.get(text_to_render[i]);
+
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
+		trans = glm::translate(trans, glm::vec3(world_object.position, 0.0f));
+		render_text(
+			std::to_string(ui_elt.value), 
+			world_object.position.x, 
+			world_object.position.y, 
+			world_object.scale.x,
+			vec3(1.0f, 1.0f, 1.0f),
+			trans
+		);
+	}
+	text_to_render.clear();
+}
+
+void RenderSystem::render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
+	// activate the shader program
+	glUseProgram(fontShaderProgram);
+	gl_has_errors();
+
+	// enable blending or you will just get solid boxes instead of text
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_has_errors();
+
+	// get shader uniforms
+	GLint textColor_location =
+		glGetUniformLocation(fontShaderProgram, "textColor");
+	glUniform3f(textColor_location, color.x, color.y, color.z);
+	gl_has_errors();
+
+	GLint transformLoc =
+		glGetUniformLocation(fontShaderProgram, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+	gl_has_errors();
+
+	glBindVertexArray(fontVAO);
+	gl_has_errors();
+
+	// iterate through all characters
+	std::string::const_iterator c;
+	for (c = text.begin(); c != text.end(); c++)
+	{
+		Character ch = m_ftCharacters[*c];
+
+		float xpos = x + ch.Bearing.x * scale;
+		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+		float w = ch.Size.x * scale;
+		float h = ch.Size.y * scale;
+		// update VBO for each character
+		float vertices[6][4] = {
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos,     ypos,       0.0f, 1.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+
+			{ xpos,     ypos + h,   0.0f, 0.0f },
+			{ xpos + w, ypos,       1.0f, 1.0f },
+			{ xpos + w, ypos + h,   1.0f, 0.0f }
+		};
+
+		// render glyph texture over quad
+		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+		gl_has_errors();
+		// std::cout << "binding texture: " << ch.character << " = " << ch.TextureID << std::endl;
+
+		// update content of VBO memory
+		glBindBuffer(GL_ARRAY_BUFFER, fontVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		gl_has_errors();
+
+		// render quad
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		gl_has_errors();
+
+		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+		gl_has_errors();
+	}
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 mat3 RenderSystem::createProjectionMatrix()

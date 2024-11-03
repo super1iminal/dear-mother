@@ -11,6 +11,7 @@
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+#include "scene_manager.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -55,6 +56,10 @@ class RenderSystem {
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
 			textures_path("battery.png"),
+			textures_path("battery.png"), // Repeated for other items for now, should be SHATTERED_QUARTZ. Do double check.
+			textures_path("battery.png"), // Repeated for other items for now, should be CREAKY_WHEEL
+			textures_path("battery.png"), // Repeated for other items for now, should be HEATSINK
+			textures_path("battery.png"), // Repeated for other items for now, should be REPEATER
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
@@ -64,7 +69,9 @@ class RenderSystem {
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
-			// textures_path("alert.png")
+			textures_path("/anims/walk/player_robot_walk.png"),
+			textures_path("/anims/walk/enemy_robot_walk.png"),
+			textures_path("/anims/attack/enemy_robot_attack.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -76,6 +83,7 @@ class RenderSystem {
 		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
+		shader_path("textured_anim"),
 		shader_path("water") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -99,7 +107,7 @@ public:
 
 	void initializeGlMeshes();
 
-	void initFont(const std::string& font_filename, unsigned int font_default_size);
+	void initFont(const std::string font_filename, unsigned int font_default_size);
 
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
@@ -113,13 +121,13 @@ public:
 	~RenderSystem();
 
 	// Draw all entities
-	void draw(SCENE_TYPE scene);
+	void draw(float elapsed_ms);
 
 	mat3 createProjectionMatrix();
 
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawTexturedMesh(Entity entity, const mat3& projection, float elapsed_ms);
 	void drawToScreen();
 
 	// Window handle
@@ -130,10 +138,28 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
+	GLuint mainVAO;
+
+	// text rendering
+	GLuint fontShaderProgram;
+	GLuint fontVAO;
+	GLuint fontVBO;
+
 	Entity screen_state_entity;
+
+	int frame_duration = 100;
+
+	int time_since_last_frame;
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;
+
+	// text entities to render
+	std::vector<Entity> text_to_render;
+
+	void drawText();
+
+	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };
 
 bool loadEffectFromFile(

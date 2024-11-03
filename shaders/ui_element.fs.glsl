@@ -17,12 +17,4 @@ void main()
 {
 	color = vec4(fcolor * vcolor, 1.0);
 	color.xyz -= value * 0.1;
-
-	// salmon mesh is contained in a 1x1 square
-	// float radius = distance(vec2(0.0), vpos);
-	// if (light_up == 1 && radius < 0.3)
-	// {
-	// 	// 0.8 is just to make it not too strong
-	//	 color.xyz += (0.3 - radius) * 0.8 * vec3(1.0, 1.0, 0.0);
-	// }
 }

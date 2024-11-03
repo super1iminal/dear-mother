@@ -16,6 +16,13 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "ui_system.hpp"
+#include "scene_manager.hpp"
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	// ...
+};
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -33,6 +40,9 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms, double fps);
 
+	// update animations
+	void update_animations();
+
 	// Check for collisions
 	void handle_collisions();
 
@@ -47,21 +57,27 @@ public:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
-private:
-
 	// restart level
-	void WorldSystem::restart_game();
+	void restart_game();
+
+private:
 
 	// Shooting stuff
 	bool left_mouse_button = false;
 	bool first_shot = true;
 	void shoot(Entity& entity);
+	void set_last_shot_time(Entity entity);
 
 	// Time management
 	std::chrono::steady_clock::time_point t;
 	std::chrono::steady_clock::time_point get_curr_time();
 	void set_last_shot_time(Entity& entity);
 	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
+
+	// animation updates
+	void updatePlayerAnimation();
+	void updateEnemyAnimation(Entity enemy);
+	void playEnemyAttack(Entity enemy);
 
 	// Item stuff
 	void update_player_modifier() const;
@@ -83,7 +99,6 @@ private:
 	float current_speed;
 	uint level = 1;
 	uint scrap = 0;
-	Entity items [8];
 	Entity player;
 	Entity floor;
 
@@ -91,7 +106,7 @@ private:
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
-	Entity item_ui;
+	std::vector<Entity> items_ui;
 
 	// initialize HUD
 	void initGameUI();
@@ -101,15 +116,11 @@ private:
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
-
 	void handleActorBlocker(Entity actor, Entity blocker);
-
 	void handleProjectileBlocker(Entity projectile, Entity blocker);
-
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
-
 	void handleProjectilePlayer(Entity projectile, Entity player);
-
+	void handlePlayerDoor(Entity entity, Entity entity_other);
 
 	// music references
 	Mix_Music* background_music;
@@ -119,4 +130,16 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
+	// For selecting item texture
+	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
+
+	// room. generation. time to blast off. let's go00000
+	std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
+	void generate_rooms();
+	void generate_map();
+	void change_rooms(ivec2 new_room);
+	void createEnemyRoom(ivec2 coord);
+	void createEmptyRoom(ivec2 coord);
+	ivec2 current_room;
 };

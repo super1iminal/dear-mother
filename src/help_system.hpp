@@ -1,24 +1,21 @@
 #pragma once
-#include "common.hpp"
 #include "render_system.hpp"
 #include "ui_system.hpp"
 #include "tiny_ecs_registry.hpp"
 #include "scene_manager.hpp"
 
-class MenuSystem
-{
+class HelpSystem {
 public:
-	MenuSystem();
+	HelpSystem();
 
 	// Releases all associated resources
-	~MenuSystem();
+	~HelpSystem();
 
 	// initialize
 	void init(RenderSystem* renderer_arg, GLFWwindow* window_arg);
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
-
 private:
 	RenderSystem* renderer;
 

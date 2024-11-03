@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iostream>
 #include <ui_system.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 // Game configuration
 // add variables here
@@ -16,7 +17,8 @@
 WorldSystem::WorldSystem()
 	: points(0)
 	, player_health(0)
-	, current_speed(1.0) {
+	, current_speed(1.0)
+	, current_room({0, 0}) {
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -34,10 +36,6 @@ WorldSystem::~WorldSystem() {
 	Mix_CloseAudio();
 }
 
-void WorldSystem::set_last_shot_time(Entity& entity) {
-	using Clock = std::chrono::high_resolution_clock;
-	registry.shooters.get(entity).t = Clock::now();
-}
 
 std::chrono::steady_clock::time_point WorldSystem::get_last_shot_time(Entity& entity) {
 	return registry.shooters.get(entity).t;
@@ -142,13 +140,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 
 	// Shoot if LMB is clicked
 	for (Entity entity : registry.shooters.entities) {
+		if (!registry.activeComponents.has(entity))
+			continue;
 		shoot(entity);
 	}
 
-	// spawn two enemies
-	if (registry.deadlys.components.size() < 1) {
-		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f);
-	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -168,7 +164,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-			restart_game();
+			scene_manager.set_scene(SCENE_TYPE::MENU);
 			return true;
 		}
 	}
@@ -191,6 +187,92 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 	return true;
 }
 
+void WorldSystem::createEnemyRoom(ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	//createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1, { 0, 0 });
+
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+	}
+}
+
+void WorldSystem::createEmptyRoom(ivec2 coord) {
+	///////// STUUUUUUUUUUUUBBBBB
+}
+
+void WorldSystem::generate_map() {
+	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
+}
+
+// 
+void WorldSystem::generate_rooms() {
+	generate_map();
+	// Iterating using structured bindings
+	for (const auto& room : roomMap) {
+		ivec2 coord = { room.first.first, room.first.second };
+		ROOM_TYPE type = room.second;
+
+		switch (type) {
+		case ROOM_TYPE::ENEMY_ROOM:
+			createEnemyRoom(coord);
+			break;
+		case ROOM_TYPE::EMPTY:
+			createEmptyRoom(coord);
+			break;
+		}
+	}
+
+
+	// need to only have the current entities as active. 
+	// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
+	registry.activeComponents.clear();
+	for (Entity entity : registry.gameSceneComponents.entities) {
+		if (!registry.roomCoords.has(entity)) {
+			registry.activeComponents.emplace(entity);
+		}
+		else if (registry.roomCoords.get(entity).position == current_room) {
+			registry.activeComponents.emplace(entity);
+		}
+	}
+}
+
+
+void WorldSystem::change_rooms(ivec2 new_room) {
+	current_room = new_room;
+	registry.activeComponents.clear();
+	for (Entity entity : registry.gameSceneComponents.entities) {
+		if (!registry.roomCoords.has(entity)) {
+			registry.activeComponents.emplace(entity);
+		}
+		else if (registry.roomCoords.get(entity).position == current_room) {
+			registry.activeComponents.emplace(entity);
+		}
+	}
+}
+
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
@@ -200,9 +282,11 @@ void WorldSystem::restart_game() {
 	// Reset the game speed
 	current_speed = 1.f;
 
+	// reset current room
+	current_room = { 0, 0 };
+
 	// Remove all entities that we created
 	// i.e. All world objects
-
 	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
 		Entity entity = registry.gameSceneWorldObjects.entities[i];
 		registry.remove_all_components_of(entity);
@@ -211,38 +295,45 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
-	// create a floor entity
-	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f });
-
 	// create a new Player entity
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
-	createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1);
 
-	// top wall
-	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL);
-	// bottom wall
-	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL);
+	generate_rooms();
 
-	// Set initial cooldown time
-	for (Entity entity : registry.shooters.entities) {
-		set_last_shot_time(entity);
-	}
-	
 	initGameUI();
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::increaseScrap(int amt) 
 {
 	scrap += amt;
-	std::cout << scrap << std::endl;
+	updateGameUI();
+	std::cout <<  "scrap: " << scrap << std::endl;
+}
+
+TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
+	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+	switch (item.name)
+	{
+	case ITEM_NAME::BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
+		break;
+	case ITEM_NAME::SHATTERED_QUARTZ:
+		item_texture = TEXTURE_ASSET_ID::SHATTERED_QUARTZ;
+		break;
+	case ITEM_NAME::REPEATER:
+		item_texture = TEXTURE_ASSET_ID::REPEATER;
+		break;
+	case ITEM_NAME::CREAKY_WHEEL:
+		item_texture = TEXTURE_ASSET_ID::CREAKY_WHEEL;
+		break;
+	case ITEM_NAME::HEATSINK:
+		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	}
+	return item_texture;
 }
 
 void WorldSystem::initGameUI() {
@@ -258,57 +349,137 @@ void WorldSystem::initGameUI() {
 	);
 
 	// grab player health
-	// TODO must update this when any UI elements change
-	// maybe make a gameUI update fn
 	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
+	// TODO see if we can fix how text is rendered
+	// so that the position and scale vectors aren't so funky
 	health_ui = UISystem::createUIElement(
 		renderer,
-		vec2(window_width_px / 10, window_height_px / 11),
-		vec2(165.f, 40.f),
+		vec2(60.f, 324.f),
+		vec2(2.f, 40.f),
 		"health_ui",
-		static_cast<float>(player_health),
+		static_cast<int>(player_health),
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createUIElement(
 		renderer,
-		vec2(375.f, window_height_px / 20),
-		vec2(25.f, 25.f),
+		vec2(180.f, 336.f),
+		vec2(2.f, 0.f),
 		"scrap_ui",
-		static_cast<float>(scrap),
+		scrap,
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
 	level_ui = UISystem::createUIElement(
 		renderer,
-		vec2(375.f, window_height_px / 10),
-		vec2(25.f, 30.f),
+		vec2(184.f, 316.f),
+		vec2(2.f, 0.f),
 		"level_ui",
-		static_cast<float>(level),
+		level,
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
 	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
-	item_ui = UISystem::createTexturedUIElement(
-		renderer,
-		vec2(window_width_px - window_width_px / 22, window_height_px / 11),
-		vec2(75.f, 75.f),
-		"item_one_ui",
-		TEXTURE_ASSET_ID::ITEM,
-		SCENE_TYPE::GAME);
+	Inventory& player_inventory = registry.inventory.get(player);
+	for (uint i = 0; i < player_inventory.items.size(); i++) {
+		UISystem::createTexturedUIElement(
+			renderer,
+			vec2(window_width_px - ((i + 1) * window_width_px / 22), window_height_px / 11),
+			vec2(75.f, 75.f),
+			"item_ui_" + std::to_string(i),
+			getItemTexture(player_inventory.items[i]),
+			SCENE_TYPE::GAME);
+	}
+
+	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
 }
 
 void WorldSystem::updateGameUI() {
-	// this updates health and scrap
-	// items are updated when an item is picked up
+	// this updates health, scrap, and items
 	UIElement& health_elt = registry.uiElements.get(health_ui);
 	health_elt.value = static_cast<float>(player_health);
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = static_cast<float>(scrap);
+
+	// re render the items
+	Inventory& player_inventory = registry.inventory.get(player);
+	for (uint i = 0; i < player_inventory.items.size(); i++) {
+		UISystem::createTexturedUIElement(
+			renderer,
+			vec2(window_width_px - ((i + 1)*window_width_px / 22), window_height_px / 11),
+			vec2(75.f, 75.f),
+			"item_ui_" + std::to_string(i),
+			getItemTexture(player_inventory.items[i]),
+			SCENE_TYPE::GAME);
+	}
+}
+
+void WorldSystem::update_animations() {
+	updatePlayerAnimation();
+
+	// update enemy animations
+	auto& enemyRegistry = registry.deadlys;
+	auto& collisionsRegistry = registry.collisions;
+	for (Entity entity : enemyRegistry.entities) {
+		Deadly deadly = registry.deadlys.get(entity);
+		if (deadly.attacking) {
+			// play attack animation
+			playEnemyAttack(entity);
+		}
+		else {
+			updateEnemyAnimation(entity);
+		}
+	}
+}
+
+void WorldSystem::updatePlayerAnimation() {
+	Animation& player_animation = registry.animations.get(player);
+	Motion player_motion = registry.motions.get(player);
+	if (player_motion.target_velocity.x != 0.f || player_motion.target_velocity.y != 0.f) {
+		// player is moving; play walking animation (4 frames)
+		player_animation.frames = player_animation.cols * player_animation.rows;
+	}
+	else {
+		// player is still; use only 1 frame
+		player_animation.frames = 1;
+	}
+}
+
+void WorldSystem::updateEnemyAnimation(Entity enemy) {
+	Animation& enemy_animation = registry.animations.get(enemy);
+	Motion enemy_motion = registry.motions.get(enemy);
+	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+
+	// reset to walking texture
+	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+	enemy_animation.cols = 4;
+	enemy_animation.frames = 4;
+
+	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
+		// enemy is moving; play walking animation (4 frames)
+		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
+	}
+	else {
+		// enemy is still; use only 1 frame
+		enemy_animation.frames = 1;
+	}
+}
+
+void WorldSystem::playEnemyAttack(Entity enemy) {
+	Animation& enemy_animation = registry.animations.get(enemy);
+	Deadly& deadly = registry.deadlys.get(enemy);
+	Motion enemy_motion = registry.motions.get(enemy);
+	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+
+	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+	enemy_animation.cols = 7;
+	enemy_animation.frames = 7;
+
+	deadly.attacking = false;
 }
 
 // Compute collisions between entities, called after physics_system::step which checks for collisions
@@ -321,6 +492,8 @@ void WorldSystem::handle_collisions() {
 			Collision collision = *collisions[j];
 			Entity entity_other = collision.other;
 			COLLISION_TYPE type = collision.type;
+			if (!registry.activeComponents.has(entity) || !registry.activeComponents.has(entity_other))
+				continue;
 
 			// Handle collisions
 					// Note that enum words are ordered in terms of what is main and what is other (DEADLY BLOCKER will be DEADLY and then other is BLOCKER)
@@ -345,6 +518,9 @@ void WorldSystem::handle_collisions() {
 				handleProjectilePlayer(entity, entity_other);
 				// note that this collision is only added if the projectile is not friendly
 				break;
+			case COLLISION_TYPE::PLAYER_DOOR:
+				handlePlayerDoor(entity, entity_other);
+				break;
 			default:
 				printf("Unhandled collision\n");
 				break;
@@ -366,17 +542,42 @@ void WorldSystem::handle_collisions() {
 //	return;
 //}
 
+void WorldSystem::handlePlayerDoor(Entity entity, Entity entity_other) {
+	// change rooms
+	printf("room switching\n");
+	ivec2 new_room = registry.doors.get(entity_other).leads_to;
+	WorldObject& player_worldobject = registry.worldObjects.get(entity);
+	switch (registry.doors.get(entity_other).direction) {
+	case DIRECTION::UP:
+		player_worldobject.position = { window_width_px / 2, window_height_px - (WALL_WIDTH + 80) };
+		break;
+	case DIRECTION::DOWN:
+		player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
+		break;
+	case DIRECTION::RIGHT:
+		player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		break;
+	case DIRECTION::LEFT:
+		player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT};
+		break;
+	}
+
+	change_rooms(new_room);
+
+}
+
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 
 	std::array<Entity, 2> entities = { player, deadly };
 	for (Entity entity : entities) {
 		if (!registry.invincibleTimers.has(entity)) {
 			registry.healthComponents.get(entity).curr_health -= 1;
+			updateGameUI();
 			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 			}
 			else {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 			}
 			
 		}
@@ -450,7 +651,7 @@ void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	// Decrease health of deadly
 	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE);
+	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
@@ -460,7 +661,9 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER);
+	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+
+	updateGameUI();
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
@@ -471,13 +674,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	// Pick up item and apply effects to the player
 	Inventory& player_inventory = registry.inventory.get(player);
 	ItemStat new_item = registry.itemStats.get(item);
-	if ((player_inventory.items.size() < 8) && (new_item.type != "health_pack")) {
+	if ((player_inventory.items.size() < 8) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
 		player_inventory.items.push_back(new_item);
 		update_player_modifier();
 		registry.pendingRemoves.emplace_with_duplicates(item);
-		std::cout << "Picked up: " << new_item.name << std::endl;
 	}
-	else if (new_item.type == "health_pack") {
+	else if (new_item.type == ITEM_TYPE::HEALTH_PACK) {
 		// Apply health pack item
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
@@ -491,6 +693,8 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	else {
 		std::cout << "Already have 8 items" << std::endl;
 	}
+
+	updateGameUI();
 }
 
 void WorldSystem::handle_interactions() {
@@ -507,6 +711,9 @@ void WorldSystem::handle_interactions() {
 		if (dist < range) {
 			if (registry.itemStats.has(interactableEntity)) {
 				handle_item_pickup(interactableEntity);
+			}
+			else {
+				interactable.interaction(interactable.value);
 			}
 		}
 	}
@@ -570,6 +777,7 @@ void WorldSystem::handle_deaths() {
 		{
 			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
+				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
 					Mix_PlayChannel(-1, salmon_dead_sound, 0);
@@ -579,13 +787,19 @@ void WorldSystem::handle_deaths() {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
 					}
 				}
 				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
 		}
 	}
+}
+
+void WorldSystem::set_last_shot_time(Entity entity) {
+	auto& shooter = registry.shooters.get(entity);
+	using Clock = std::chrono::high_resolution_clock;
+	shooter.t = Clock::now();
 }
 
 void WorldSystem::shoot(Entity& entity) {
@@ -608,7 +822,7 @@ void WorldSystem::shoot(Entity& entity) {
 				// Apply modifiers to player bullets
 				Modifier projectile_mod = registry.modifiers.get(player);
 				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
-				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true);
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
 				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
@@ -626,7 +840,7 @@ void WorldSystem::shoot(Entity& entity) {
 			float angle = atan2(dy, dx) - M_PI;
 			if (angle < 0)
 				angle += 2 * M_PI;
-			createProjectile(renderer, entity_object.position, angle, 350.0f, false);
+			createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
 			set_last_shot_time(entity);
 		}
 		
@@ -671,6 +885,10 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 			float new_max_speed = player_motion.max_speed + speed_modifier.speed_modifier_flat + (player_motion.max_speed * speed_modifier.speed_modifier_percent);
 			player_motion.target_velocity = v_from_sa(new_max_speed, angle);
 		}
+	}
+
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+		scene_manager.set_scene(SCENE_TYPE::PAUSE);
 	}
 
 	// Interaction

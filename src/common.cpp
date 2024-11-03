@@ -34,6 +34,10 @@ float s_from_v(vec2 velocity) {
 	return sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
 }
 
+bool on_screen(vec2 position) {
+	return position.x >= 0 && position.x <= window_width_px && position.y >= 0 && position.y <= window_height_px;
+}
+
 bool gl_has_errors()
 {
 	GLenum error = glGetError();
