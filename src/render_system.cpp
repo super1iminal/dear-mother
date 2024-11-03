@@ -392,6 +392,11 @@ void RenderSystem::draw(float elapsed_ms)
 		for (Entity entity : registry.walls.entities) {
 			render_list.push_back(entity);
 		}
+		// then floor items
+		for (Entity entity : registry.floorItems.entities) {
+      render_list.push_back(entity);
+    }
+    // then doors
 		for (Entity entity : registry.doors.entities) {
 			render_list.push_back(entity);
 		}

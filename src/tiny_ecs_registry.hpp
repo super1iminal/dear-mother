@@ -33,6 +33,7 @@ public:
 	ComponentContainer<InvincibleTimer> invincibleTimers;
 	ComponentContainer<Floor> floors;
 	ComponentContainer<Wall> walls;
+	ComponentContainer<FloorItem> floorItems;
 	ComponentContainer<BaseUI> baseUI;
 	ComponentContainer<Crosshair> crosshairs;
 	ComponentContainer<Lifetime> lifetimes;
