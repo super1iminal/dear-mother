@@ -10,6 +10,7 @@
 // 6. Add the scene to the switch statement in GameManager::on_mouse_button
 // 7. Add the scene to the switch statement in GameManager::on_key
 // 8. Add the scene to the switch statement in GameManager::init
+// 9. Add the scene to switch statements in UISystem
 // there may be more steps I don't remember
 
 enum SCENE_TYPE {
