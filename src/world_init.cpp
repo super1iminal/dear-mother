@@ -141,6 +141,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	player_animation.rows = 1;
 	player_animation.frames = 1;
 	player_animation.current_frame = 0;
+	player_animation.time_since_last_frame = 0;
 
 	registry.renderRequests.insert(
 		entity,
@@ -189,6 +190,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	enemy_animation.rows = 1;
 	enemy_animation.frames = 1;
 	enemy_animation.current_frame = 0;
+	enemy_animation.time_since_last_frame = 0;
 
 	registry.renderRequests.insert(
 		entity,

@@ -54,6 +54,7 @@ struct Animation {
 	int cols;
 	int frames;
 	int current_frame; // starts at 0
+	int time_since_last_frame;
 };
 
 struct Projectile

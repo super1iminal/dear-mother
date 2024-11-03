@@ -153,8 +153,6 @@ private:
 
 	int frame_duration = 100;
 
-	int time_since_last_frame;
-
 	// font characters
 	std::map<char, Character> m_ftCharacters;
 
