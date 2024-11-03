@@ -12,6 +12,7 @@
 
 // Game configuration
 // add variables here
+int enemies = 3;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -26,12 +27,16 @@ WorldSystem::WorldSystem()
 WorldSystem::~WorldSystem() {
 
 	// destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (salmon_dead_sound != nullptr)
-		Mix_FreeChunk(salmon_dead_sound);
-	if (salmon_eat_sound != nullptr)
-		Mix_FreeChunk(salmon_eat_sound);
+	if (melee_sound != nullptr)
+		Mix_FreeChunk(melee_sound);
+	if (player_shooting_sound != nullptr)
+		Mix_FreeChunk(player_shooting_sound);
+	if (player_projectile_damage_sound != nullptr)
+		Mix_FreeChunk(player_projectile_damage_sound);
+	if (enemy_shooting_sound != nullptr)
+		Mix_FreeChunk(enemy_shooting_sound);
+	if (post_combat_music != nullptr)
+		Mix_FreeMusic(post_combat_music);
 
 	Mix_CloseAudio();
 }
@@ -60,21 +65,33 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 		exit(1);
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	salmon_dead_sound = Mix_LoadWAV(audio_path("death_sound.wav").c_str());
-	salmon_eat_sound = Mix_LoadWAV(audio_path("eat_sound.wav").c_str());
+	// Audio from:
+	// https://kenney.nl/assets/category:Audio
+	// https://soundimage.org/sci-fi/
+	// https://www.youtube.com/watch?v=BSpR0DJEgxM
+	melee_sound = Mix_LoadWAV(audio_path("impactMetal_medium_003.wav").c_str());
+	player_shooting_sound = Mix_LoadWAV(audio_path("laserSmall_000.wav").c_str());
+	player_projectile_damage_sound = Mix_LoadWAV(audio_path("forceField_002.wav").c_str());
+	enemy_shooting_sound = Mix_LoadWAV(audio_path("laserLarge_000.wav").c_str());
+	post_combat_music = Mix_LoadMUS(audio_path("Factory-On-Mercury_Looping.wav").c_str());
+	combat_music = Mix_LoadMUS(audio_path("The Death of Gods Will-[AudioTrimmer.com].wav").c_str());
 
-	if (background_music == nullptr || salmon_dead_sound == nullptr || salmon_eat_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("death_sound.wav").c_str(),
-			audio_path("eat_sound.wav").c_str());
+	if (melee_sound == nullptr || player_shooting_sound == nullptr || player_projectile_damage_sound == nullptr 
+		|| enemy_shooting_sound == nullptr || post_combat_music == nullptr || combat_music == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
+			audio_path("impactMetal_medium_003.wav").c_str(),
+			audio_path("laserSmall_000.wav").c_str(),
+			audio_path("forceField_002.wav").c_str(),
+			audio_path("laserLarge_000.wav").c_str(),
+			audio_path("Factory-On-Mercury_Looping.wav").c_str(),
+			audio_path("The Death of Gods Will-[AudioTrimmer.com].wav").c_str());
 		exit(1);
 	}
 
 
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
+	Mix_FadeInMusic(post_combat_music, -1, 5000);
+	Mix_VolumeMusic(16);
 	fprintf(stderr, "Loaded music\n");
 
 	// Create Item Set
@@ -84,18 +101,19 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	restart_game();
 }
 
+
 // Update our game world
-bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
+bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
 	// Updating window title with points
-	std::stringstream title_ss;
+	/*std::stringstream title_ss;
 	player_health = registry.healthComponents.get(player).curr_health;
 	title_ss << "Points: " << points;
 	title_ss << " Health: " << player_health;
 	title_ss << " FPS: " << fps;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
+	glfwSetWindowTitle(window, title_ss.str().c_str());*/
 
 	// Remove debug info from the last step
 	//for (Entity entity : registry.debugComponents.entities) {
@@ -145,6 +163,31 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 		shoot(entity);
 	}
 
+	// Set music based on whether or not there are enemies alive
+	int activeDeadlyCounter = 0;
+	for (Entity entity : registry.deadlys.entities) {
+		if (registry.activeComponents.has(entity)) {
+			activeDeadlyCounter++;
+		}
+	}
+	if (activeDeadlyCounter > 0) {
+		if (!in_combat) {
+			Mix_VolumeMusic(8);
+			Mix_FadeInMusic(combat_music, -1, 2500);
+			in_combat = true;
+		}
+	}
+	else {
+		if (in_combat) {
+			Mix_VolumeMusic(16);
+			Mix_FadeInMusic(post_combat_music, -1, 5000);
+			in_combat = false;
+		}
+	}
+
+	if (registry.deadlys.components.size() <= 0) {
+		in_combat = false;
+	}
 
 	// Processing the player state
 	assert(registry.screenStates.components.size() <= 1);
@@ -575,6 +618,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 			updateGameUI();
 			if (registry.players.has(entity)) {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
 			}
 			else {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
@@ -664,6 +708,7 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
 	updateGameUI();
+	Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
@@ -684,11 +729,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+			registry.pendingRemoves.emplace_with_duplicates(item);
 		}
-		else {
+		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
+			registry.pendingRemoves.emplace_with_duplicates(item);
 		}
-		registry.pendingRemoves.emplace_with_duplicates(item);
 	}
 	else {
 		std::cout << "Already have 8 items" << std::endl;
@@ -734,7 +780,7 @@ void WorldSystem::update_player_modifier() const {
 
 	float new_accuracy = 0;
 
-	for (ItemStat item : registry.inventory.get(player).items) {
+	for (ItemStat& item : registry.inventory.get(player).items) {
 		new_damage_flat += item.flat_damage_mod;
 
 		new_speed_flat += item.flat_speed_mod;
@@ -780,7 +826,7 @@ void WorldSystem::handle_deaths() {
 				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, salmon_dead_sound, 0);
+					//Mix_PlayChannel(-1, salmon_dead_sound, 0);
 				}
 			}
 			else {
@@ -826,6 +872,8 @@ void WorldSystem::shoot(Entity& entity) {
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
 				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
+
+				Mix_Volume(Mix_PlayChannel(-1, player_shooting_sound, 0), 5);
 				
 				first_shot = false;
 				set_last_shot_time(entity);
@@ -841,6 +889,7 @@ void WorldSystem::shoot(Entity& entity) {
 			if (angle < 0)
 				angle += 2 * M_PI;
 			createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+			Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			set_last_shot_time(entity);
 		}
 		
@@ -889,6 +938,9 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(post_combat_music, -1, 5000);
+		in_combat = false;
 	}
 
 	// Interaction

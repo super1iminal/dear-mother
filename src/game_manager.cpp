@@ -198,7 +198,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 				world.restart_game();
 			}
 		}
-		world.step(elapsed_ms, fps);
+		world.step(elapsed_ms);
 		ai.step(elapsed_ms);
 		physics.step(elapsed_ms);
 		collisions.add_collisions();

@@ -108,10 +108,6 @@ struct Modifier {
 	float accuracy_modifier = 0;  // 0 would be perfect accuracy
 };
 
-struct Inventory {
-	std::vector<struct ItemStat> items;
-};
-
 // anything that is deadly to the player
 struct Deadly
 {
@@ -375,3 +371,7 @@ struct ItemStat {
 	int heal_size = 0;
 };
 
+
+struct Inventory {
+	std::vector<struct ItemStat> items;
+};
