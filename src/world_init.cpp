@@ -154,9 +154,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed)
 	// create an empty Enemy component to be able to refer to all enemies
 	registry.deadlys.emplace(entity);
 	registry.deadlys.get(entity).type = (int)entity % 2;
-	std::cout << (int)entity << " " << registry.deadlys.get(entity).type << std::endl;
-	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 10000.0f;
+	if (registry.deadlys.get(entity).type == 1) {
+		auto& shooter = registry.shooters.emplace(entity);
+		shooter.fire_rate = 10000.0f;
+	}
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;

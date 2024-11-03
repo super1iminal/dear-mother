@@ -749,7 +749,7 @@ void WorldSystem::shoot(Entity& entity) {
 			float angle = atan2(dy, dx) - M_PI;
 			if (angle < 0)
 				angle += 2 * M_PI;
-			//createProjectile(renderer, entity_object.position, angle, 350.0f, false);
+			createProjectile(renderer, entity_object.position, angle, 350.0f, false);
 			set_last_shot_time(entity);
 		}
 		
