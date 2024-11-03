@@ -148,7 +148,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update, double fps) {
 
 	// spawn two enemies
 	if (registry.deadlys.components.size() < 2) {
-		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f);
+		float enemyX = (uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH;
+		float enemyY = ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT;
+		while (abs(enemyX - registry.worldObjects.get(player).position.x < 100) || abs(enemyY - registry.worldObjects.get(player).position.y < 50)) {
+			enemyX = (uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH;
+			enemyY = ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT;
+		}
+		createEnemy(renderer, vec2(enemyX, enemyY), 100.f);
 	}
 
 	// Processing the player state
