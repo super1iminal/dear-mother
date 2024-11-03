@@ -38,7 +38,7 @@ public:
 	~WorldSystem();
 
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms, double fps);
+	bool step(float elapsed_ms);
 
 	// update animations
 	void update_animations();
@@ -122,9 +122,16 @@ private:
 	void handlePlayerDoor(Entity entity, Entity entity_other);
 
 	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* salmon_dead_sound;
-	Mix_Chunk* salmon_eat_sound;
+	Mix_Chunk* melee_sound;
+	Mix_Chunk* player_shooting_sound;
+	Mix_Chunk* enemy_shooting_sound;
+	Mix_Chunk* player_projectile_damage_sound;
+	Mix_Music* post_combat_music;
+	Mix_Music* combat_music;
+
+	//Music control
+	bool change_music = true;
+	bool in_combat = false;
 
 	// C++ random number generator
 	std::default_random_engine rng;

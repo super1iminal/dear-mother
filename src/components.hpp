@@ -131,6 +131,26 @@ struct Interactable {
 	int value;
 };
 
+struct ItemStat {
+	ITEM_NAME name;
+	ITEM_TYPE type;
+
+	int flat_damage_mod = 0;
+
+	float flat_speed_mod = 0;
+	float percent_speed_mod = 0;
+
+	float flat_fire_rate = 0;
+	float percent_fire_rate = 0;
+
+	float flat_range = 0;
+	float percent_range = 0;
+
+	float accuracy = 0;
+
+	int heal_size = 0;
+};
+
 // A timer that will be associated to dying salmon
 struct DeathTimer
 {
@@ -301,6 +321,12 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY = UI + 1,
 	HORZ_WALL = ENEMY + 1,
 	VERT_WALL = HORZ_WALL + 1,
+	BATTERY_PACK = VERT_WALL + 1,
+	SHATTERED_QUARTZ = BATTERY_PACK + 1,
+	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
+	HEATSINK = CREAKY_WHEEL + 1,
+	REPEATER = HEATSINK + 1,
+	HIT_PARTICLE = REPEATER + 1,
 	BATTERY_PACK = VERT_WALL + 1,
 	SHATTERED_QUARTZ = BATTERY_PACK + 1,
 	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
