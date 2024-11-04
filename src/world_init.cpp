@@ -146,6 +146,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	player_animation.rows = 1;
 	player_animation.frames = 1;
 	player_animation.current_frame = 0;
+	player_animation.time_since_last_frame = 0;
 
 	registry.renderRequests.insert(
 		entity,
@@ -258,32 +259,35 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(door);
+	TEXTURE_ASSET_ID texture_id = TEXTURE_ASSET_ID::DOOR_LEFT_RIGHT;
 	switch (orientation) {
 	case DIRECTION::UP:
 		worldobject.position = { window_width_px/2.f, BASE_UI_HEIGHT + WALL_WIDTH/2.f };
 		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		worldobject.scale = vec2({ 170.f, WALL_WIDTH + 4 });
+		texture_id = TEXTURE_ASSET_ID::DOOR_UP_DOWN;
 		break;
 	case DIRECTION::DOWN:
 		worldobject.position = { window_width_px / 2.f, window_height_px - WALL_WIDTH/2.f};
-		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ 100.f, WALL_WIDTH + 4 });
+		worldobject.angle = M_PI;
+		worldobject.scale = vec2({ 170.f, WALL_WIDTH + 4 });
+		texture_id = TEXTURE_ASSET_ID::DOOR_UP_DOWN;
 		break;
 	case DIRECTION::LEFT:
 		worldobject.position = { WALL_WIDTH / 2.f, (window_height_px-BASE_UI_HEIGHT)/2.f + BASE_UI_HEIGHT};
 		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 170.f });
 		break;
 	case DIRECTION::RIGHT:
 		worldobject.position = { window_width_px - WALL_WIDTH / 2.f, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
-		worldobject.angle = 0.f;
-		worldobject.scale = vec2({ WALL_WIDTH + 4, 100.f });
+		worldobject.angle = M_PI;
+		worldobject.scale = vec2({ WALL_WIDTH + 4, 170.f });
 		break;
 	}
 
 	registry.renderRequests.insert(
 		door,
-		{ TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
+		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -415,7 +419,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	worldObject.position = pos;
 	worldObject.angle = angle;
 	worldObject.scale = mesh.original_size * 30.f;
-	worldObject.scale.y *= -1; // point front to the right
+	worldObject.scale.x *= -1; // point front to the right
 
 	Lifetime& lifetime = registry.lifetimes.emplace(entity);
 	lifetime.time_remaining_ms = PROJECTILE_LIFESPAN;
@@ -429,7 +433,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::SALMON
+				GEOMETRY_BUFFER_ID::BULLET_FRIENDLY
 			}
 		);
 	}
@@ -440,7 +444,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::SALMON
+				GEOMETRY_BUFFER_ID::BULLET_ENEMY
 			}
 		);
 	}

@@ -185,6 +185,10 @@ void GameManager::on_mouse_button(GLFWwindow* window, int button, int action, in
 
 bool GameManager::step(float elapsed_ms, double fps)
 {
+	std::stringstream title_ss;
+	title_ss << "Dear Mother FPS: " << fps;
+	glfwSetWindowTitle(window, title_ss.str().c_str());
+
 	SCENE_TYPE scene = scene_manager.get_scene();
 	switch (scene) {
 	case SCENE_TYPE::GAME:

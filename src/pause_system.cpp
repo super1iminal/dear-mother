@@ -24,27 +24,27 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 - 50.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px / 2, window_height_px / 2 - 52.f),
+		vec2(130.f, 28.f),
 		[&]() {
 			printf("return to game button presssed\n");
 			scene_manager.set_scene(SCENE_TYPE::GAME);
 		},
 		"return_to_game_button",
-		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::RESUME_BUTTON,
 		SCENE_TYPE::PAUSE
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 + 50.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px / 2, window_height_px / 2),
+		vec2(184.f, 32.f),
 		[&]() {
 			printf("return to menu button pressed\n");
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_menu_button",
-		TEXTURE_ASSET_ID::QUIT_BUTTON,
+		TEXTURE_ASSET_ID::MENU_BUTTON,
 		SCENE_TYPE::PAUSE
 	);
 
