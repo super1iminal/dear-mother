@@ -894,7 +894,7 @@ void WorldSystem::handle_deaths() {
 			else {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
-					if (uniform_dist(rng) * 100 > 0) {
+					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
 					}
 				}
