@@ -209,6 +209,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
 			scene_manager.set_scene(SCENE_TYPE::MENU);
+			Mix_VolumeMusic(16);
+			Mix_FadeInMusic(post_combat_music, -1, 5000);
+			in_combat = false;
 			return true;
 		}
 	}

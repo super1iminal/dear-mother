@@ -428,7 +428,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	worldObject.position = pos;
 	worldObject.angle = angle;
 	worldObject.scale = mesh.original_size * 30.f;
-	worldObject.scale.y *= -1; // point front to the right
+	worldObject.scale.x *= -1; // point front to the right
 
 	Lifetime& lifetime = registry.lifetimes.emplace(entity);
 	lifetime.time_remaining_ms = PROJECTILE_LIFESPAN;
@@ -442,7 +442,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::SALMON
+				GEOMETRY_BUFFER_ID::BULLET_FRIENDLY
 			}
 		);
 	}
@@ -453,7 +453,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::SALMON
+				GEOMETRY_BUFFER_ID::BULLET_ENEMY
 			}
 		);
 	}
