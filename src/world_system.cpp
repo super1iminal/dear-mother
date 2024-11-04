@@ -246,27 +246,39 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 	// right wall
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
-	
-	// create numFloorItems floor items (functionally a wall)
-	int numFloorItems = (int)rand() % 3;
-	for (int i = 0; i < numFloorItems; i++) {
-		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
-		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
-
-		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
-		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
-
-		float xPos = minX + uniform_dist(rng) * xRange;
-		float yPos = minY + uniform_dist(rng) * yRange;
-
-		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
-	}
-
 	if (!(coord.x == 0 && coord.y == 0)) { // no enemies in base room
-		int numEnemies = ((int)rand() % 4) + 1;
-		for (int i = 0; i < numEnemies; i++) { // create 1-4 enemies of random type
+		float scalingFactor = sqrt(coord.x * coord.x + coord.y + coord.y); // gets harder as you move further from spawn
+		int numEnemies = ((int)rand() % 2) + 1;
+		if (scalingFactor > 4)
+			numEnemies += 1;
+		else if (scalingFactor > 2)
+			numEnemies += 2;
+
+		for (int i = 0; i < numEnemies; i++) { // create a variable number of enemies of random type
 			createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
 		}
+	}
+
+	// create numFloorItems floor items (functionally a wall)
+	// need to be cautious of spawn location, not near doors (euclidean distance) or player/enemies (overlap) or on top of each other (overlap)
+	int numFloorItems = (int)rand() % 3;
+	
+	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+	float xPos;
+	float yPos;
+	while (numFloorItems > 0) {
+		do {
+			xPos = minX + rand() % (int) xRange;
+			yPos = minY + rand() % (int) yRange;
+		} while (notSafe({ xPos, yPos }));
+
+		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
+		numFloorItems--;
 	}
 	
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
@@ -281,6 +293,26 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
+}
+
+bool WorldSystem::notSafe(vec2 pos) {
+	// check proximity to doors
+	float leftRightDoorY = ((window_height_px - WALL_WIDTH - BASE_UI_HEIGHT) + WALL_WIDTH + BASE_UI_HEIGHT) / 2.f;
+	float upDoorY = WALL_WIDTH + BASE_UI_HEIGHT;
+	float leftDoorX = WALL_WIDTH;
+	float rightDoorX = window_width_px - WALL_WIDTH;
+	float upDownDoorX = window_height_px / 2.f;
+	float downDoorY = window_height_px - WALL_WIDTH;
+	if (sqrt(((pos.x - leftDoorX) * (pos.x - leftDoorX)) + ((pos.y - leftRightDoorY) * (pos.y - leftRightDoorY))) < 400) // left door
+		return true;
+	if (sqrt(((pos.x - rightDoorX) * (pos.x - rightDoorX)) + ((pos.y - leftRightDoorY) * (pos.y - leftRightDoorY))) < 400) // right door
+		return true;
+	if (sqrt(((pos.x - upDownDoorX) * (pos.x - upDownDoorX)) + ((pos.y - upDoorY) * (pos.y - upDoorY))) < 400) // top door
+		return true;
+	if (sqrt(((pos.x - upDownDoorX) * (pos.x - upDownDoorX)) + ((pos.y - downDoorY) * (pos.y - downDoorY))) < 400) // bottom door
+		return true;
+
+	return false;
 }
 
 void WorldSystem::createEmptyRoom(ivec2 coord) {

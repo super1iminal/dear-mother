@@ -136,8 +136,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	auto& shooter = registry.shooters.emplace(entity);
 	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = 5;
-	health.curr_health = 5;
+	health.max_health = 10;
+	health.curr_health = 10;
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);

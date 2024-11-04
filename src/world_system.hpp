@@ -149,5 +149,6 @@ private:
 	void change_rooms(ivec2 new_room);
 	void createEnemyRoom(ivec2 coord);
 	void createEmptyRoom(ivec2 coord);
+	bool notSafe(vec2 position);
 	ivec2 current_room;
 };
