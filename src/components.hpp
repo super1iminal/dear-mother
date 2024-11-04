@@ -326,9 +326,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,
+	ENEMY_2_ATTACK = ENEMY_2_WALK + 1,
 
 	// floor items must be kept together ====================================================================
-	BROKEN_GENERATOR = ENEMY_2_WALK + 1,
+	BROKEN_GENERATOR = ENEMY_2_ATTACK + 1,
 	BROKEN_CONTROL_PANEL = BROKEN_GENERATOR + 1,
 	DEAD_ROBOT = BROKEN_CONTROL_PANEL + 1,
 	FLOOR_HOLE = DEAD_ROBOT + 1,

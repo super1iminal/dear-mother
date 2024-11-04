@@ -548,9 +548,12 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 
 	if (deadly.type == 0) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
-		enemy_animation.cols = 7;
-		enemy_animation.frames = 7;
 	}
+	else {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
+	}
+	enemy_animation.cols = 7;
+	enemy_animation.frames = 7;
 
 	deadly.attacking = false;
 }
