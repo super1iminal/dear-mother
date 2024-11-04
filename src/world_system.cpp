@@ -264,6 +264,7 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -521,16 +522,13 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	Deadly& deadly = registry.deadlys.get(enemy);
 
 	// reset to walking texture
-	if (deadly.type == 0) {		// select robot 1
+	if (deadly.type == 0)		// select robot 1
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
-	}
-	else {							// select robot 2
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2;
-		enemy_animation.cols = 1;
-		enemy_animation.frames = 1;
-	}
+	else						// select robot 2
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
+
+	enemy_animation.cols = 4;
+	enemy_animation.frames = 4;
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
 		// enemy is moving; play walking animation (4 frames)
@@ -551,9 +549,12 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 
 	if (deadly.type == 0) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
-		enemy_animation.cols = 7;
-		enemy_animation.frames = 7;
 	}
+	else {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
+	}
+	enemy_animation.cols = 7;
+	enemy_animation.frames = 7;
 
 	deadly.attacking = false;
 }

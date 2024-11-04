@@ -79,7 +79,9 @@ class RenderSystem {
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png"),
-			
+			textures_path("/anims/walk/enemy_robot_2_walk.png"),
+			textures_path("/anims/attack/enemy_robot_attack_2.png"),
+
 			// floor items must be kept together ====================================================================
 			textures_path("BrokenGenerator.png"),
 			textures_path("BrokenControlPanel.png"),
