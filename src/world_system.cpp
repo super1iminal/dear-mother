@@ -260,7 +260,6 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 
 		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
 	}
-	
 
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
@@ -286,6 +285,8 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 void WorldSystem::generate_map() {
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
 }
 
 // 
@@ -293,7 +294,7 @@ void WorldSystem::generate_rooms() {
 	generate_map();
 	// Iterating using structured bindings
 	for (const auto& room : roomMap) {
-		ivec2 coord = { room.first.first, room.first.second };
+		const ivec2 coord = { room.first.first, room.first.second };
 		ROOM_TYPE type = room.second;
 
 		switch (type) {

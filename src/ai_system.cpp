@@ -127,72 +127,74 @@ void AISystem::handleStateChange(Entity& entity) {
 
 
 }
-void AISystem::step(float elapsed_ms)
-{
+void AISystem::step(float elapsed_ms) {
 	auto& worldObjectRegistry = registry.worldObjects;
 	auto& playerRegistry = registry.players;
 	auto& deadlyRegistry = registry.deadlys;
 
-	Entity& player = playerRegistry.entities[0]; //assuming always only 1 player
+	Entity& player = playerRegistry.entities[0]; // assuming always only 1 player
 
 	for (int i = 0; i < deadlyRegistry.entities.size(); i++) {
 		Entity& enemy = deadlyRegistry.entities[i];
-		float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t)).count()/1000;
-		float elapsed_ms_patrol = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t_patrol)).count()/1000;
-		//cout << "{" << coor_player.x << "||" << coor_player.y << "}" << "{" << coor_enemy.x << "||" << coor_enemy.y << "}" << dx <<"|"<<dy<<"|" <<angle << endl;
+		float elapsed_time = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t)).count() / 1000;
+		float elapsed_time_patrol = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(enemy).t_patrol)).count() / 1000;
 		float distanceToPlayer = length(worldObjectRegistry.get(player).position - worldObjectRegistry.get(enemy).position);
 		DeadlyState state = deadlyRegistry.get(enemy).state;
-		switch(state) {
-			case DeadlyState::idle:
-				if (distanceToPlayer < 300) {
-					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
-				} else if (elapsed_ms > 10000) {
-					deadlyRegistry.get(enemy).state = DeadlyState::patrol_left;
-					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
-				}
-				break;
-			case DeadlyState::patrol_left:
-				if (distanceToPlayer < 300) {
-					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
-				} else if (elapsed_ms > 10000) {
-					deadlyRegistry.get(enemy).state = DeadlyState::idle;
-					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
-				} else if (elapsed_ms_patrol > 5000) {
-					deadlyRegistry.get(enemy).state = DeadlyState::patrol_right;
-					deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now();
-				}
-				break;
-			case DeadlyState::patrol_right:
-				if (distanceToPlayer < 300) {
-					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
-				} else if (elapsed_ms > 10000) {
-					deadlyRegistry.get(enemy).state = DeadlyState::idle;
-					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
-				} else if (elapsed_ms_patrol > 2500) {
-					deadlyRegistry.get(enemy).state = DeadlyState::patrol_left;
-					deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now();
-				}
-				break;
-			case DeadlyState::attack_moving:
-				pathfinding(enemy);
-				if (distanceToPlayer < 200) {
-					deadlyRegistry.get(enemy).state = DeadlyState::attack_still;
-				} else if (distanceToPlayer > 400) {
-					deadlyRegistry.get(enemy).state = DeadlyState::idle;
-					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
-				}
-				break;
-			case DeadlyState::attack_still:
-				if (distanceToPlayer > 200) {
-					deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
-				} else if (distanceToPlayer > 400) {
-					deadlyRegistry.get(enemy).state = DeadlyState::idle;
-					deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
-				}
-				break;
+
+		switch (state) {
+		case DeadlyState::idle:
+			if (elapsed_time >= 1500) { // Wait for 1.5 seconds
+				deadlyRegistry.get(enemy).state = DeadlyState::patrol_right;
+				deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now(); // Reset patrol timer
+			}
+			break;
+
+		case DeadlyState::patrol_right:
+			if (distanceToPlayer < 600) { // If player is close enough, stop patrolling and attack
+				deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+			}
+			else if (elapsed_time_patrol >= 5000) { // Patrol right for 5 seconds
+				deadlyRegistry.get(enemy).state = DeadlyState::patrol_left;
+				deadlyRegistry.get(enemy).t_patrol = std::chrono::high_resolution_clock::now(); // Reset patrol timer
+			}
+			break;
+
+		case DeadlyState::patrol_left:
+			if (distanceToPlayer < 600) { // If player is close enough, stop patrolling and attack
+				deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+			}
+			else if (elapsed_time_patrol >= 10000) { // Patrol left for 10 seconds
+				deadlyRegistry.get(enemy).state = DeadlyState::idle; // Return to idle state
+				deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now(); // Reset idle timer
+			}
+			break;
+
+		case DeadlyState::attack_moving:
+			pathfinding(enemy);
+			if (distanceToPlayer < 200) { // Shoot at the player
+				deadlyRegistry.get(enemy).state = DeadlyState::attack_still;
+			}
+			else if (distanceToPlayer >= 600) { // Stop attacking the player if they're too far away
+				deadlyRegistry.get(enemy).state = DeadlyState::idle;
+				deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+			}
+			break;
+
+		case DeadlyState::attack_still:
+			if (distanceToPlayer > 200) { // Stop shooting at the player
+				deadlyRegistry.get(enemy).state = DeadlyState::attack_moving;
+			}
+			else if (distanceToPlayer >= 600) { // Stop attacking the player if they're too far away
+				deadlyRegistry.get(enemy).state = DeadlyState::idle;
+				deadlyRegistry.get(enemy).t = std::chrono::high_resolution_clock::now();
+			}
+			break;
 		}
+
+		// Handle state change if the state has changed
 		if (state != deadlyRegistry.get(enemy).state) {
 			handleStateChange(enemy);
 		}
 	}
 }
+
