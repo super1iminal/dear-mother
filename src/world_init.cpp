@@ -178,7 +178,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
-	deadly.type = (int) rand() % 2;  // 0 for grey melee, 1 for slower yellow projectile
+
+  deadly.type = (int) rand() % 2;  // 0 for grey melee, 1 for slower yellow projectile
+
 	if (registry.deadlys.get(entity).type == 1) {
 		registry.motions.get(entity).max_speed = 0.7 * speed;
 		auto& shooter = registry.shooters.emplace(entity);
