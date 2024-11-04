@@ -228,9 +228,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// update HUD
-	updateGameUI();
-
 	return true;
 }
 
@@ -454,7 +451,7 @@ void WorldSystem::initGameUI() {
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - (i * 60), window_height_px / 11),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
@@ -467,17 +464,18 @@ void WorldSystem::initGameUI() {
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
 	UIElement& health_elt = registry.uiElements.get(health_ui);
-	health_elt.value = static_cast<float>(player_health);
+	health_elt.value = registry.healthComponents.get(player).curr_health;
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = static_cast<float>(scrap);
 
 	// re render the items
+	// TODO pull this into a helper method later
 	Inventory& player_inventory = registry.inventory.get(player);
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - (i * 104) - 57, window_height_px / 11),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),

@@ -54,6 +54,7 @@ struct Animation {
 	int cols;
 	int frames;
 	int current_frame; // starts at 0
+	int time_since_last_frame;
 };
 
 struct Projectile
@@ -308,7 +309,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY_2 = ENEMY + 1,
 	HORZ_WALL = ENEMY_2 + 1,
 	VERT_WALL = HORZ_WALL + 1,
-	BATTERY_PACK = VERT_WALL + 1,
+	DOOR_LEFT_RIGHT = VERT_WALL + 1,
+	DOOR_UP_DOWN = DOOR_LEFT_RIGHT + 1,
+	BATTERY_PACK = DOOR_UP_DOWN + 1,
 	SHATTERED_QUARTZ = BATTERY_PACK + 1,
 	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
 	HEATSINK = CREAKY_WHEEL + 1,
@@ -322,7 +325,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
-	PLAYER_WALK = BACK_BUTTON + 1,
+	RESUME_BUTTON = BACK_BUTTON + 1,
+	MENU_BUTTON = RESUME_BUTTON + 1, 
+	PLAYER_WALK = MENU_BUTTON + 1,
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 

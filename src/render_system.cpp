@@ -44,8 +44,6 @@ GLFWwindow* RenderSystem::create_window() {
 		return nullptr;
 	}
 
-	time_since_last_frame = 0;
-
 	return window;
 }
 
@@ -126,13 +124,15 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			rows = entity_animation.rows;
 			cols = entity_animation.cols;
 			frames = entity_animation.frames;
-			current_frame = entity_animation.current_frame;
 
-			time_since_last_frame += elapsed_ms;
-			if (time_since_last_frame > frame_duration) {
+			entity_animation.time_since_last_frame += elapsed_ms;
+
+			if (entity_animation.time_since_last_frame > frame_duration) {
 				entity_animation.current_frame = (entity_animation.current_frame + 1) % (frames);
-				time_since_last_frame = 0;
+				entity_animation.time_since_last_frame = 0;
 			}
+
+			current_frame = entity_animation.current_frame;
 		}
 		
 		float frame_width = 1.0f / cols;
