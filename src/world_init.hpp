@@ -10,11 +10,11 @@ const float ENEMY_BB_HEIGHT = 130.f;
 
 const float PLAYER_MAX_SPEED = 300.f;
 
-const float PLAYER_SIZE = 100.f;
+const float PLAYER_SIZE = 80.f;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
-const int NUM_PARTICLES_OFFSET = 1;
+const int   NUM_PARTICLES_OFFSET = 1;
 const float MAX_PARTICLE_LIFETIME = 1000.f;
 const float MAX_PARTICLE_SIZE = 20.f;
 const float PARTICLE_SIZE_OFFSET = 10.f;

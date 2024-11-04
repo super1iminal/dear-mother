@@ -171,7 +171,7 @@ void AISystem::step(float elapsed_ms) {
 
 		case DeadlyState::attack_moving:
 			pathfinding(enemy);
-			if (distanceToPlayer < 200) { // Shoot at the player
+			if (distanceToPlayer < 200 && registry.shooters.has(enemy)) { // Shoot at the player
 				deadlyRegistry.get(enemy).state = DeadlyState::attack_still;
 			}
 			else if (distanceToPlayer >= 600) { // Stop attacking the player if they're too far away

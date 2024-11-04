@@ -261,8 +261,10 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
 	}
 
-	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
-	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	int numEnemies = ((int)rand() % 4) + 1;
+	for (int i = 0; i < numEnemies; i++) { // create 1-4 enemies of random type
+		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 200.f, coord);
+	}
 	
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
@@ -286,6 +288,7 @@ void WorldSystem::generate_map() {
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
 }
 
