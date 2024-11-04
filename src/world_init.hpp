@@ -68,3 +68,5 @@ Entity createLine(vec2 position, vec2 size);
 
 // create all item components
 void buildItemSet();
+
+void createLoadedGame(RenderSystem* renderer);

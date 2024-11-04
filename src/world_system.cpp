@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ui_system.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <reloadability_system.hpp>
 
 // Game configuration
 // add variables here
@@ -244,9 +245,11 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
 	// right wall
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	if (registry.deadlys.entities.size() == 0) {
+		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	}
 
-	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
-	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -339,8 +342,18 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// create a new Player entity
-	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
+	if (registry.gameLoadingOptions.components.size() == 0 || registry.gameLoadingOptions.components[0].savedGame == false) {
+		player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+		cout << "not saved" << endl;
+	} else {
+		ReloadabilitySystem::loadGame();
+		createLoadedGame(renderer);
+		registry.gameLoadingOptions.components[0].savedGame = false;
+		player = registry.players.entities[0];
+		cout << "saved" << endl;
+	}
+	cout << registry.players.entities.size() << endl;
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
 
@@ -866,7 +879,7 @@ void WorldSystem::shoot(Entity& entity) {
 				float angle = atan2(ypos - entity_object.position.y, xpos - entity_object.position.x);
 
 				// Apply modifiers to player bullets
-				Modifier projectile_mod = registry.modifiers.get(player);
+				Modifier projectile_mod = registry.modifiers.get(entity);
 				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
 				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
@@ -958,6 +971,10 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 			current_speed += 0.1f;
 			printf("Current speed = %f\n", current_speed);
 		}
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
+		ReloadabilitySystem::saveGame();
 	}
 }
 

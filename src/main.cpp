@@ -35,6 +35,7 @@ int main()
 	double last_time = glfwGetTime();
 	int num_of_frames = 0;
 	double fps = 0;
+	int num_of_frames_debug = 0;
 	while (!game.is_over()) {
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
@@ -45,12 +46,16 @@ int main()
 		double curr_time = glfwGetTime();
 		num_of_frames++;
 
+		num_of_frames_debug++;
 		if (curr_time - last_time >= 1.0) {
 			fps = num_of_frames;
 			num_of_frames = 0;
 			last_time += 1.0;
 		}
-
+		if (num_of_frames_debug > 1000) {
+			num_of_frames_debug = 0;
+			std::cout << registry.players.entities.size() << std::endl;
+		}
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;

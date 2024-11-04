@@ -498,3 +498,58 @@ void buildItemSet() {
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
 }
+
+
+void createLoadedGame(RenderSystem *renderer) {
+	std::cout << "loading game world-init" << std::endl;
+	auto entity = registry.players.entities[0];
+	registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& shooter = registry.shooters.emplace(entity);
+	shooter.fire_rate = 500.0f;
+	auto& health = registry.healthComponents.emplace(entity);
+	health.max_health = 5;
+	health.curr_health = 5;
+	registry.inventory.emplace(entity);
+	registry.modifiers.emplace(entity);
+		Animation& player_animation = registry.animations.emplace(entity);
+		player_animation.cols = 4;
+		player_animation.rows = 1;
+		player_animation.frames = 1;
+		player_animation.current_frame = 0;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLAYER_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	for (Entity entity : registry.deadlys.entities) {
+		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+		auto& deadly = registry.deadlys.emplace(entity);
+		deadly.t = std::chrono::high_resolution_clock::now();
+		deadly.t_patrol = std::chrono::high_resolution_clock::now();
+		auto& shooter = registry.shooters.emplace(entity);
+		shooter.fire_rate = std::numeric_limits<int>::max();
+		auto& health = registry.healthComponents.emplace(entity);
+		health.max_health = 5;
+		health.curr_health = 5;
+		Animation& enemy_animation = registry.animations.emplace(entity);
+		enemy_animation.cols = 4;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+		registry.renderRequests.insert(
+			entity,
+			{
+				TEXTURE_ASSET_ID::ENEMY,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE
+			});
+	}
+}
