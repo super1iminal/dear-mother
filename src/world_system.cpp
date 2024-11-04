@@ -215,15 +215,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
-
 	auto& invincibleTimerRegistry = registry.invincibleTimers;
-	for (Entity entity : invincibleTimerRegistry.entities) {
+	// iterate backwards
+	for (int i = invincibleTimerRegistry.entities.size() - 1; i >= 0; --i) {
+		Entity entity = invincibleTimerRegistry.entities[i];
 		InvincibleTimer& counter = invincibleTimerRegistry.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
 		if (counter.counter_ms < 0) {
+			printf("counter.counter_ms: %f\n", counter.counter_ms);
 			invincibleTimerRegistry.remove(entity);
 		}
 	}
+
 
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
@@ -648,6 +651,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	std::array<Entity, 2> entities = { player, deadly };
 	for (Entity entity : entities) {
 		if (!registry.invincibleTimers.has(entity)) {
+			registry.invincibleTimers.emplace(entity);
 			registry.healthComponents.get(entity).curr_health -= 1;
 			updateGameUI();
 			if (registry.players.has(entity)) {
@@ -659,7 +663,6 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 			}
 			
 		}
-		registry.invincibleTimers.emplace(entity);
 	}
 	return;
 }
@@ -738,11 +741,15 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
-	registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-	createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+	if (!registry.invincibleTimers.has(player)) {
+		registry.invincibleTimers.emplace(player);
+		registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+		createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
-	updateGameUI();
-	Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+		updateGameUI();
+		Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+	}
+
 
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
