@@ -7,6 +7,7 @@
 // BB = bounding box
 const float ENEMY_BB_WIDTH = 100.f;
 const float ENEMY_BB_HEIGHT = 130.f;
+const float ENEMY_SPEED = 150.f;
 
 const float PLAYER_MAX_SPEED = 300.f;
 
@@ -33,7 +34,6 @@ const float WALL_WIDTH = 75.f;
 
 // floor item stuff
 const float FLOOR_ITEM_SIZE = 75.f;
-const float NUM_FLOOR_ITEMS = 2;
 
 // Item drop chance
 const float DROP_CHANCE = 15;

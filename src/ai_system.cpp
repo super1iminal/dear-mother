@@ -96,30 +96,30 @@ void AISystem::handleStateChange(Entity& entity) {
 			motionRegistry.get(entity).target_velocity = { 0, 0 };
 			if (shooterRegistry.has(entity))
 				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
-			cout << "idle" << endl;
+			//cout << "idle" << endl;
 			break;
 		case DeadlyState::patrol_left:
 			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, M_PI);
 			if (shooterRegistry.has(entity))
 				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
-			cout << "patrol left" << endl;
+			//cout << "patrol left" << endl;
 			break;
 		case DeadlyState::patrol_right:
 			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, 2*M_PI);
 			if (shooterRegistry.has(entity))
 				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
-			cout << "patrol right" << endl;
+			//cout << "patrol right" << endl;
 			break;
 		case DeadlyState::attack_moving:
 			if (shooterRegistry.has(entity))
 				shooterRegistry.get(entity).fire_rate = 10000.0f;
-			cout << "attack_moving" << endl;
+			//cout << "attack_moving" << endl;
 			break;
 		case DeadlyState::attack_still:
 			motionRegistry.get(entity).target_velocity = { 0, 0 };
 			if (shooterRegistry.has(entity))
 				shooterRegistry.get(entity).fire_rate = 10000.0f;
-			cout << "attack_still" << endl;
+			//cout << "attack_still" << endl;
 			break;
 
 	}

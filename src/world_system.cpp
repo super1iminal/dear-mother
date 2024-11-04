@@ -13,7 +13,7 @@
 
 // Game configuration
 // add variables here
-int enemies = 3;
+bool player_seen = false;
 
 // create the underwater world
 WorldSystem::WorldSystem()
@@ -247,8 +247,9 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 	
-	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
-	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
+	// create numFloorItems floor items (functionally a wall)
+	int numFloorItems = (int)rand() % 3;
+	for (int i = 0; i < numFloorItems; i++) {
 		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
 		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
 
@@ -261,9 +262,11 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
 	}
 
-	int numEnemies = ((int)rand() % 4) + 1;
-	for (int i = 0; i < numEnemies; i++) { // create 1-4 enemies of random type
-		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 200.f, coord);
+	if (!(coord.x == 0 && coord.y == 0)) { // no enemies in base room
+		int numEnemies = ((int)rand() % 4) + 1;
+		for (int i = 0; i < numEnemies; i++) { // create 1-4 enemies of random type
+			createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
+		}
 	}
 	
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
@@ -290,6 +293,17 @@ void WorldSystem::generate_map() {
 	roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{2, 0}] = ROOM_TYPE::ENEMY_ROOM;
+
+	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-1, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 4}] = ROOM_TYPE::ENEMY_ROOM;
 }
 
 // 
@@ -310,7 +324,6 @@ void WorldSystem::generate_rooms() {
 		}
 	}
 
-
 	// need to only have the current entities as active. 
 	// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
 	registry.activeComponents.clear();
@@ -323,7 +336,6 @@ void WorldSystem::generate_rooms() {
 		}
 	}
 }
-
 
 void WorldSystem::change_rooms(ivec2 new_room) {
 	current_room = new_room;
@@ -611,6 +623,7 @@ void WorldSystem::handle_collisions() {
 	}
 
 	// Remove all collisions from this simulation step
+	player_seen = false;
 	registry.collisions.clear();
 }
 
@@ -623,28 +636,25 @@ void WorldSystem::handle_collisions() {
 //	return;
 //}
 
-void WorldSystem::handlePlayerDoor(Entity entity, Entity entity_other) {
+void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 	// change rooms
 	printf("room switching\n");
-	ivec2 new_room = registry.doors.get(entity_other).leads_to;
-	WorldObject& player_worldobject = registry.worldObjects.get(entity);
-	switch (registry.doors.get(entity_other).direction) {
-	case DIRECTION::UP:
-		player_worldobject.position = { window_width_px / 2, window_height_px - (WALL_WIDTH + 80) };
-		break;
-	case DIRECTION::DOWN:
-		player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
-		break;
-	case DIRECTION::RIGHT:
-		player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
-		break;
-	case DIRECTION::LEFT:
-		player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT};
-		break;
+	ivec2 new_room = registry.doors.get(door).leads_to;
+	WorldObject& player_worldobject = registry.worldObjects.get(player);
+	
+	if (player_seen == false) {
+		if (registry.worldObjects.get(player).position.x < (WALL_WIDTH + PLAYER_SIZE * 1.5))
+			player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		else if (registry.worldObjects.get(player).position.x > (window_width_px - (WALL_WIDTH + PLAYER_SIZE * 1.5)))
+			player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+		else if (registry.worldObjects.get(player).position.y > window_height_px - (WALL_WIDTH + PLAYER_SIZE * 1.5))
+			player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
+		else
+			player_worldobject.position = { window_width_px / 2, window_height_px - (WALL_WIDTH + 80) };
+
+		change_rooms(new_room);
 	}
-
-	change_rooms(new_room);
-
+	player_seen = true;
 }
 
 void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
