@@ -650,7 +650,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 
 	std::array<Entity, 2> entities = { player, deadly };
 	for (Entity entity : entities) {
-		if (!registry.invincibleTimers.has(entity)) {
+		if (!registry.invincibleTimers.has(entity) && !registry.deathTimers.has(player)) {
 			registry.invincibleTimers.emplace(entity);
 			registry.healthComponents.get(entity).curr_health -= 1;
 			updateGameUI();
@@ -741,7 +741,7 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
-	if (!registry.invincibleTimers.has(player)) {
+	if (!registry.invincibleTimers.has(player) && !registry.deathTimers.has(player)) {
 		registry.invincibleTimers.emplace(player);
 		registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
 		createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
@@ -894,7 +894,7 @@ void WorldSystem::handle_deaths() {
 			else {
 				if (registry.deadlys.has(entity)) {
 					// TODO: drop item on death
-					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
+					if (uniform_dist(rng) * 100 > 0) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
 					}
 				}
