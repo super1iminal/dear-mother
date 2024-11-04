@@ -53,15 +53,16 @@ class RenderSystem {
 			textures_path("/crosshairs/crosshair070.png"),
 			textures_path("base_UI.png"),
 			textures_path("enemy_robot.png"),
+			textures_path("enemy_robot_2.png"),
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
 			textures_path("door_leftright.png"),
 			textures_path("door_updown.png"),
 			textures_path("battery.png"),
-			textures_path("battery.png"), // Repeated for other items for now, should be SHATTERED_QUARTZ. Do double check.
-			textures_path("battery.png"), // Repeated for other items for now, should be CREAKY_WHEEL
-			textures_path("battery.png"), // Repeated for other items for now, should be HEATSINK
-			textures_path("battery.png"), // Repeated for other items for now, should be REPEATER
+			textures_path("shattered_quartz.png"),
+			textures_path("creaky_wheel.png"),
+			textures_path("heatsink.png"), 
+			textures_path("repeater.png"), 
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
@@ -75,7 +76,20 @@ class RenderSystem {
 			textures_path("/buttons/main_menu_button.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
-			textures_path("/anims/attack/enemy_robot_attack.png")
+			textures_path("/anims/attack/enemy_robot_attack.png"),
+			
+			// floor items must be kept together ====================================================================
+			textures_path("BrokenGenerator.png"),
+			textures_path("BrokenControlPanel.png"),
+			textures_path("DeadRobot.png"),
+			textures_path("FloorHole.png"), // potential for animation
+			textures_path("Furnace.png"),
+			textures_path("RustyPipes4.png"),  // potential for animation
+			textures_path("SlagPit1.png"), // potential for animation
+			// Also potential for a floor item of variable size in conveyor belts. Not on git yet.
+			// Also potential for an interactable floor item oil spill, which the player slides across without control
+			// floor items must be kept together ====================================================================
+
 	};
 
 	std::array<GLuint, effect_count> effects;

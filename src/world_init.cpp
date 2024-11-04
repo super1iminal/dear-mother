@@ -84,7 +84,12 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	registry.walls.emplace(entity);
+	if (type == TEXTURE_ASSET_ID::VERT_WALL || type == TEXTURE_ASSET_ID::HORZ_WALL) {
+		registry.walls.emplace(entity);
+	}
+	else {
+		registry.floorItems.emplace(entity);
+	}
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -169,34 +174,58 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	motion.velocity = { 0.f, 0.f };
 	motion.acceleration = { 0.f, 0.f };
 
-	// setting position, scale, orientation
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = position;
-	worldobject.angle = 0.f;
-	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
-
 	// create an empty Enemy component to be able to refer to all enemies
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
-	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = std::numeric_limits<int>::max();
-	auto& health = registry.healthComponents.emplace(entity);
+  deadly.type = (int)entity % 2;  // 0 for grey melee, 1 for slower yellow projectile
+  if (registry.deadlys.get(entity).type == 1) {
+		registry.motions.get(entity).max_speed = 0.7 * speed;
+		auto& shooter = registry.shooters.emplace(entity);
+		shooter.fire_rate = std::numeric_limits<int>::max();
+	}
+  	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
 	health.curr_health = 5;
 
-	Animation& enemy_animation = registry.animations.emplace(entity);
-	enemy_animation.cols = 4;
-	enemy_animation.rows = 1;
-	enemy_animation.frames = 1;
-	enemy_animation.current_frame = 0;
-	enemy_animation.time_since_last_frame = 0;
+	// setting position, scale, orientation
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = position;
+	worldobject.angle = 0.f;
+	if (registry.deadlys.get(entity).type == 0) {
+		worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	}
+	else {
+		worldobject.scale = vec2({ -ENEMY_BB_WIDTH * .8, ENEMY_BB_HEIGHT * .8 });
+	}
+	
+	if (registry.deadlys.get(entity).type == 0) {
+		Animation& enemy_animation = registry.animations.emplace(entity);
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::ENEMY_WALK,
-			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+		enemy_animation.cols = 4;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	} else {
+		Animation& enemy_animation = registry.animations.emplace(entity);
+
+		enemy_animation.cols = 1;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_2,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
 
 	return entity;
 }
