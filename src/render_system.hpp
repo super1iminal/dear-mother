@@ -56,6 +56,8 @@ class RenderSystem {
 			textures_path("enemy_robot_2.png"),
 			textures_path("horz_wall.png"),
 			textures_path("vert_wall.png"),
+			textures_path("door_leftright.png"),
+			textures_path("door_updown.png"),
 			textures_path("battery.png"),
 			textures_path("shattered_quartz.png"),
 			textures_path("creaky_wheel.png"),
@@ -70,6 +72,8 @@ class RenderSystem {
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
+			textures_path("/buttons/resume_button.png"),
+			textures_path("/buttons/main_menu_button.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png"),
@@ -162,8 +166,6 @@ private:
 	Entity screen_state_entity;
 
 	int frame_duration = 100;
-
-	int time_since_last_frame;
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;
