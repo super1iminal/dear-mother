@@ -121,6 +121,8 @@ private:
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
 
+	TEXTURE_ASSET_ID randomFloorItem();
+
 	// music references
 	Mix_Chunk* melee_sound;
 	Mix_Chunk* player_shooting_sound;

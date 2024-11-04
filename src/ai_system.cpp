@@ -88,32 +88,37 @@ void AISystem::pathfinding(Entity& entity) {
 void AISystem::handleStateChange(Entity& entity) {
 	auto& deadlyRegistry = registry.deadlys;
 	auto& motionRegistry = registry.motions;
-	auto& shooterRegsitry = registry.shooters;
+	auto& shooterRegistry = registry.shooters;
 	float elapsed_ms = (float)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - deadlyRegistry.get(entity).t)).count()/1000;
 	//switch code for different state
 	switch(deadlyRegistry.get(entity).state) {
 		case DeadlyState::idle:
 			motionRegistry.get(entity).target_velocity = { 0, 0 };
-			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			if (shooterRegistry.has(entity))
+				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
 			cout << "idle" << endl;
 			break;
 		case DeadlyState::patrol_left:
 			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, M_PI);
-			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			if (shooterRegistry.has(entity))
+				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
 			cout << "patrol left" << endl;
 			break;
 		case DeadlyState::patrol_right:
 			motionRegistry.get(entity).target_velocity = v_from_sa(motionRegistry.get(entity).max_speed/2, 2*M_PI);
-			shooterRegsitry.get(entity).fire_rate = std::numeric_limits<int>::max();
+			if (shooterRegistry.has(entity))
+				shooterRegistry.get(entity).fire_rate = std::numeric_limits<int>::max();
 			cout << "patrol right" << endl;
 			break;
 		case DeadlyState::attack_moving:
-			shooterRegsitry.get(entity).fire_rate = 10000.0f;
+			if (shooterRegistry.has(entity))
+				shooterRegistry.get(entity).fire_rate = 10000.0f;
 			cout << "attack_moving" << endl;
 			break;
 		case DeadlyState::attack_still:
 			motionRegistry.get(entity).target_velocity = { 0, 0 };
-			shooterRegsitry.get(entity).fire_rate = 10000.0f;
+			if (shooterRegistry.has(entity))
+				shooterRegistry.get(entity).fire_rate = 10000.0f;
 			cout << "attack_still" << endl;
 			break;
 

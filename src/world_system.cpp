@@ -1,6 +1,7 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
+#include "collision_system.hpp"
 
 // stlib
 #include <cassert>
@@ -157,7 +158,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Shoot if LMB is clicked
+	// Shoot on cue
 	for (Entity entity : registry.shooters.entities) {
 		if (!registry.activeComponents.has(entity))
 			continue;
@@ -209,6 +210,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
 			scene_manager.set_scene(SCENE_TYPE::MENU);
+			Mix_VolumeMusic(16);
+			Mix_FadeInMusic(post_combat_music, -1, 5000);
+			in_combat = false;
 			return true;
 		}
 	}
@@ -224,9 +228,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
-
-	// update HUD
-	updateGameUI();
 
 	return true;
 }
@@ -249,6 +250,24 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 		createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 	}
+
+	// create NUM_FLOOR_ITEMS floor items (functionally a wall)
+	for (int i = 0; i < NUM_FLOOR_ITEMS; i++) {
+		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+		float xPos = minX + uniform_dist(rng) * xRange;
+		float yPos = minY + uniform_dist(rng) * yRange;
+
+		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
+	}
+	
+
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
+	createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), 100.f, coord);
 
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
@@ -359,6 +378,11 @@ void WorldSystem::restart_game() {
 
 	generate_rooms();
 
+	// Set initial cooldown time
+	for (Entity entity : registry.shooters.entities) {
+		set_last_shot_time(entity);
+	}
+	
 	initGameUI();
 }
 
@@ -369,7 +393,7 @@ void WorldSystem::increaseScrap(int amt)
 	std::cout <<  "scrap: " << scrap << std::endl;
 }
 
-TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
+TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {	
 	TEXTURE_ASSET_ID item_texture = TEXTURE_ASSET_ID::BATTERY_PACK;
 	switch (item.name)
 	{
@@ -437,13 +461,12 @@ void WorldSystem::initGameUI() {
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
-	// as a placeholder, there is just one item slot for now
 	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i + 1) * window_width_px / 22), window_height_px / 11),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
@@ -456,17 +479,18 @@ void WorldSystem::initGameUI() {
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
 	UIElement& health_elt = registry.uiElements.get(health_ui);
-	health_elt.value = static_cast<float>(player_health);
+	health_elt.value = registry.healthComponents.get(player).curr_health;
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = static_cast<float>(scrap);
 
 	// re render the items
+	// TODO pull this into a helper method later
 	Inventory& player_inventory = registry.inventory.get(player);
 	for (uint i = 0; i < player_inventory.items.size(); i++) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i + 1)*window_width_px / 22), window_height_px / 11),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
@@ -509,9 +533,14 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	Animation& enemy_animation = registry.animations.get(enemy);
 	Motion enemy_motion = registry.motions.get(enemy);
 	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
+	Deadly& deadly = registry.deadlys.get(enemy);
 
 	// reset to walking texture
-	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+	if (deadly.type == 0)		// select robot 1
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+	else						// select robot 2
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
+
 	enemy_animation.cols = 4;
 	enemy_animation.frames = 4;
 
@@ -526,12 +555,18 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 }
 
 void WorldSystem::playEnemyAttack(Entity enemy) {
+
 	Animation& enemy_animation = registry.animations.get(enemy);
 	Deadly& deadly = registry.deadlys.get(enemy);
 	Motion enemy_motion = registry.motions.get(enemy);
 	RenderRequest& enemy_render_request = registry.renderRequests.get(enemy);
 
-	enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+	if (deadly.type == 0) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+	}
+	else {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
+	}
 	enemy_animation.cols = 7;
 	enemy_animation.frames = 7;
 
@@ -726,6 +761,27 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
+}
+
+TEXTURE_ASSET_ID WorldSystem::randomFloorItem()
+{
+	int seed = rand() % 7;
+	switch (seed) {
+	case 0:
+		return TEXTURE_ASSET_ID::FURNACE;
+	case 1: 
+		return TEXTURE_ASSET_ID::BROKEN_GENERATOR;
+	case 2:
+		return TEXTURE_ASSET_ID::DEAD_ROBOT;
+	case 3:
+		return TEXTURE_ASSET_ID::BROKEN_CONTROL_PANEL;
+	case 4:
+		return TEXTURE_ASSET_ID::FLOOR_HOLE;
+	case 5:
+		return TEXTURE_ASSET_ID::RUSTY_PIPES;
+	default:
+		return TEXTURE_ASSET_ID::SLAG_PIT;
+	}
 }
 
 void WorldSystem::handle_item_pickup(Entity item) {
