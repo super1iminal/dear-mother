@@ -13,7 +13,6 @@ private:
 	bool meshCollides(Entity entity_mesh, Entity entity_bb);
 public:
 	void add_collisions();
-	bool collides(const WorldObject& object1, const WorldObject& object2);
 
 	CollisionSystem()
 	{

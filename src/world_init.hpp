@@ -7,14 +7,15 @@
 // BB = bounding box
 const float ENEMY_BB_WIDTH = 100.f;
 const float ENEMY_BB_HEIGHT = 130.f;
+const float ENEMY_SPEED = 100.f;
 
 const float PLAYER_MAX_SPEED = 300.f;
 
-const float PLAYER_SIZE = 100.f;
+const float PLAYER_SIZE = 80.f;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
-const int NUM_PARTICLES_OFFSET = 1;
+const int   NUM_PARTICLES_OFFSET = 1;
 const float MAX_PARTICLE_LIFETIME = 1000.f;
 const float MAX_PARTICLE_SIZE = 20.f;
 const float PARTICLE_SIZE_OFFSET = 10.f;
@@ -33,7 +34,6 @@ const float WALL_WIDTH = 75.f;
 
 // floor item stuff
 const float FLOOR_ITEM_SIZE = 75.f;
-const float NUM_FLOOR_ITEMS = 2;
 
 // Item drop chance
 const float DROP_CHANCE = 15;

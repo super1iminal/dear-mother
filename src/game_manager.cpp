@@ -107,8 +107,15 @@ void GameManager::on_mouse_move(vec2 pos) {
 	// Update the position of the crosshair
 	for (Entity crosshair : registry.crosshairs.entities) {
 		WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-		if (pos.x > 0 && pos.x < window_width_px && pos.y > BASE_UI_HEIGHT && pos.y < window_height_px)
-			crosshair_object.position = pos;
+		if (scene_manager.get_scene() == SCENE_TYPE::GAME) {
+			if (pos.x > 0 && pos.x < window_width_px && pos.y > BASE_UI_HEIGHT && pos.y < window_height_px)
+				crosshair_object.position = pos;
+		}
+		else {
+			if (pos.x > 0 && pos.x < window_width_px && pos.y > 0 && pos.y < window_height_px)
+				crosshair_object.position = pos;
+		}
+		
 	}
 	switch (scene_manager.get_scene()) {
 	case SCENE_TYPE::GAME:
