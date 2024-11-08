@@ -60,11 +60,12 @@ Entity UISystem::createPanel(
 	worldobject.angle = angle;
 	worldobject.scale = scale;
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			14 });
 
 	return entity;
 }
@@ -112,11 +113,12 @@ Entity UISystem::createUIElement(
 	vec3& ui_color = registry.colors.emplace(entity);
 	ui_color = vec3(1.0f, 1.0f, 1.0f);
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::FONT,
-			GEOMETRY_BUFFER_ID::SQUARE });
+			GEOMETRY_BUFFER_ID::SQUARE,
+			16 });
 
 	return entity;
 }
@@ -162,11 +164,12 @@ Entity UISystem::createTexturedUIElement(
 	ui_element.name = element_name;
 	ui_element.value = static_cast<float>(texture_id);
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			15 });
 
 	return entity;
 }
@@ -213,11 +216,12 @@ Entity UISystem::createButton(
 	ui_button.name = button_name;
 	ui_button.action = action;
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			17 });
 
 	return entity;
 }
@@ -254,12 +258,13 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 	worldobject.angle = 0.f;
 	worldobject.scale = vec2({ CROSSHAIR_SIZE, CROSSHAIR_SIZE });
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{
 			texture,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE
+			GEOMETRY_BUFFER_ID::SPRITE,
+			25
 		});
 
 	return entity;

@@ -365,55 +365,8 @@ void RenderSystem::draw(float elapsed_ms)
 	switch (scene_manager.get_scene()) {
 	case SCENE_TYPE::GAME: {
 		// draw game
-		// add floors first
-		for (Entity entity : registry.floors.entities) {
-			render_list.push_back(entity);
-		}
-		
-		// then interactables
-		for (Entity entity : registry.interactables.entities) {
-			render_list.push_back(entity);
-		}
-		// then particles
-		for (Entity entity : registry.particles.entities) {
-			render_list.push_back(entity);
-		}
-		// then the player
-		render_list.push_back(registry.players.entities[0]);
-		// then enemies
-		for (Entity entity : registry.deadlys.entities) {
-			render_list.push_back(entity);
-		}
-		// then projectiles
-		for (Entity entity : registry.projectiles.entities) {
-			render_list.push_back(entity);
-		}
-		// then walls
-		for (Entity entity : registry.walls.entities) {
-			render_list.push_back(entity);
-		}
-		// then floor items
-		for (Entity entity : registry.floorItems.entities) {
-      render_list.push_back(entity);
-    }
-    // then doors
-		for (Entity entity : registry.doors.entities) {
-			render_list.push_back(entity);
-		}
-		// then UI elements, starting with the base UI
-		for (Entity entity : registry.baseUI.entities) {
-			render_list.push_back(entity);
-		}
-		for (Entity entity : registry.uiElements.entities) {
-			render_list.push_back(entity);
-		}
-		// finally, the crosshair
-		for (Entity entity : registry.crosshairs.entities) {
-			render_list.push_back(entity);
-		}
-
 		// Draw all textured meshes that have a position and size component
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			// note that activeComponents are ONLY USED for game entities
 			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
@@ -430,22 +383,8 @@ void RenderSystem::draw(float elapsed_ms)
 	}
 	case SCENE_TYPE::MENU: {
 		// draw menu
-		Entity crosshair_entity;
-		for (Entity entity : registry.menuSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
 
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
@@ -455,22 +394,7 @@ void RenderSystem::draw(float elapsed_ms)
 	}
 	case SCENE_TYPE::HELP: {
 		// draw help screen
-		Entity crosshair_entity;
-		for (Entity entity : registry.helpSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
-
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
 				continue;
@@ -479,23 +403,8 @@ void RenderSystem::draw(float elapsed_ms)
 		break;
 	}
 	case SCENE_TYPE::PAUSE: {
-		// draw help screen
-		Entity crosshair_entity;
-		for (Entity entity : registry.pauseSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
-
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		// draw pause screen
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
 				continue;

@@ -145,6 +145,9 @@ public:
 		registry_filtered.push_back(&helpSceneButtons);
 		registry_filtered.push_back(&pauseSceneButtons);
 		registry_filtered.push_back(&testSceneButtons);
+
+		// denote sorted component containers
+		renderRequests.setSorted(true);
 	}
 
 	void clear_all_components() {
