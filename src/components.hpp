@@ -57,6 +57,14 @@ struct Animation {
 	int time_since_last_frame;
 };
 
+// a struct for a flashing-color rendering effect
+struct FlashingColor {
+	bool flashing = true;	// if the modified color is displayed right now
+	int flash_rate;			// time between flashes in ms
+	int time_since_last_flash = 0;
+	vec3 color;
+};
+
 struct Projectile
 {
 	bool friendly = true;

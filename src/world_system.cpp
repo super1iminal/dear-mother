@@ -224,6 +224,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (counter.counter_ms < 0) {
 			printf("counter.counter_ms: %f\n", counter.counter_ms);
 			invincibleTimerRegistry.remove(entity);
+			// remove the on-dmg flashing effect once the player can be hurt again
+			registry.flashingColors.remove(entity);
 		}
 	}
 
@@ -427,7 +429,6 @@ void WorldSystem::increaseScrap(int amt)
 {
 	scrap += amt;
 	updateGameUI();
-	std::cout <<  "scrap: " << scrap << std::endl;
 }
 
 TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {	
@@ -610,6 +611,13 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 	deadly.attacking = false;
 }
 
+// add a flashing effect when the player is damaged
+void playPlayerDamagedEffect(Entity entity) {
+	FlashingColor& flashing_color = registry.flashingColors.emplace(entity);
+	flashing_color.color = vec3(1.0, 0.2, 0.2);
+	flashing_color.flash_rate = 100;
+}
+
 // Compute collisions between entities, called after physics_system::step which checks for collisions
 void WorldSystem::handle_collisions() {
 	// god damn. 
@@ -662,15 +670,6 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
-//void WorldSystem::handlePlayerDeadly(Entity entity, Entity entity_other) {
-//	if (!registry.deathTimers.has(entity)) {
-//		// Scream, reset timer, and make the salmon sink
-//		registry.deathTimers.emplace(entity);
-//		Mix_PlayChannel(-1, salmon_dead_sound, 0);
-//	}
-//	return;
-//}
-
 void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 	// change rooms
 	printf("room switching\n");
@@ -699,6 +698,9 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 		if (!registry.invincibleTimers.has(entity) && !registry.deathTimers.has(player)) {
 			registry.invincibleTimers.emplace(entity);
 			registry.healthComponents.get(entity).curr_health -= 1;
+			if (entity == player) {
+				playPlayerDamagedEffect(player);
+			}
 			updateGameUI();
 			if (registry.players.has(entity)) {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
@@ -790,16 +792,31 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	if (!registry.invincibleTimers.has(player) && !registry.deathTimers.has(player)) {
 		registry.invincibleTimers.emplace(player);
 		registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+		playPlayerDamagedEffect(player);
 		createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
 		updateGameUI();
 		Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
 	}
 
-
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
+}
+
+void remove_item(Entity item) {
+	// give this item a flashing effect
+	FlashingColor& flashing_color = registry.flashingColors.emplace(item);
+	flashing_color.color = vec3(0.2, 0.2, 1.0);
+	flashing_color.flash_rate = 100;
+
+	// make the item float upwards a bit
+	Motion& item_motion = registry.motions.emplace(item);
+	item_motion.velocity = vec2(0.f, -75.f);
+
+	// remove this item after 1s
+	Lifetime& item_lifetime = registry.lifetimes.emplace(item);
+	item_lifetime.time_remaining_ms = 1000;
 }
 
 TEXTURE_ASSET_ID WorldSystem::randomFloorItem()
@@ -830,19 +847,21 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	if ((player_inventory.items.size() < 8) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
 		player_inventory.items.push_back(new_item);
 		update_player_modifier();
-		registry.pendingRemoves.emplace_with_duplicates(item);
+		//registry.pendingRemoves.emplace_with_duplicates(item);
+		remove_item(item);
 	}
 	else if (new_item.type == ITEM_TYPE::HEALTH_PACK) {
 		// Apply health pack item
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
-			registry.pendingRemoves.emplace_with_duplicates(item);
+			//registry.pendingRemoves.emplace_with_duplicates(item);
 		}
 		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
-			registry.pendingRemoves.emplace_with_duplicates(item);
+			//registry.pendingRemoves.emplace_with_duplicates(item);
 		}
+		remove_item(item);
 	}
 	else {
 		std::cout << "Already have 8 items" << std::endl;
@@ -939,7 +958,6 @@ void WorldSystem::handle_deaths() {
 			}
 			else {
 				if (registry.deadlys.has(entity)) {
-					// TODO: drop item on death
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
 					}

@@ -120,19 +120,17 @@ public:
         if (map_entity_componentID.count(e) == 0)
         {
             static_assert(has_compareFunction<Component>::value && "Component does not have compareFunction defined");
-            if constexpr (has_compareFunction<Component>::value) {  // check if this component has compareFunction defined
-                bool inserted = false;
-                for (int i = 0; i < entities.size(); i++) {
-                    if (c.compareFunction(c, get(entities[i])) < 1) {  // if this entity should come before entities[i]
-                        entities.insert(entities.begin() + i, e);
-                        inserted = true;
-                        break;
-                    }
+            bool inserted = false;
+            for (int i = 0; i < entities.size(); i++) {
+                if (c.compareFunction(c, get(entities[i])) < 1) {  // if this entity should come before entities[i]
+                    entities.insert(entities.begin() + i, e);
+                    inserted = true;
+                    break;
                 }
-                if (!inserted) {
-                    // entity e goes in at the end of the vector
-                    entities.push_back(e);
-                }
+            }
+            if (!inserted) {
+                // entity e goes in at the end of the vector
+                entities.push_back(e);
             }
         }
         map_entity_componentID.insert(std::make_pair(e, (unsigned int)components.size()));

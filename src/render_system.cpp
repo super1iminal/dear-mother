@@ -195,15 +195,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
-
-		// could be useful for on-dmg effects later
-		if (render_request.used_effect == EFFECT_ASSET_ID::SALMON)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-			gl_has_errors();
-		}
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::UI_ELEMENT) {
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -242,6 +233,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
 	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
 	glUniform3fv(color_uloc, 1, (float *)&color);
+	gl_has_errors();
+
+	if (registry.flashingColors.has(entity)) {
+		FlashingColor& flashing_color = registry.flashingColors.get(entity);
+		flashing_color.time_since_last_flash += elapsed_ms;
+		vec3 color = vec3(1);
+		if (flashing_color.time_since_last_flash > flashing_color.flash_rate && !flashing_color.flashing) {
+			vec3 color = flashing_color.color;
+			glUniform3fv(color_uloc, 1, (float*)&color);
+			flashing_color.flashing = true;
+			flashing_color.time_since_last_flash = 0;
+		}
+		else {
+			glUniform3fv(color_uloc, 1, (float*)&color);
+			flashing_color.flashing = false;
+		}
+	}
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t

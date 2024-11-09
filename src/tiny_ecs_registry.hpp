@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<FlashingColor> flashingColors;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
 	ComponentContainer<Blocker> blockers;
@@ -110,6 +111,7 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&flashingColors);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&healthComponents);
 		registry_list.push_back(&blockers);
