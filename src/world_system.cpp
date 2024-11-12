@@ -11,6 +11,9 @@
 #include <ui_system.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <fstream>
+#include <iomanip>
+
 // Game configuration
 // add variables here
 bool player_seen = false;
@@ -421,6 +424,25 @@ void WorldSystem::restart_game() {
 	for (Entity entity : registry.shooters.entities) {
 		set_last_shot_time(entity);
 	}
+
+	// get # of unlocked inventory slots
+	std::ifstream f(std::string(PROJECT_SOURCE_DIR) + "/data/misc/item_slots.txt");
+
+	// Check if the file is successfully opened
+	if (!f.is_open()) {
+		std::cerr << "Error opening the file!";
+	}
+
+	std::string s;
+
+	Inventory& player_inventory = registry.inventory.get(player);
+
+	// Read each line of the file and print it to the
+	// standard output stream till the whole file is
+	// completely read
+	while (getline(f, s)) {
+		player_inventory.size = std::stoi(s);
+	}
 	
 	initGameUI();
 }
@@ -472,28 +494,28 @@ void WorldSystem::initGameUI() {
 	// create health_ui entity
 	// TODO see if we can fix how text is rendered
 	// so that the position and scale vectors aren't so funky
-	health_ui = UISystem::createUIElement(
+	health_ui = UISystem::createTextUIElement(
 		renderer,
 		vec2(60.f, 324.f),
-		vec2(2.f, 40.f),
+		vec2(4.f, 40.f),
 		"health_ui",
 		static_cast<int>(player_health),
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
-	scrap_ui = UISystem::createUIElement(
+	scrap_ui = UISystem::createTextUIElement(
 		renderer,
 		vec2(180.f, 336.f),
-		vec2(2.f, 0.f),
+		vec2(4.f, 0.f),
 		"scrap_ui",
 		scrap,
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
-	level_ui = UISystem::createUIElement(
+	level_ui = UISystem::createTextUIElement(
 		renderer,
 		vec2(184.f, 316.f),
-		vec2(2.f, 0.f),
+		vec2(4.f, 0.f),
 		"level_ui",
 		level,
 		SCENE_TYPE::GAME);
@@ -509,6 +531,18 @@ void WorldSystem::initGameUI() {
 			"item_ui_" + std::to_string(i),
 			getItemTexture(player_inventory.items[i]),
 			SCENE_TYPE::GAME);
+	}
+
+	// cover the locked slots
+	for (uint i = 0; i < MAX_INVENTORY_SIZE - player_inventory.size; i++) {
+		int opposite_offset = MAX_INVENTORY_SIZE - i - 1;
+		UISystem::createSquareUIElement(
+			renderer, 
+			vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X) - 5, INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(100.f, 100.f),
+			"locked_slot_ui" + std::to_string(i),
+			SCENE_TYPE::GAME
+		);
 	}
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
@@ -844,7 +878,7 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	// Pick up item and apply effects to the player
 	Inventory& player_inventory = registry.inventory.get(player);
 	ItemStat new_item = registry.itemStats.get(item);
-	if ((player_inventory.items.size() < 8) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
+	if ((player_inventory.items.size() < player_inventory.size) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
 		player_inventory.items.push_back(new_item);
 		update_player_modifier();
 		//registry.pendingRemoves.emplace_with_duplicates(item);
@@ -864,7 +898,7 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		remove_item(item);
 	}
 	else {
-		std::cout << "Already have 8 items" << std::endl;
+		std::cout << "Already have " << player_inventory.size << " items" << std::endl;
 	}
 
 	updateGameUI();

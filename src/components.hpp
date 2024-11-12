@@ -415,4 +415,5 @@ struct ItemStat {
 
 struct Inventory {
 	std::vector<struct ItemStat> items;
+	int size;	// how many slots unlocked
 };

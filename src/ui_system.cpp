@@ -70,7 +70,60 @@ Entity UISystem::createPanel(
 	return entity;
 }
 
-Entity UISystem::createUIElement(
+// creates a solid colored square; used to cover locked inventory slots
+Entity UISystem::createSquareUIElement(
+	RenderSystem* renderer,
+	vec2 pos,
+	vec2 scale,
+	std::string element_name,
+	SCENE_TYPE scene_type) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	switch (scene_type) {
+	case SCENE_TYPE::GAME:
+		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::MENU:
+		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::PAUSE:
+		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::TEST:
+		registry.testSceneComponents.emplace(entity);
+		break;
+	}
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	// setting value for UI
+	UIElement& ui_elt = registry.uiElements.emplace(entity);
+	ui_elt.name = element_name;
+	ui_elt.value = 0;
+
+	vec3& ui_color = registry.colors.emplace(entity);
+	ui_color = vec3(0.56f, 0.58f, 0.61f);
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::UI_ELEMENT,
+			GEOMETRY_BUFFER_ID::SQUARE,
+			16 });
+
+	return entity;
+}
+
+Entity UISystem::createTextUIElement(
 	RenderSystem* renderer, 
 	vec2 pos, 
 	vec2 scale, 

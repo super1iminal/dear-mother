@@ -24,8 +24,15 @@ public:
 		std::string name,
 		TEXTURE_ASSET_ID texture);
 
+	static Entity createSquareUIElement(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		SCENE_TYPE scene_type);
+
 	static Entity 
-		createUIElement(
+		createTextUIElement(
 			RenderSystem* renderer,
 			vec2 pos,
 			vec2 scale,

@@ -142,7 +142,7 @@ private:
 	// For selecting item texture
 	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
 
-	// room. generation. time to blast off. let's go00000
+	// room generation
 	std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
 	void generate_rooms();
 	void generate_map();

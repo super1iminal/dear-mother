@@ -69,7 +69,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// initialize font
 	initFont(PROJECT_SOURCE_DIR +
-		std::string("data/fonts/Kenney_Mini.ttf"), 24);
+		std::string("data/fonts/thin_pixel-7.ttf"), 20);
 
 	return true;
 }
@@ -285,7 +285,7 @@ void RenderSystem::initFont(const std::string font_filename, unsigned int font_d
 			std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog.data() << std::endl;
 		}
 
-		// font fragement shader
+		// font fragment shader
 		unsigned int font_fragmentShader;
 		font_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(font_fragmentShader, 1, &fragmentShaderSource_c, NULL);
@@ -377,7 +377,7 @@ void RenderSystem::initFont(const std::string font_filename, unsigned int font_d
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			gl_has_errors();
 
 			// now store character for later use
