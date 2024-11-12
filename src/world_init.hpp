@@ -53,6 +53,12 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 // the enemy
 Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 room_coord);
 
+// put text on the floor
+Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
+
+// boss one
+Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
+
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord);
 

@@ -291,10 +291,23 @@ void CollisionSystem::add_collisions() {
 		Deadly& deadly = registry.deadlys.get(entity_deadly);
 		if (collides(entity_deadly, registry.players.entities[0]))
 		{
-			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
+            if (!registry.bossOnes.has(entity_deadly))
+			    registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
 			deadly.attacking = true;
 		}
 	}
+
+    for (Entity boss : registry.bossOnes.entities)
+    {
+        WorldObject worldobject_boss = registry.worldObjects.get(boss);
+        WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
+        Deadly& deadly = registry.deadlys.get(boss);
+        if (collides(boss, registry.players.entities[0]))
+        {
+            registry.collisions.emplace_with_duplicates(registry.players.entities[0], boss, COLLISION_TYPE::PLAYER_BOSS_ONE);
+            deadly.attacking = true;
+        }
+    }
 
 	// next, check for player-door collisions
 	for (Entity entity_door : registry.doors.entities) {

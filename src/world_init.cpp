@@ -178,6 +178,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+	deadly.immune = false;
 
   deadly.type = (int) rand() % 2;  // 0 for grey melee, 1 for slower yellow projectile
 
@@ -212,6 +213,96 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	vec3& text_color = registry.colors.emplace(entity);
+	text_color = vec3(1.f, 0.f, 0.f);
+
+	registry.floorTexts.emplace(entity).text = text;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::FLOOR_TEXT,
+			GEOMETRY_BUFFER_ID::SQUARE });
+
+	return entity;
+}
+
+Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0.f;
+
+	auto& health = registry.healthComponents.emplace(entity);
+	health.max_health = 20;
+	health.curr_health = 10;
+
+	auto& deadly = registry.deadlys.emplace(entity);
+	deadly.t = std::chrono::high_resolution_clock::now();
+	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+
+	// Manage boss states
+	registry.bossOnes.emplace(entity).boss_pos = boss_pos;
+
+	registry.shooters.emplace(entity).fire_rate = 1000.f;
+
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 4;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 1;
+	enemy_animation.current_frame = 0;
+
+	if (boss_pos == BOSS_ONE_POS::MOTHER) {
+		deadly.type = 3;
+		deadly.immune = true;
+		health.curr_health = 20;
+		worldobject.scale = vec2({ 1000, 50 });
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		deadly.type = 2;
+		deadly.immune = false;
+		worldobject.scale = vec2({ 70, 100 });
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_WALK,
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}

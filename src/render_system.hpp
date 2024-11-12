@@ -103,6 +103,7 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("ui_element"),
 		shader_path("font"),
+		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
 		shader_path("textured_anim"),
@@ -177,7 +178,12 @@ private:
 	// text entities to render
 	std::vector<Entity> text_to_render;
 
+	// floor text entities to render
+	std::vector<Entity> floor_text_to_render;
+
 	void drawText();
+
+	void drawFloorText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

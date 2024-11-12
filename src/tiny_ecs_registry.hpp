@@ -53,6 +53,8 @@ public:
 	ComponentContainer<Active> activeComponents;
 	ComponentContainer<Door> doors;
 	ComponentContainer<MeshFlag> meshFlags;
+	ComponentContainer<FloorText> floorTexts;
+	ComponentContainer<BossOne> bossOnes;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -135,6 +137,8 @@ public:
 		registry_list.push_back(&activeComponents);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&meshFlags);
+		registry_list.push_back(&floorTexts);
+		registry_list.push_back(&bossOnes);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
