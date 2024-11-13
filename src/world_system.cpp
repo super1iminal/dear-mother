@@ -307,7 +307,10 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
-		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		if (roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_ONE
+			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
+			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		}
 	}
 }
 
@@ -336,9 +339,9 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
-	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
-	}
+	}*/
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
@@ -377,9 +380,9 @@ void WorldSystem::createBossRoomTwo(ivec2 coord) {
 	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
-	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
-	}
+	}*/
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
@@ -430,18 +433,23 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
-		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		if (roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_ONE
+			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
+			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		}
 	}
 }
 
 void WorldSystem::generate_map() {
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 0}] = ROOM_TYPE::EMPTY;
+	roomMap[{1, 1}] = ROOM_TYPE::EMPTY;
 	//roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	//roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 1}] = ROOM_TYPE::EMPTY;
 	//roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 2}] = ROOM_TYPE::EMPTY;
+	roomMap[{1, 3}] = ROOM_TYPE::EMPTY;
 	//roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 2}] = ROOM_TYPE::EMPTY;
 	//roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
@@ -449,6 +457,8 @@ void WorldSystem::generate_map() {
 	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
 	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
+	roomMap[{2, 1}] = ROOM_TYPE::EMPTY;
+	roomMap[{2, 3}] = ROOM_TYPE::EMPTY;
 
 	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
