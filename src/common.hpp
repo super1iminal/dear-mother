@@ -110,6 +110,7 @@ enum class ITEM_TYPE {
 	FIRE_RATE = SPEED + 1,
 	RANGE = FIRE_RATE + 1,
 	HEALTH_PACK = RANGE + 1,
+	RANDOM = HEALTH_PACK + 1,
 };
 
 enum class DIRECTION {
@@ -134,6 +135,13 @@ enum class BOSS_ONE_POS {
 	BOT_LEFT = TOP_RIGHT + 1,
 	BOT_RIGHT = BOT_LEFT + 1,
 	MOTHER = BOT_RIGHT + 1,
+};
+
+enum class BOSS_TWO_WAVE {
+	WAVE_ONE = 0,
+	WAVE_TWO = WAVE_ONE + 1,
+	WAVE_THREE = WAVE_TWO + 1,
+	WAVE_FOUR = WAVE_THREE + 1,
 };
 
 enum class BOSS_ONE_STATE {

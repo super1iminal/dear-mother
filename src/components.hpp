@@ -80,6 +80,9 @@ struct Player
 {
 	bool in_combat = false;
 	bool combat_boss_one = false;
+	bool boss_one_beat = false;
+	bool combat_boss_two = false;
+	bool boss_two_beat = false;
 };
 
 struct Shooter
@@ -134,6 +137,19 @@ struct BossOne
 	bool shot_pattern = false;
 	bool mother = true;
 	float bullet_angle = 0.f;
+};
+
+struct BossTwo
+{
+	BOSS_TWO_WAVE curr_wave;
+
+	int wave_1 = 4;
+
+	int wave_2 = 6;
+
+	int wave_3 = 8;
+
+	int wave_4 = 10;
 };
 
 // anything that the player can interact with

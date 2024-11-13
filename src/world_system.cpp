@@ -237,6 +237,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	if (registry.players.get(player).combat_boss_two) {
+		handle_boss_two();
+	}
 
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
@@ -346,7 +349,41 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 +30}, BOSS_ONE_POS::BOT_LEFT, coord);
 	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 +30}, BOSS_ONE_POS::BOT_RIGHT, coord);
 
-	createBossOne(renderer, { ((102.5 + 1177.5)/2), 234.5 }, BOSS_ONE_POS::MOTHER, coord);
+	createBossOne(renderer, { CENTER_X, 234.5 }, BOSS_ONE_POS::MOTHER, coord);
+}
+
+void WorldSystem::createBossRoomTwo(ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	// Boss Two
+	boss_two =  createBossTwo(renderer, { window_width_px / 2, 25.f + 120.f }, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+	}
+
 }
 
 bool WorldSystem::notSafe(vec2 pos) {
@@ -401,14 +438,17 @@ void WorldSystem::generate_map() {
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 0}] = ROOM_TYPE::EMPTY;
 	//roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	//roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 1}] = ROOM_TYPE::EMPTY;
+	//roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 2}] = ROOM_TYPE::EMPTY;
+	//roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 2}] = ROOM_TYPE::EMPTY;
+	//roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
-	roomMap[{3, 0}] = ROOM_TYPE::EMPTY;
+	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
 
 	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
@@ -436,6 +476,9 @@ void WorldSystem::generate_rooms() {
 		case ROOM_TYPE::BOSS_ROOM_ONE:
 			createBossRoomOne(coord);
 			break;
+		case ROOM_TYPE::BOSS_ROOM_TWO:
+			createBossRoomTwo(coord);
+			break;
 		}
 	}
 
@@ -454,8 +497,13 @@ void WorldSystem::generate_rooms() {
 
 void WorldSystem::change_rooms(ivec2 new_room) {
 	current_room = new_room;
-	if (roomMap[{new_room.x, new_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE) {
+	if (roomMap[{new_room.x, new_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE
+		&& !registry.players.get(player).boss_one_beat) {
 		registry.players.get(registry.players.entities[0]).combat_boss_one = true;
+	}
+	else if (roomMap[{new_room.x, new_room.y}] == ROOM_TYPE::BOSS_ROOM_TWO 
+		&& !registry.players.get(player).boss_two_beat) {
+		registry.players.get(registry.players.entities[0]).combat_boss_two = true;
 	}
 	registry.activeComponents.clear();
 	for (Entity entity : registry.gameSceneComponents.entities) {
@@ -772,7 +820,8 @@ void WorldSystem::handle_collisions() {
 
 void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 	// Lock door during combat
-	if (!registry.players.get(player).in_combat) {
+	if (!registry.players.get(player).in_combat && !registry.players.get(player).combat_boss_one
+		&& !registry.players.get(player).combat_boss_two) {
 		// change rooms
 		printf("room switching\n");
 		ivec2 new_room = registry.doors.get(door).leads_to;
@@ -1067,6 +1116,106 @@ void WorldSystem::update_player_modifier() const {
 	}
 }
 
+void WorldSystem::handle_boss_two() {
+	int alive = 0;
+
+	BossTwo& bossTwo = registry.bossTwos.get(boss_two);
+	if (alive == 0 && bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_ONE) {
+		int left = 0;
+		int right = 0;
+		for (int i = 0; i < bossTwo.wave_1; i++) {
+			std::cout << "WAVE 1" << std::endl;
+			int loc = rand() % 2;
+			if (loc == 0) {
+				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				left++;
+			}
+			else {
+				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				right++;
+			}
+		}
+		bossTwo.wave_1 = 0;
+	}
+
+	if (alive == 0 && bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_TWO) {
+		int left = 0;
+		int right = 0;
+		for (int i = 0; i < bossTwo.wave_2; i++) {
+			std::cout << "WAVE 2" << std::endl;
+			int loc = rand() % 2;
+			if (loc == 0) {
+				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				left++;
+			}
+			else {
+				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				right++;
+			}
+		}
+		bossTwo.wave_2 = 0;
+	}
+
+	if (alive == 0 && bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_THREE) {
+		int left = 0;
+		int right = 0;
+		for (int i = 0; i < bossTwo.wave_3; i++) {
+			std::cout << "WAVE :3" << std::endl;
+			int loc = rand() % 2;
+			if (loc == 0) {
+				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				left++;
+			}
+			else {
+				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				right++;
+			}
+		}
+		bossTwo.wave_3 = 0;
+	}
+
+	if (alive == 0 && bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_FOUR) {
+		int left = 0;
+		int right = 0;
+		for (int i = 0; i < bossTwo.wave_4; i++) {
+			std::cout << "WAVE 4" << std::endl;
+			int loc = rand() % 2;
+			if (loc == 0) {
+				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				left++;
+			}
+			else {
+				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				right++;
+			}
+		}
+		bossTwo.wave_4 = 0;
+	}
+
+	alive = 0;
+	for (Entity entity : registry.deadlys.entities) {
+		if (registry.activeComponents.has(entity)) {
+			alive++;
+		}
+	}
+
+	if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_ONE && alive == 0) {
+		bossTwo.curr_wave = BOSS_TWO_WAVE::WAVE_TWO;
+	}
+	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_TWO && alive == 0) {
+		bossTwo.curr_wave = BOSS_TWO_WAVE::WAVE_THREE;
+	}
+	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_THREE && alive == 0) {
+		bossTwo.curr_wave = BOSS_TWO_WAVE::WAVE_FOUR;
+	}
+	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_FOUR && alive == 0 && !registry.players.get(player).boss_two_beat) {
+		registry.players.get(player).combat_boss_two = false;
+		registry.players.get(player).boss_two_beat = true;
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::HEALTH_PACK, uniform_dist, rng, current_room);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
+	}
+}
+
 Entity WorldSystem::create_self_destruct_text(RenderSystem* renderer, ivec2 current_room) {
 	return createFloorText(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 250, window_height_px / 2 - 100 }, { 2, 2 }, current_room);
 }
@@ -1131,7 +1280,10 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		&& !bose_part.bot_left_alive && !bose_part.bot_right_alive
 		&& !bose_part.mother) {
 		// DROP ITEMS HERE FOR KILLING BOSS
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::HEALTH_PACK, uniform_dist, rng, current_room);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
 		registry.players.get(player).combat_boss_one = false;
+		registry.players.get(player).boss_one_beat = true;
 		std::cout << "YAYYYY :3" << std::endl;
 	}
 }
@@ -1151,10 +1303,10 @@ void WorldSystem::handle_deaths() {
 				}
 			}
 			else {
-				if (registry.deadlys.has(entity) && !registry.bossOnes.has(entity)) {
+				if (registry.deadlys.has(entity) && !registry.bossOnes.has(entity) && !registry.players.get(player).combat_boss_two) {
 					// TODO: drop item on death
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
 					}
 				}
 				else if (registry.deadlys.has(entity) && registry.bossOnes.has(entity)) {

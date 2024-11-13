@@ -310,6 +310,37 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 	return entity;
 }
 
+Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0;
+	worldobject.scale = { window_width_px, WALL_WIDTH };
+
+	registry.bossTwos.emplace(entity).curr_wave = BOSS_TWO_WAVE::WAVE_ONE;
+
+	registry.walls.emplace(entity);
+
+	registry.blockers.emplace(entity);
+	// don't be fooled, type is type
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HORZ_WALL,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
@@ -417,7 +448,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
 	// create an interactable entity
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -430,6 +461,21 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	ItemStat& item = registry.itemStats.emplace(entity);
 
 	int roll_type = uniform_dist(rng) * 100;
+	if (spec_type == ITEM_TYPE::HEALTH_PACK) {
+		roll_type = 1;
+	}
+	else if (spec_type == ITEM_TYPE::RANGE) {
+		roll_type = 21;
+	}
+	else if (spec_type == ITEM_TYPE::FIRE_RATE) {
+		roll_type = 41;
+	}
+	else if (spec_type == ITEM_TYPE::SPEED) {
+		roll_type = 61;
+	}
+	else if (spec_type == ITEM_TYPE::DAMAGE) {
+		roll_type = 81;
+	}
 	int roll_item;
 	if (roll_type > 80) {
 		roll_item = (rand() % registry.damage_items.size());

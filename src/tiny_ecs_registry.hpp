@@ -55,6 +55,7 @@ public:
 	ComponentContainer<MeshFlag> meshFlags;
 	ComponentContainer<FloorText> floorTexts;
 	ComponentContainer<BossOne> bossOnes;
+	ComponentContainer<BossTwo> bossTwos;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;

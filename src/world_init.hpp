@@ -32,6 +32,12 @@ const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 // wall stuff
 const float WALL_WIDTH = 75.f;
 
+// center x pos
+const float CENTER_X = (102.5 + 1177.5) / 2;
+
+// center y pos
+const float CENTER_Y = (234.5 + 605.5) / 2;
+
 // floor item stuff
 const float FLOOR_ITEM_SIZE = 75.f;
 
@@ -59,6 +65,9 @@ Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 
 // boss one
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
 
+// boss two
+Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
+
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord);
 
@@ -71,7 +80,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord);
 
 // items
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord);
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

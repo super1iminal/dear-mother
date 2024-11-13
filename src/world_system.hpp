@@ -22,6 +22,7 @@ enum class ROOM_TYPE {
 	EMPTY = 0,
 	ENEMY_ROOM = EMPTY + 1,
 	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
+	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
 	// ...
 };
 
@@ -75,6 +76,10 @@ private:
 	Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
 	void handle_boss_one_death(Entity& entity);
 
+	// Boss Two Stuff
+	void createBossRoomTwo(ivec2 coord);
+	void handle_boss_two();
+
 	// Time management
 	std::chrono::steady_clock::time_point t;
 	std::chrono::steady_clock::time_point get_curr_time();
@@ -107,6 +112,7 @@ private:
 	uint level = 1;
 	uint scrap = 0;
 	Entity player;
+	Entity boss_two;
 	Entity floor;
 
 	// HUD
