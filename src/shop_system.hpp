@@ -39,13 +39,36 @@ private:
 		DODGE_UPGRADE = CRIT_UPGRADE + 1
 	};
 
-	UPGRADE_TYPE viewed_upgrade = UPGRADE_TYPE::ITEM_SLOT;
+	UPGRADE_TYPE viewed_upgrade;
+
+	Entity viewed_upgrade_cost;
 
 	Entity description_line_one;
 	Entity description_line_two;
 	Entity description_line_three;
 
+	Entity buy_button;
+
+	Entity item_slot_level;
+	Entity dmg_upgrade_level;
+	Entity health_upgrade_level;
+	Entity crit_upgrade_level;
+	Entity dodge_upgrade_level;
+	Entity current_scrap_display;
+
+	int current_scrap;
+
+	void initButtons();
+
+	int getUpgradeLevel(UPGRADE_TYPE upgrade_type);
+
+	int getScrapLevel();
+
+	void updateUpgrade(UPGRADE_TYPE upgrade_type);
+
 	void updateUpgradeDescription();
+
+	void buyUpgrade();
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 

@@ -111,22 +111,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Get Player
 	Entity player = registry.players.entities[0];
 
-	// Updating window title with points
-	/*std::stringstream title_ss;
-	player_health = registry.healthComponents.get(player).curr_health;
-	title_ss << "Points: " << points;
-	title_ss << " Health: " << player_health;
-	title_ss << " FPS: " << fps;
-	glfwSetWindowTitle(window, title_ss.str().c_str());*/
-
-	// Remove debug info from the last step
-	//for (Entity entity : registry.debugComponents.entities) {
-	//	registry.pendingRemoves.emplace_with_duplicates(entity);
-	//}
-	// cleanup();
-	 
-
-
 	// Remove debug info from the last step. Need to iterate backwards to avoid catastrophic error
 		// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
@@ -498,6 +482,7 @@ void WorldSystem::initGameUI() {
 		vec2(8.f, 3.f),
 		"health_ui",
 		std::to_string(player_health),
+		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
@@ -507,6 +492,7 @@ void WorldSystem::initGameUI() {
 		vec2(8.f, 3.f),
 		"scrap_ui",
 		std::to_string(scrap),
+		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
@@ -516,6 +502,7 @@ void WorldSystem::initGameUI() {
 		vec2(8.f, 3.f),
 		"level_ui",
 		std::to_string(level),
+		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
@@ -801,7 +788,6 @@ void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
 		}
 	}
 }
-
 
 void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 	// remove projectile

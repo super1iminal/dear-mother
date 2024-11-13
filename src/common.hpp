@@ -63,6 +63,9 @@ struct Transform {
 const float CROSSHAIR_SIZE = 75.f;
 const float BASE_UI_HEIGHT = 120.f;
 const int MAX_INVENTORY_SIZE = 8;
+const int MAX_UPGRADE_LEVEL = 6;
+const int MIN_INVENTORY_SIZE = 2;
+const int MIN_HEALTH = 2;
 
 // constants for UI
 const float INITIAL_ITEM_UI_OFFSET_X = (window_width_px / 22);

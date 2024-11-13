@@ -212,7 +212,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
-		// let renderText() handle this
+		// let render_text() handle this
 		text_to_render.push_back(entity);
 		
 		glBindVertexArray(0);
@@ -446,6 +446,12 @@ void RenderSystem::drawText() {
 		UIElement ui_elt = registry.uiElements.get(text_to_render[i]);
 		WorldObject world_object = registry.worldObjects.get(text_to_render[i]);
 
+		vec3 color = vec3(1.0f, 1.0f, 1.0f);
+
+		if (registry.colors.has(text_to_render[i])) {
+			color = registry.colors.get(text_to_render[i]);
+		}
+
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
 		render_text(
@@ -453,7 +459,7 @@ void RenderSystem::drawText() {
 			world_object.position.x, 
 			window_height_px - world_object.position.y,
 			world_object.scale.y,
-			vec3(1.0f, 1.0f, 1.0f),
+			color,
 			trans
 		);
 	}

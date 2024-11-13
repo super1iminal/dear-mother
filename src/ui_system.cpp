@@ -134,6 +134,7 @@ Entity UISystem::createTextUIElement(
 	vec2 scale, 
 	std::string element_name, 
 	std::string element_value, 
+	vec3 color,
 	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
@@ -172,7 +173,7 @@ Entity UISystem::createTextUIElement(
 	ui_elt.value = element_value;
 
 	vec3& ui_color = registry.colors.emplace(entity);
-	ui_color = vec3(1.0f, 1.0f, 1.0f);
+	ui_color = color;
 
 	registry.renderRequests.insert_sorted(
 		entity,
@@ -299,6 +300,7 @@ Entity UISystem::createTextButton(
 	std::function<void()> action,
 	std::string button_name,
 	std::string text,
+	vec3 color,
 	SCENE_TYPE scene_type
 ) {
 	Entity entity = Entity();
@@ -340,6 +342,9 @@ Entity UISystem::createTextButton(
 	UIElement& ui_element = registry.uiElements.emplace(entity);
 	ui_element.name = button_name;
 	ui_element.value = text;
+
+	vec3& button_color = registry.colors.emplace(entity);
+	button_color = color;
 
 	registry.renderRequests.insert_sorted(
 		entity,
