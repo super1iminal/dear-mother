@@ -190,6 +190,10 @@ struct PauseScene
 {
 };
 
+struct ShopScene
+{
+};
+
 struct TestScene
 {
 };
@@ -236,7 +240,7 @@ struct TexturedVertex
 // contains information relating to UI elements
 struct UIElement {
 	std::string name;
-	int value;
+	std::string value;
 };
 
 // contains information relating to UI buttons
@@ -328,14 +332,20 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
-	START_BUTTON = HELP_SCREEN + 1,
+	SHOP_SCREEN = HELP_SCREEN + 1,
+	START_BUTTON = SHOP_SCREEN + 1,
 	HELP_BUTTON = START_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
 	RESUME_BUTTON = BACK_BUTTON + 1,
 	MENU_BUTTON = RESUME_BUTTON + 1, 
-	PLAYER_WALK = MENU_BUTTON + 1,
+	ITEM_SLOT_BUTTON = MENU_BUTTON + 1,
+	DMG_UPGRADE_BUTTON = ITEM_SLOT_BUTTON + 1,
+	HEALTH_UPGRADE_BUTTON = DMG_UPGRADE_BUTTON + 1,
+	CRIT_UPGRADE_BUTTON = HEALTH_UPGRADE_BUTTON + 1,
+	DODGE_UPGRADE_BUTTON = CRIT_UPGRADE_BUTTON + 1,
+	PLAYER_WALK = DODGE_UPGRADE_BUTTON + 1,
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,

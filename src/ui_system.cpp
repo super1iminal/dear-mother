@@ -43,6 +43,9 @@ Entity UISystem::createPanel(
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -93,6 +96,9 @@ Entity UISystem::createSquareUIElement(
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -108,7 +114,6 @@ Entity UISystem::createSquareUIElement(
 	// setting value for UI
 	UIElement& ui_elt = registry.uiElements.emplace(entity);
 	ui_elt.name = element_name;
-	ui_elt.value = 0;
 
 	vec3& ui_color = registry.colors.emplace(entity);
 	ui_color = vec3(0.56f, 0.58f, 0.61f);
@@ -128,7 +133,7 @@ Entity UISystem::createTextUIElement(
 	vec2 pos, 
 	vec2 scale, 
 	std::string element_name, 
-	int element_value, 
+	std::string element_value, 
 	SCENE_TYPE scene_type) {
 	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
@@ -145,6 +150,9 @@ Entity UISystem::createTextUIElement(
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
@@ -199,6 +207,9 @@ Entity UISystem::createTexturedUIElement(
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -215,7 +226,6 @@ Entity UISystem::createTexturedUIElement(
 	// setting value for UI
 	UIElement& ui_element = registry.uiElements.emplace(entity);
 	ui_element.name = element_name;
-	ui_element.value = static_cast<float>(texture_id);
 
 	registry.renderRequests.insert_sorted(
 		entity,
@@ -235,7 +245,6 @@ Entity UISystem::createButton(
 	std::string button_name, 
 	TEXTURE_ASSET_ID texture_id, 
 	SCENE_TYPE scene_type) {
-	// Store a reference to the potentially re-used mesh object
 	Entity entity = Entity();
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
@@ -250,6 +259,9 @@ Entity UISystem::createButton(
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
@@ -279,6 +291,66 @@ Entity UISystem::createButton(
 	return entity;
 }
 
+// make a button, with text instead of a texture
+Entity UISystem::createTextButton(
+	RenderSystem* renderer,
+	vec2 pos,
+	vec2 scale,
+	std::function<void()> action,
+	std::string button_name,
+	std::string text,
+	SCENE_TYPE scene_type
+) {
+	Entity entity = Entity();
+	switch (scene_type) {
+	case SCENE_TYPE::GAME:
+		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::MENU:
+		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::PAUSE:
+		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::TEST:
+		registry.testSceneComponents.emplace(entity);
+		break;
+	}
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	// setting value for UI
+	UIButton& ui_button = registry.uiButtons.emplace(entity);
+	ui_button.name = button_name;
+	ui_button.action = action;
+
+	UIElement& ui_element = registry.uiElements.emplace(entity);
+	ui_element.name = button_name;
+	ui_element.value = text;
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{	TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::FONT,
+			GEOMETRY_BUFFER_ID::SQUARE,
+			17 });
+
+	return entity;
+}
+
 Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type) {
 	auto entity = Entity();
 	switch (scene_type) {
@@ -294,6 +366,9 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 		break;
 	case SCENE_TYPE::PAUSE:
 		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);

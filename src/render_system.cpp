@@ -210,12 +210,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 								sizeof(ColoredVertex), (void*)sizeof(vec3));
 		gl_has_errors();
-
-		GLint value_loc = glGetUniformLocation(program, "value");
-
-		UIElement& ui_element = registry.uiElements.get(entity);
-		glUniform1f(value_loc, ui_element.value);
-		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
 		// let renderText() handle this
@@ -420,6 +414,16 @@ void RenderSystem::draw(float elapsed_ms)
 		}
 		break;
 	}
+	case SCENE_TYPE::SHOP: {
+		// draw shop screen
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
+		break;
+	}
 	case SCENE_TYPE::TEST: {
 		// draw test scene
 		break;
@@ -444,12 +448,11 @@ void RenderSystem::drawText() {
 
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
-		trans = glm::translate(trans, glm::vec3(world_object.position, 0.0f));
 		render_text(
-			std::to_string(ui_elt.value), 
+			ui_elt.value, 
 			world_object.position.x, 
-			world_object.position.y, 
-			world_object.scale.x,
+			window_height_px - world_object.position.y,
+			world_object.scale.y,
 			vec3(1.0f, 1.0f, 1.0f),
 			trans
 		);

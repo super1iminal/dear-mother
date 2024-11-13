@@ -489,35 +489,33 @@ void WorldSystem::initGameUI() {
 	);
 
 	// grab player health
-	float player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
+	int player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
 
 	// create health_ui entity
-	// TODO see if we can fix how text is rendered
-	// so that the position and scale vectors aren't so funky
 	health_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(60.f, 324.f),
-		vec2(4.f, 40.f),
+		vec2(120.f, 75.f),
+		vec2(8.f, 3.f),
 		"health_ui",
-		static_cast<int>(player_health),
+		std::to_string(player_health),
 		SCENE_TYPE::GAME);
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(180.f, 336.f),
-		vec2(4.f, 0.f),
+		vec2(360.f, 45.f),
+		vec2(8.f, 3.f),
 		"scrap_ui",
-		scrap,
+		std::to_string(scrap),
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
 	level_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(184.f, 316.f),
-		vec2(4.f, 0.f),
+		vec2(368.f, 84.f),
+		vec2(8.f, 3.f),
 		"level_ui",
-		level,
+		std::to_string(level),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
@@ -551,10 +549,10 @@ void WorldSystem::initGameUI() {
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
 	UIElement& health_elt = registry.uiElements.get(health_ui);
-	health_elt.value = registry.healthComponents.get(player).curr_health;
+	health_elt.value = std::to_string(registry.healthComponents.get(player).curr_health);
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
-	scrap_elt.value = static_cast<float>(scrap);
+	scrap_elt.value = std::to_string(scrap);
 
 	// re render the items
 	// TODO pull this into a helper method later

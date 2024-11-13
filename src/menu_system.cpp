@@ -55,6 +55,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		vec2(165.f, 44.f),
 		[&]() {
 			std::cout << "Upgrades button pressed!" << std::endl;
+			scene_manager.set_scene(SCENE_TYPE::SHOP);
 		},
 		"shop_button",
 		TEXTURE_ASSET_ID::SHOP_BUTTON,
