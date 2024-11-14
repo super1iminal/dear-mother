@@ -107,6 +107,9 @@ private:
 	Entity level_ui;
 	std::vector<Entity> items_ui;
 
+	// upgrades
+	void initUpgrades();
+
 	// initialize HUD
 	void initGameUI();
 

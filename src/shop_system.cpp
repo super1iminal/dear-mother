@@ -418,6 +418,8 @@ void ShopSystem::buyUpgrade() {
 		return;	// don't attempt the purchase; we are at max lvl already for this upgrade
 	}
 	int upgrade_cost = std::stoi(cost_element.value);
+	std::cout << "upgrade_cost: " << upgrade_cost << std::endl;
+	std::cout << "upgrade: " << upgrade << std::endl;
 	bool purchased = false;
 
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
@@ -429,7 +431,7 @@ void ShopSystem::buyUpgrade() {
 			std::string tag;
 			int value;
 			if (std::getline(ss, tag, ',') && ss >> value) {
-				if (tag == upgrade && current_scrap - upgrade_cost < 0) {
+				if (tag == upgrade && (current_scrap - upgrade_cost) < 0) {
 					// we do not have enough scrap for this upgrade
 					// TODO make the scrap value flash red
 
@@ -441,7 +443,8 @@ void ShopSystem::buyUpgrade() {
 					purchased = true;
 				}
 				else if (tag == "scrap" && purchased) {
-					data.emplace_back(tag, value - upgrade_cost);
+					current_scrap = current_scrap - upgrade_cost;
+					data.emplace_back(tag, current_scrap);
 				}
 				else {
 					data.emplace_back(tag, value);

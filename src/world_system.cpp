@@ -409,25 +409,9 @@ void WorldSystem::restart_game() {
 		set_last_shot_time(entity);
 	}
 
-	// get # of unlocked inventory slots
-	std::ifstream f(std::string(PROJECT_SOURCE_DIR) + "/data/misc/item_slots.txt");
+	// read upgrade values
+	initUpgrades();
 
-	// Check if the file is successfully opened
-	if (!f.is_open()) {
-		std::cerr << "Error opening the file!";
-	}
-
-	std::string s;
-
-	Inventory& player_inventory = registry.inventory.get(player);
-
-	// Read each line of the file and print it to the
-	// standard output stream till the whole file is
-	// completely read
-	while (getline(f, s)) {
-		player_inventory.size = std::stoi(s);
-	}
-	
 	initGameUI();
 }
 
@@ -458,6 +442,60 @@ TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
 		break;
 	}
 	return item_texture;
+}
+
+void WorldSystem::initUpgrades() {
+	// get the inventory size
+	Inventory& player_inventory = registry.inventory.get(player);
+	Modifier& player_modifier = registry.modifiers.get(player);
+	Health& player_health = registry.healthComponents.get(player);
+
+	int item_slots = 0;
+	int damage_upgrade = 0;
+	int health_upgrade = 0;
+	int crit_upgrade = 0;
+	int dodge_upgrade = 0;
+	int scrap = 0;
+
+	std::map<std::string, int*> tagMap = {
+		{"item_slots", &item_slots},
+		{"damage_upgrade", &damage_upgrade},
+		{"health_upgrade", &health_upgrade},
+		{"crit_upgrade", &crit_upgrade},
+		{"dodge_upgrade", &dodge_upgrade},
+		{"scrap", &scrap}
+	};
+
+	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
+	if (read_file.is_open()) {
+		std::string line;
+		while (std::getline(read_file, line)) {
+			std::stringstream ss(line);
+			std::string tag;
+			int value;
+			if (std::getline(ss, tag, ',') && ss >> value) {
+				if (tagMap.find(tag) != tagMap.end()) {
+					*tagMap[tag] = value;
+				}
+			}
+		}
+		read_file.close();
+	}
+	else {
+		std::cerr << "Unable to open file for reading.\n";
+	}
+
+	player_inventory.size = 2 + item_slots;
+	player_modifier.damage_modifier_percentage= 1.0f + (damage_upgrade * 0.15);
+	player_health.max_health = 2 + health_upgrade;
+	player_modifier.crit_chance = 1 + (crit_upgrade * 3);
+	player_modifier.dodge_chance = (dodge_upgrade * 2);
+
+	std::cout << "Item slots upgrade: " << item_slots << std::endl;
+	std::cout << "Damage upgrade: " << damage_upgrade << std::endl;
+	std::cout << "Health upgrade: " << health_upgrade << std::endl;
+	std::cout << "Crit upgrade: " << crit_upgrade << std::endl;
+	std::cout << "Dodge upgrade: " << dodge_upgrade << std::endl;
 }
 
 void WorldSystem::initGameUI() {
@@ -630,6 +668,13 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 	deadly.attacking = false;
 }
 
+// add a flashing effect when the player does a successful dodge
+void playPlayerDodgeEffect(Entity entity) {
+	FlashingColor& flashing_color = registry.flashingColors.emplace(entity);
+	flashing_color.color = vec3(0.2, 0.2, 1.0);
+	flashing_color.flash_rate = 100;
+}
+
 // add a flashing effect when the player is damaged
 void playPlayerDamagedEffect(Entity entity) {
 	FlashingColor& flashing_color = registry.flashingColors.emplace(entity);
@@ -716,14 +761,20 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 	for (Entity entity : entities) {
 		if (!registry.invincibleTimers.has(entity) && !registry.deathTimers.has(player)) {
 			registry.invincibleTimers.emplace(entity);
-			registry.healthComponents.get(entity).curr_health -= 1;
-			if (entity == player) {
-				playPlayerDamagedEffect(player);
-			}
-			updateGameUI();
 			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
-				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
+				Modifier& player_modifier = registry.modifiers.get(player);
+				if (uniform_dist(rng) * 100 > (100 - player_modifier.dodge_chance)) {
+					// successful dodge; do not remove health
+					playPlayerDodgeEffect(player);
+					// TODO: a special sound effect would be nice
+				}
+				else {
+					registry.healthComponents.get(entity).curr_health -= 1;
+					updateGameUI();
+					playPlayerDamagedEffect(player);
+					createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+					Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
+				}
 			}
 			else {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
@@ -797,6 +848,7 @@ void WorldSystem::handleProjectileBlocker(Entity projectile, Entity blocker) {
 
 void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 	// Decrease health of deadly
+	Player& player_info = registry.players.get(player);
 	registry.healthComponents.get(deadly).curr_health -= registry.projectiles.get(projectile).damage;
 	createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 
@@ -865,7 +917,6 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	if ((player_inventory.items.size() < player_inventory.size) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
 		player_inventory.items.push_back(new_item);
 		update_player_modifier();
-		//registry.pendingRemoves.emplace_with_duplicates(item);
 		remove_item(item);
 	}
 	else if (new_item.type == ITEM_TYPE::HEALTH_PACK) {
@@ -873,11 +924,9 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
-			//registry.pendingRemoves.emplace_with_duplicates(item);
 		}
 		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
-			//registry.pendingRemoves.emplace_with_duplicates(item);
 		}
 		remove_item(item);
 	}
@@ -971,7 +1020,6 @@ void WorldSystem::handle_deaths() {
 				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					registry.deathTimers.emplace(entity);
-					//Mix_PlayChannel(-1, salmon_dead_sound, 0);
 				}
 			}
 			else {
@@ -1015,7 +1063,15 @@ void WorldSystem::shoot(Entity& entity) {
 				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += projectile_mod.range_modifier_flat + (bullet_range * projectile_mod.range_modifier_percent);
-				registry.projectiles.get(projectile).damage += projectile_mod.damage_modifier_flat;
+				Modifier& player_modifier = registry.modifiers.get(player);
+
+				int projectile_damage = (registry.projectiles.get(projectile).damage + projectile_mod.damage_modifier_flat) * projectile_mod.damage_modifier_percentage;
+				// check if this hit could be a crit
+				if (uniform_dist(rng) * 100 > (100 - projectile_mod.crit_chance)) {
+					projectile_damage *= 2;
+					registry.colors.insert(projectile, vec3(1.0, 0.4, 1.0));
+				}
+				registry.projectiles.get(projectile).damage = projectile_damage;
 
 				Mix_Volume(Mix_PlayChannel(-1, player_shooting_sound, 0), 5);
 				
