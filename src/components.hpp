@@ -4,9 +4,13 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 #include <string>
+#include <map>
 
 #include <iostream>
 #include <chrono>
+
+
+enum class TEXTURE_ASSET_ID;
 
 // All data relevant to the motion of entities
 struct Motion {
@@ -258,7 +262,7 @@ struct MeshFlag {
 
 struct FloorItem
 {
-
+	TEXTURE_ASSET_ID type;
 };
 
 struct BaseUI
@@ -270,9 +274,6 @@ struct Crosshair {
 
 };
 
-struct GameLoadingOption {
-	bool savedGame = false;
-};
 
 
 /**
@@ -410,4 +411,19 @@ struct ItemStat {
 
 struct Inventory {
 	std::vector<struct ItemStat> items;
+};
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	// ...
+};
+
+struct GameLoadingHelper {
+	bool savedGame = false;
+};
+
+
+struct Map {
+	std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
 };

@@ -54,7 +54,6 @@ int main()
 		}
 		if (num_of_frames_debug > 1000) {
 			num_of_frames_debug = 0;
-			std::cout << registry.players.entities.size() << std::endl;
 		}
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;

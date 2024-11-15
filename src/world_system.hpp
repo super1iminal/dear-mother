@@ -18,12 +18,6 @@
 #include "ui_system.hpp"
 #include "scene_manager.hpp"
 
-enum class ROOM_TYPE {
-	EMPTY = 0,
-	ENEMY_ROOM = EMPTY + 1,
-	// ...
-};
-
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem
@@ -59,6 +53,10 @@ public:
 
 	// restart level
 	void restart_game();
+	
+	// C++ random number generator
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 private:
 
@@ -135,15 +133,13 @@ private:
 	bool change_music = true;
 	bool in_combat = false;
 
-	// C++ random number generator
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+	
 
 	// For selecting item texture
 	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
 
 	// room. generation. time to blast off. let's go00000
-	std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
+	//std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
 	void generate_rooms();
 	void generate_map();
 	void change_rooms(ivec2 new_room);

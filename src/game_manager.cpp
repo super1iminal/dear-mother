@@ -48,6 +48,7 @@ bool GameManager::init()
 	help.init(&renderer, window);
 	pause.init(&renderer, window);
 	world.init(&renderer, window);
+	reload.init(&renderer, window);
 	return true;
 }
 

@@ -114,11 +114,11 @@ void MenuSystem::on_mouse_move(vec2 mouse_position) {
 void MenuSystem::on_key(int key, int sc, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_C) {
 		std::cout << "Loading game" << std::endl;
-		if (registry.gameLoadingOptions.size() > 0) {
-			registry.gameLoadingOptions.components[0].savedGame = true;
+		if (registry.gameLoadingHelper.size() > 0) {
+			registry.gameLoadingHelper.components[0].savedGame = true;
 		} else {
 			auto entity = Entity();
-			GameLoadingOption& option = registry.gameLoadingOptions.emplace(entity);
+			GameLoadingHelper& option = registry.gameLoadingHelper.emplace(entity);
 			option.savedGame = true;
 		}
 
