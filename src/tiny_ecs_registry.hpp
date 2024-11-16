@@ -55,6 +55,8 @@ public:
 	ComponentContainer<Active> activeComponents;
 	ComponentContainer<Door> doors;
 	ComponentContainer<MeshFlag> meshFlags;
+	ComponentContainer<GameLoadingHelper> gameLoadingHelper;
+	ComponentContainer<Map> map;
 	ComponentContainer<FloorText> floorTexts;
 	ComponentContainer<BossOne> bossOnes;
 	ComponentContainer<BossTwo> bossTwos;
@@ -144,6 +146,8 @@ public:
 		registry_list.push_back(&activeComponents);
 		registry_list.push_back(&doors);
 		registry_list.push_back(&meshFlags);
+		registry_list.push_back(&gameLoadingHelper);
+		registry_list.push_back(&map);
 		registry_list.push_back(&floorTexts);
 		registry_list.push_back(&bossOnes);
 

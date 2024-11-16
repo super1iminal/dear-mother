@@ -28,7 +28,9 @@ inline std::string shader_path(const std::string& name) {return std::string(PROJ
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 inline std::string mesh_path(const std::string& name) {return data_path() + "/meshes/" + std::string(name);};
-
+inline std::string reload_path(const std::string& name) {
+	return data_path() + "/saved_game/" + std::string(name);
+};
 const int window_width_px = 1280;
 const int window_height_px = 720;
 bool on_screen(vec2 position);
@@ -166,4 +168,13 @@ enum class BOSS_ONE_STATE {
 	ONE_ALIVE_B_R = ONE_ALIVE_B_L + 1,
 	START = ONE_ALIVE_B_R + 1,
 	ALL_DEAD = START + 1,
+};
+
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
+	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
+	// ...
 };

@@ -90,7 +90,8 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 		registry.walls.emplace(entity);
 	}
 	else {
-		registry.floorItems.emplace(entity);
+		FloorItem& floor = registry.floorItems.emplace(entity);
+		floor.type = type;
 	}
 
 	// Setting initial position, scale, and orientation values
@@ -112,10 +113,17 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 
 }
 
-Entity createPlayer(RenderSystem* renderer, vec2 pos)
+Entity createPlayer(
+	RenderSystem* renderer,
+	vec2 pos,
+	int curr_health,
+	ivec2 room_coord
+)
 {
-	auto entity = Entity();
+	Entity entity = Entity();
+	
 	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
@@ -140,7 +148,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 10;
-	health.curr_health = 10;
+	health.curr_health = curr_health;
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
@@ -161,7 +169,14 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 room_coord)
+Entity createEnemy(
+	RenderSystem* renderer, 
+	vec2 position, 
+	float speed, 
+	ivec2 room_coord,
+	int curr_health,
+	int type
+)
 {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -184,7 +199,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
 	deadly.immune = false;
 
-  deadly.type = (int) rand() % 2;  // 0 for grey melee, 1 for slower yellow projectile
+	deadly.type = type;  // 0 for grey melee, 1 for slower yellow projectile
 
 	if (registry.deadlys.get(entity).type == 1) {
 		registry.motions.get(entity).max_speed = 0.7 * speed;
@@ -193,7 +208,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	}
   	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = 5;
-	health.curr_health = 5;
+	health.curr_health = curr_health;
 
 	// setting position, scale, orientation
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
@@ -457,7 +472,9 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
+
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord, ItemStat* loaded_item) {
+
 	// create an interactable entity
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -469,7 +486,10 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE sp
 
 	ItemStat& item = registry.itemStats.emplace(entity);
 
-	int roll_type = uniform_dist(rng) * 100;
+
+	if (loaded_item == nullptr) {
+		int roll_type = uniform_dist(rng) * 100;
+
 	if (spec_type == ITEM_TYPE::HEALTH_PACK) {
 		roll_type = 1;
 	}
@@ -485,6 +505,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE sp
 	else if (spec_type == ITEM_TYPE::DAMAGE) {
 		roll_type = 81;
 	}
+
 	int roll_item;
 	if (roll_type > 80) {
 		roll_item = (rand() % registry.damage_items.size());
@@ -505,7 +526,11 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE sp
 	else {
 		roll_item = (rand() % registry.healing_items.size());
 		item = registry.healing_items.at(roll_item);
-	} 
+	}
+	} else {
+		item = *loaded_item;
+	}
+
 
 	Interactable& interactable = registry.interactables.emplace(entity);
 	interactable.range = 50.f;
@@ -670,4 +695,58 @@ void buildItemSet() {
 	battery_pack.heal_size = 1;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
+}
+
+
+void createLoadedGame(RenderSystem *renderer) {
+	auto entity = registry.players.entities[0];
+	registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& shooter = registry.shooters.emplace(entity);
+	shooter.fire_rate = 500.0f;
+	auto& health = registry.healthComponents.emplace(entity);
+	health.max_health = 5;
+	health.curr_health = 5;
+	registry.inventory.emplace(entity);
+	registry.modifiers.emplace(entity);
+		Animation& player_animation = registry.animations.emplace(entity);
+		player_animation.cols = 4;
+		player_animation.rows = 1;
+		player_animation.frames = 1;
+		player_animation.current_frame = 0;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLAYER_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	for (Entity entity : registry.deadlys.entities) {
+		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+		registry.meshPtrs.emplace(entity, &mesh);
+		auto& deadly = registry.deadlys.emplace(entity);
+		deadly.t = std::chrono::high_resolution_clock::now();
+		deadly.t_patrol = std::chrono::high_resolution_clock::now();
+		auto& shooter = registry.shooters.emplace(entity);
+		shooter.fire_rate = std::numeric_limits<int>::max();
+		auto& health = registry.healthComponents.emplace(entity);
+		health.max_health = 5;
+		health.curr_health = 5;
+		Animation& enemy_animation = registry.animations.emplace(entity);
+		enemy_animation.cols = 4;
+		enemy_animation.rows = 1;
+		enemy_animation.frames = 1;
+		enemy_animation.current_frame = 0;
+		registry.renderRequests.insert(
+			entity,
+			{
+				TEXTURE_ASSET_ID::ENEMY,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE
+			});
+	}
 }
