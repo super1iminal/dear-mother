@@ -329,7 +329,7 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 
 	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
 	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
-	auto roomMap = registry.map.components[0].roomMap;
+
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -371,7 +371,6 @@ void WorldSystem::createBossRoomTwo(ivec2 coord) {
 	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
 	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
 
-	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -421,7 +420,6 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 
-	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -474,41 +472,40 @@ void WorldSystem::generate_map() {
 
 // 
 void WorldSystem::generate_rooms() {
-	auto roomMap = registry.map.components[0].roomMap;
 	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		generate_map();
-		// Iterating using structured bindings
-		for (const auto& room : roomMap) {
-			const ivec2 coord = { room.first.first, room.first.second };
-			ROOM_TYPE type = room.second;
+	generate_map();
+	// Iterating using structured bindings
+	for (const auto& room : roomMap) {
+		const ivec2 coord = { room.first.first, room.first.second };
+		ROOM_TYPE type = room.second;
 
-			switch (type) {
-				case ROOM_TYPE::ENEMY_ROOM:
-					createEnemyRoom(coord);
-				break;
-				case ROOM_TYPE::EMPTY:
-					createEmptyRoom(coord);
-				break;
-				case ROOM_TYPE::BOSS_ROOM_ONE:
-					createBossRoomOne(coord);
-				break;
-				case ROOM_TYPE::BOSS_ROOM_TWO:
-					createBossRoomTwo(coord);
-				break;
-			}
+		switch (type) {
+		case ROOM_TYPE::ENEMY_ROOM:
+			createEnemyRoom(coord);
+			break;
+		case ROOM_TYPE::EMPTY:
+			createEmptyRoom(coord);
+			break;
+		case ROOM_TYPE::BOSS_ROOM_ONE:
+			createBossRoomOne(coord);
+			break;
+		case ROOM_TYPE::BOSS_ROOM_TWO:
+			createBossRoomTwo(coord);
+			break;
 		}
-		std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
-		auto temp  = registry.map;
-		for (const auto& room : roomMap) {
+	}
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
+	auto temp  = registry.map;
+	for (const auto& room : roomMap) {
 			const ivec2 coord = { room.first.first, room.first.second };
 			ROOM_TYPE type = room.second;
 
 			switch (type) {
-				case ROOM_TYPE::ENEMY_ROOM:
-					createEnemyRoom(coord);
+			case ROOM_TYPE::ENEMY_ROOM:
+				createEnemyRoom(coord);
 				break;
-				case ROOM_TYPE::EMPTY:
-					createEmptyRoom(coord);
+			case ROOM_TYPE::EMPTY:
+				createEmptyRoom(coord);
 				break;
 			}
 		}
@@ -524,10 +521,9 @@ void WorldSystem::generate_rooms() {
 				registry.activeComponents.emplace(entity);
 			}
 		}
-	}
 }
+
 void WorldSystem::change_rooms(ivec2 new_room) {
-	auto roomMap = registry.map.components[0].roomMap;
 	current_room = new_room;
 	if (roomMap[{new_room.x, new_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE
 		&& !registry.players.get(player).boss_one_beat) {
