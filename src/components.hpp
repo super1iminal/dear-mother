@@ -9,10 +9,7 @@
 #include <iostream>
 #include <chrono>
 
-#include "world_system.hpp"
 
-
-enum class TEXTURE_ASSET_ID;
 
 // All data relevant to the motion of entities
 struct Motion {
@@ -314,10 +311,6 @@ struct FloorText
 	std::string text;
 };
 
-struct FloorItem
-{
-	TEXTURE_ASSET_ID type;
-};
 
 struct BaseUI
 {
@@ -413,6 +406,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
+struct FloorItem
+{
+	TEXTURE_ASSET_ID type;
+};
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	EGG = COLOURED + 1,

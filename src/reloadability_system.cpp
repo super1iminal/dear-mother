@@ -283,7 +283,7 @@ void ReloadabilitySystem::loadGame() {
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
             std::uniform_real_distribution<float> uniform_dist;
             std::default_random_engine rng = std::default_random_engine(std::random_device()());
-            createItem(renderer, pos, size, uniform_dist, rng, room_coord, &itemstat);
+            //createItem(renderer, pos, size, uniform_dist, rng, room_coord, &itemstat);
         }
         else if (data.contains("map")) {
             auto entity = registry.map.entities[0];

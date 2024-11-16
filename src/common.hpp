@@ -169,3 +169,12 @@ enum class BOSS_ONE_STATE {
 	START = ONE_ALIVE_B_R + 1,
 	ALL_DEAD = START + 1,
 };
+
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
+	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
+	// ...
+};

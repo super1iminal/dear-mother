@@ -474,10 +474,11 @@ void WorldSystem::generate_map() {
 
 // 
 void WorldSystem::generate_rooms() {
-	auto roomMap = registry.map.components[0].roomMap;
+	
 	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
 		generate_map();
 		// Iterating using structured bindings
+		auto roomMap = registry.map.components[0].roomMap;
 		for (const auto& room : roomMap) {
 			const ivec2 coord = { room.first.first, room.first.second };
 			ROOM_TYPE type = room.second;
@@ -497,7 +498,6 @@ void WorldSystem::generate_rooms() {
 				break;
 			}
 		}
-		std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 		auto temp  = registry.map;
 		for (const auto& room : roomMap) {
 			const ivec2 coord = { room.first.first, room.first.second };

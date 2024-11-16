@@ -19,14 +19,6 @@
 #include "scene_manager.hpp"
 
 
-enum class ROOM_TYPE {
-	EMPTY = 0,
-	ENEMY_ROOM = EMPTY + 1,
-	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
-	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
-	// ...
-};
-
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem
