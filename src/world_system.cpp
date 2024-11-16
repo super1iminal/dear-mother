@@ -226,6 +226,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.flashingColors.remove(entity);
 		}
 	}
+	cout << "testing" << endl;
 
 	if (registry.players.get(player).combat_boss_two) {
 		handle_boss_two();
