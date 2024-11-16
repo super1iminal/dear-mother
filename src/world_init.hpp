@@ -51,21 +51,13 @@ void buildItemSet();
 void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord);
 
 // the player
-Entity createPlayer(RenderSystem* renderer,vec2 pos,int curr_health = 10,
-	ivec2 room_coord = {0, 0});
+Entity createPlayer(RenderSystem* renderer, vec2 pos);
 
 // the walls
 Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXTURE_ASSET_ID type, ivec2 room_coord);
 
 // the enemy
-Entity createEnemy(
-	RenderSystem* renderer,
-	vec2 position,
-	float speed,
-	ivec2 room_coord,
-	int curr_health = 5,
-	int type = (int)rand() % 2
-);
+Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 room_coord);
 
 // put text on the floor
 Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
@@ -88,12 +80,10 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord);
 
 // items
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord, ItemStat* loaded_item = nullptr);
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
 // create all item components
 void buildItemSet();
-
-void createLoadedGame(RenderSystem* renderer);

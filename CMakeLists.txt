@@ -39,10 +39,7 @@ if (IS_OS_MAC)
   link_directories(/opt/homebrew/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_manager.cpp" "src/scene_manager.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "src/shop_system.cpp" "src/help_system.cpp" "src/game_manager.cpp"
-        src/reloadability_system.hpp
-        ext/json/json.hpp)
-
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_manager.cpp" "src/scene_manager.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "src/shop_system.cpp" "src/help_system.cpp" "src/game_manager.cpp")
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 
 # Added this so policy CMP0065 doesn't scream
@@ -51,7 +48,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 # External header-only libraries in the ext/
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
-target_include_directories(${PROJECT_NAME} PUBLIC ext/json)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -171,8 +167,8 @@ if(NOT TARGET Freetype::Freetype)
      message(FATAL_ERROR "Can't find FreeType (fonts)." )
 endif()
  
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/json/")
+ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
 
