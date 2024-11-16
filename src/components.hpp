@@ -9,6 +9,8 @@
 #include <iostream>
 #include <chrono>
 
+#include "world_system.hpp"
+
 
 enum class TEXTURE_ASSET_ID;
 
@@ -472,13 +474,9 @@ struct ItemStat {
 
 struct Inventory {
 	std::vector<struct ItemStat> items;
+	int size;
 };
 
-enum class ROOM_TYPE {
-	EMPTY = 0,
-	ENEMY_ROOM = EMPTY + 1,
-	// ...
-};
 
 struct GameLoadingHelper {
 	bool savedGame = false;
