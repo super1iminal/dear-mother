@@ -69,6 +69,7 @@ class RenderSystem {
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
+			textures_path("shop_screen.png"),
 			textures_path("/buttons/start_button.png"),
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
@@ -76,6 +77,11 @@ class RenderSystem {
 			textures_path("/buttons/back_button.png"),
 			textures_path("/buttons/resume_button.png"),
 			textures_path("/buttons/main_menu_button.png"),
+			textures_path("/buttons/item_slot_button.png"),
+			textures_path("/buttons/damage_upgrade_button.png"),
+			textures_path("/buttons/health_upgrade_button.png"),
+			textures_path("/buttons/crit_upgrade_button.png"),
+			textures_path("/buttons/dodge_upgrade_button.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png"),
@@ -102,6 +108,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
+		shader_path("font"),
 		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
@@ -177,7 +184,12 @@ private:
 	// text entities to render
 	std::vector<Entity> text_to_render;
 
+	// floor text entities to render
+	std::vector<Entity> floor_text_to_render;
+
 	void drawText();
+
+	void drawFloorText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

@@ -42,11 +42,38 @@ private:
     // The hash map from Entity -> array index.
     std::unordered_multimap<unsigned int, unsigned int> map_entity_componentID;
     bool registered = false;
+    bool sorted = false;
 
     std::vector<Entity> components_entities;
 
     std::vector<std::function<void(Entity)>> onEntityAddedCallbacks;
     std::vector<std::function<void(Entity)>> onEntityRemovedCallbacks;
+
+    // check if a component has compareFunction, which is necessary for sorting
+    // using SFINAE (Substitution Failure Is Not An Error)
+    template <typename Component>
+    class has_compareFunction
+    {
+    private:
+        // type (Component) to be checked
+        template <typename U>
+
+        // both of the test functions do not have implementations; this is okay,
+        // since we only intend to use them for compile-time type checking
+
+        // test if the type U has compareFunction, by attempting to call it. 
+        // this will succeed if type U does have comapreFunction. returns std::true_type
+        static auto test(int) -> decltype(U::compareFunction(std::declval<U>(), std::declval<U>()), std::true_type());
+
+        // if the above test function fails, this is the fallback that is chosen. 
+        // it uses a variadic arugment (...) to accept anything, and returns std::false_type
+        template <typename>
+        static std::false_type test(...);
+    public:
+        // The value will be true if the first "test" function is selected, false otherwise.
+        static constexpr bool value = decltype(test<Component>(0))::value;
+    };
+
 public:
     // Container of all components of type 'Component'
     std::vector<Component> components;
@@ -69,8 +96,42 @@ public:
         }
         if (map_entity_componentID.count(e) == 0)
         {
-            // Entity e is not in entities vector yet, so add it
+            // Entity e is not in entities vector yet, so add it (order doesn't matter)
             entities.push_back(e);
+        }
+        map_entity_componentID.insert(std::make_pair(e, (unsigned int)components.size()));
+        components.push_back(std::move(c));
+        components_entities.push_back(e);
+        // add to filtered components
+        for (auto& callback : onEntityAddedCallbacks) {
+            callback(e);
+        }
+        return components.back();
+    };
+
+    // Inserting a component c associated to entity e
+    inline Component& insert_sorted(Entity e, Component c, bool check_for_duplicates = true)
+    {
+        if (check_for_duplicates)
+        {
+            // We no longer assert if the entity already has components
+            // Instead, we proceed to add the new component
+        }
+        if (map_entity_componentID.count(e) == 0)
+        {
+            static_assert(has_compareFunction<Component>::value && "Component does not have compareFunction defined");
+            bool inserted = false;
+            for (int i = 0; i < entities.size(); i++) {
+                if (c.compareFunction(c, get(entities[i])) < 1) {  // if this entity should come before entities[i]
+                    entities.insert(entities.begin() + i, e);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                // entity e goes in at the end of the vector
+                entities.push_back(e);
+            }
         }
         map_entity_componentID.insert(std::make_pair(e, (unsigned int)components.size()));
         components.push_back(std::move(c));
@@ -86,6 +147,11 @@ public:
     template<typename... Args>
     Component& emplace(Entity e, Args &&... args) {
         return insert(e, Component(std::forward<Args>(args)...));
+    };
+    template<typename... Args>
+    Component& emplace_sorted(Entity e, Args &&... args) {
+        assert(sorted && "ComponentContainer is not sorted");
+        return insert_sorted(e, Component(std::forward<Args>(args)...));
     };
     template<typename... Args>
     Component& emplace_with_duplicates(Entity e, Args &&... args) {
@@ -218,6 +284,10 @@ public:
     void registerOnRemoveCallback(const std::function<void(Entity)>& callback) {
         onEntityRemovedCallbacks.push_back(callback);
     }
+
+    void setSorted(bool sorted_value) {
+        sorted = sorted_value;
+    }
 };
 
 // get and get all return components from the Component (not the FilterComponent).
@@ -318,5 +388,3 @@ public:
 
     // You can add insert methods if needed, ensuring they update both base containers
 };
-
-

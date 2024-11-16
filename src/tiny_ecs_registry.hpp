@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
+	ComponentContainer<FlashingColor> flashingColors;
 	ComponentContainer<Projectile> projectiles;
 	ComponentContainer<Health> healthComponents;
 	ComponentContainer<Blocker> blockers;
@@ -45,6 +46,7 @@ public:
 	ComponentContainer<MenuScene> menuSceneComponents;
 	ComponentContainer<HelpScene> helpSceneComponents;
 	ComponentContainer<PauseScene> pauseSceneComponents;
+	ComponentContainer<ShopScene> shopSceneComponents;
 	ComponentContainer<TestScene> testSceneComponents;
 	ComponentContainer<Modifier> modifiers;
 	ComponentContainer<Inventory> inventory;
@@ -55,6 +57,9 @@ public:
 	ComponentContainer<MeshFlag> meshFlags;
 	ComponentContainer<GameLoadingHelper> gameLoadingHelper;
 	ComponentContainer<Map> map;
+	ComponentContainer<FloorText> floorTexts;
+	ComponentContainer<BossOne> bossOnes;
+	ComponentContainer<BossTwo> bossTwos;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -85,6 +90,7 @@ public:
 	FilteredComponentContainer<UIButton, MenuScene> menuSceneButtons;
 	FilteredComponentContainer<UIButton, HelpScene> helpSceneButtons;
 	FilteredComponentContainer<UIButton, PauseScene> pauseSceneButtons;
+	FilteredComponentContainer<UIButton, ShopScene> shopSceneButtons;
 	FilteredComponentContainer<UIButton, TestScene> testSceneButtons;
 
 	// constructor that adds all containers for looping over them
@@ -95,6 +101,7 @@ public:
 		menuSceneButtons(uiButtons, menuSceneComponents),
 		helpSceneButtons(uiButtons, helpSceneComponents),
 		pauseSceneButtons(uiButtons, pauseSceneComponents),
+		shopSceneButtons(uiButtons, shopSceneComponents),
 		testSceneButtons(uiButtons, testSceneComponents)
 	{
 		registry_list.push_back(&animations);
@@ -112,6 +119,7 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+		registry_list.push_back(&flashingColors);
 		registry_list.push_back(&projectiles);
 		registry_list.push_back(&healthComponents);
 		registry_list.push_back(&blockers);
@@ -132,6 +140,7 @@ public:
 		registry_list.push_back(&menuSceneComponents);
 		registry_list.push_back(&helpSceneComponents);
 		registry_list.push_back(&pauseSceneComponents);
+		registry_list.push_back(&shopSceneComponents);
 		registry_list.push_back(&testSceneComponents);
 		registry_list.push_back(&roomCoords);
 		registry_list.push_back(&activeComponents);
@@ -139,6 +148,8 @@ public:
 		registry_list.push_back(&meshFlags);
 		registry_list.push_back(&gameLoadingHelper);
 		registry_list.push_back(&map);
+		registry_list.push_back(&floorTexts);
+		registry_list.push_back(&bossOnes);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
@@ -148,7 +159,11 @@ public:
 		registry_filtered.push_back(&menuSceneButtons);
 		registry_filtered.push_back(&helpSceneButtons);
 		registry_filtered.push_back(&pauseSceneButtons);
+		registry_filtered.push_back(&shopSceneButtons);
 		registry_filtered.push_back(&testSceneButtons);
+
+		// denote sorted component containers
+		renderRequests.setSorted(true);
 	}
 
 	void clear_all_components() {

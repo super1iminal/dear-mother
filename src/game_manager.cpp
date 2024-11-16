@@ -47,6 +47,7 @@ bool GameManager::init()
 	menu.init(&renderer, window);
 	help.init(&renderer, window);
 	pause.init(&renderer, window);
+	shop.init(&renderer, window);
 	world.init(&renderer, window);
 	reload.init(&renderer, window);
 	return true;
@@ -87,6 +88,11 @@ void GameManager::on_key(int key, int sc, int action, int mod) {
 		case SCENE_TYPE::PAUSE:
 		{
 			pause.on_key(key, sc, action, mod);
+			break;
+		}
+		case SCENE_TYPE::SHOP:
+		{
+			// Update the shop screen
 			break;
 		}
 		case SCENE_TYPE::TEST:
@@ -141,6 +147,12 @@ void GameManager::on_mouse_move(vec2 pos) {
 		pause.on_mouse_move(pos);
 		break;
 	}
+	case SCENE_TYPE::SHOP:
+	{
+		// Update the shop screen
+		shop.on_mouse_move(pos);
+		break;
+	}
 	case SCENE_TYPE::TEST:
 	{
 		// Update the test screen
@@ -176,6 +188,12 @@ void GameManager::on_mouse_button(GLFWwindow* window, int button, int action, in
 	case SCENE_TYPE::PAUSE:
 	{
 		pause.on_mouse_button(window, button, action, mods);
+		break;
+	}
+	case SCENE_TYPE::SHOP:
+	{
+		// Update the shop screen
+		shop.on_mouse_button(window, button, action, mods);
 		break;
 	}
 	case SCENE_TYPE::TEST:
@@ -233,6 +251,11 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::PAUSE:
 	{
 		// Update the pause screen
+		break;
+	}
+	case SCENE_TYPE::SHOP:
+	{
+		// Update the shop screen
 		break;
 	}
 	case SCENE_TYPE::TEST:

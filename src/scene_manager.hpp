@@ -12,13 +12,15 @@
 // 8. Add the scene to the switch statement in GameManager::init
 // 9. Add the scene to switch statements in UISystem
 // there may be more steps I don't remember
+// 10. add the scene to the switch statement in RenderSystem (render_system.cpp)
 
 enum SCENE_TYPE {
 	GAME = 0,
 	MENU = GAME + 1,
 	HELP = MENU + 1,
 	PAUSE = HELP + 1,
-	TEST = PAUSE + 1,
+	SHOP = PAUSE + 1,
+	TEST = SHOP + 1,
 	SCENE_COUNT = TEST + 1
 };
 

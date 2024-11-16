@@ -18,6 +18,15 @@
 #include "ui_system.hpp"
 #include "scene_manager.hpp"
 
+
+enum class ROOM_TYPE {
+	EMPTY = 0,
+	ENEMY_ROOM = EMPTY + 1,
+	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
+	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
+	// ...
+};
+
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
 class WorldSystem
@@ -65,6 +74,17 @@ private:
 	bool first_shot = true;
 	void shoot(Entity& entity);
 
+	// Boss One Stuff
+	void boss_one_shoot(Entity& entity, WorldObject& entity_object);
+	Entity final_phase_text;
+	bool text_shown = false;
+	Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
+	void handle_boss_one_death(Entity& entity);
+
+	// Boss Two Stuff
+	void createBossRoomTwo(ivec2 coord);
+	void handle_boss_two();
+
 	// Time management
 	std::chrono::steady_clock::time_point t;
 	std::chrono::steady_clock::time_point get_curr_time();
@@ -97,6 +117,7 @@ private:
 	uint level = 1;
 	uint scrap = 0;
 	Entity player;
+	Entity boss_two;
 	Entity floor;
 
 	// HUD
@@ -104,6 +125,9 @@ private:
 	Entity scrap_ui;
 	Entity level_ui;
 	std::vector<Entity> items_ui;
+
+	// upgrades
+	void initUpgrades();
 
 	// initialize HUD
 	void initGameUI();
@@ -113,6 +137,7 @@ private:
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
+	void handlePlayerBossOne(Entity player, Entity boss);
 	void handleActorBlocker(Entity actor, Entity blocker);
 	void handleProjectileBlocker(Entity projectile, Entity blocker);
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
@@ -131,20 +156,18 @@ private:
 
 	//Music control
 	bool change_music = true;
-	bool in_combat = false;
+	bool enable_music = true;
 
 	
 
 	// For selecting item texture
 	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
-
-	// room. generation. time to blast off. let's go00000
-	//std::map<std::pair<int, int>, ROOM_TYPE> roomMap;
 	void generate_rooms();
 	void generate_map();
 	void change_rooms(ivec2 new_room);
 	void createEnemyRoom(ivec2 coord);
 	void createEmptyRoom(ivec2 coord);
+	void createBossRoomOne(ivec2 coord);
 	bool notSafe(vec2 position);
 	ivec2 current_room;
 };

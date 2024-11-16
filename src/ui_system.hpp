@@ -24,22 +24,29 @@ public:
 		std::string name,
 		TEXTURE_ASSET_ID texture);
 
-	static Entity 
-		createUIElement(
-			RenderSystem* renderer,
-			vec2 pos,
-			vec2 scale,
-			std::string element_name,
-			int element_value,
-			SCENE_TYPE scene_type);
+	static Entity createSquareUIElement(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		SCENE_TYPE scene_type);
+
+	static Entity createTextUIElement(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		std::string element_value,
+		vec3 color,
+		SCENE_TYPE scene_type);
 
 	static Entity createTexturedUIElement(
-			RenderSystem* renderer,
-			vec2 pos,
-			vec2 scale,
-			std::string element_name,
-			TEXTURE_ASSET_ID texture_id,
-			SCENE_TYPE scene_type);
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		TEXTURE_ASSET_ID texture_id,
+		SCENE_TYPE scene_type);
 
 	static Entity createButton(
 		RenderSystem* renderer,
@@ -48,6 +55,16 @@ public:
 		std::function<void()> action,
 		std::string button_name,
 		TEXTURE_ASSET_ID texture_id,
+		SCENE_TYPE scene_type);
+
+	static Entity createTextButton(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::function<void()> action,
+		std::string button_name,
+		std::string text,
+		vec3 color,
 		SCENE_TYPE scene_type);
 
 	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);

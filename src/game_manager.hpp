@@ -19,6 +19,7 @@
 #include "menu_system.hpp"
 #include "help_system.hpp"
 #include "pause_system.hpp"
+#include "shop_system.hpp"
 
 // scene stuff
 #include "scene_manager.hpp"
@@ -44,6 +45,7 @@ private:
 	HelpSystem help;
 	PauseSystem pause;
 	ReloadabilitySystem reload;
+	ShopSystem shop;
 
 
 	// Scene systems

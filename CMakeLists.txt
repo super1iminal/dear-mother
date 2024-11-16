@@ -39,9 +39,10 @@ if (IS_OS_MAC)
   link_directories(/opt/homebrew/lib)
 endif()
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_manager.cpp" "src/scene_manager.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "src/help_system.cpp" "src/game_manager.cpp"
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_manager.cpp" "src/scene_manager.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "src/shop_system.cpp" "src/help_system.cpp" "src/game_manager.cpp"
         src/reloadability_system.hpp
         ext/json/json.hpp)
+
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 
 # Added this so policy CMP0065 doesn't scream

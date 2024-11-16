@@ -8,7 +8,6 @@ in vec2 vpos; // Distance from local origin
 uniform sampler2D sampler0;
 uniform vec3 fcolor;
 uniform int light_up;
-uniform float value;
 
 // Output color
 layout(location = 0) out vec4 color;
@@ -16,5 +15,4 @@ layout(location = 0) out vec4 color;
 void main()
 {
 	color = vec4(fcolor * vcolor, 1.0);
-	color.xyz -= value * 0.1;
 }
