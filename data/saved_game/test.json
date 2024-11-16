@@ -1,0 +1,1169 @@
+{
+    "100": {
+        "floorItem": {
+            "type": 43
+        }
+    },
+    "101": {
+        "floorItem": {
+            "type": 39
+        }
+    },
+    "112": {
+        "floorItem": {
+            "type": 41
+        }
+    },
+    "113": {
+        "floorItem": {
+            "type": 43
+        }
+    },
+    "124": {
+        "floorItem": {
+            "type": 43
+        }
+    },
+    "135": {
+        "floorItem": {
+            "type": 37
+        }
+    },
+    "145": {
+        "floorItem": {
+            "type": 41
+        }
+    },
+    "146": {
+        "floorItem": {
+            "type": 37
+        }
+    },
+    "156": {
+        "floorItem": {
+            "type": 40
+        }
+    },
+    "157": {
+        "floorItem": {
+            "type": 43
+        }
+    },
+    "169": {
+        "floorItem": {
+            "type": 38
+        }
+    },
+    "170": {
+        "floorItem": {
+            "type": 38
+        }
+    },
+    "30": {
+        "floorItem": {
+            "type": 40
+        }
+    },
+    "31": {
+        "floorItem": {
+            "type": 41
+        }
+    },
+    "314": {
+        "health": {
+            "curr_health": 10
+        },
+        "inventory": null,
+        "player": null,
+        "roomCoord": {
+            "position": [
+                0,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                926.9204711914063,
+                335.48870849609375
+            ]
+        }
+    },
+    "315": {
+        "map": {
+            "-1,-1": 1,
+            "-1,-2": 1,
+            "-1,3": 1,
+            "-2,2": 1,
+            "-2,3": 1,
+            "-2,4": 1,
+            "0,-1": 1,
+            "0,0": 1,
+            "0,1": 1,
+            "0,2": 1,
+            "0,3": 1,
+            "1,-1": 1,
+            "1,0": 1,
+            "1,1": 1,
+            "2,0": 1
+        }
+    },
+    "321": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                144.7852783203125,
+                225.11351013183594
+            ]
+        }
+    },
+    "322": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                349.0809326171875,
+                243.34580993652344
+            ]
+        }
+    },
+    "323": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                76.4942398071289,
+                568.6665649414063
+            ]
+        }
+    },
+    "324": {
+        "floorItem": {
+            "type": 43
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                2
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                746.5,
+                503.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "325": {
+        "floorItem": {
+            "type": 40
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                2
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                828.5,
+                570.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "332": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                973.92431640625,
+                635.9072265625
+            ]
+        }
+    },
+    "333": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                783.959716796875,
+                252.29664611816406
+            ]
+        }
+    },
+    "334": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                242.4176788330078,
+                509.1585693359375
+            ]
+        }
+    },
+    "335": {
+        "floorItem": {
+            "type": 40
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                3
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                737.5,
+                509.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "344": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                4
+            ]
+        },
+        "worldObject": {
+            "position": [
+                572.03076171875,
+                199.035400390625
+            ]
+        }
+    },
+    "345": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                4
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1062.0360107421875,
+                602.7293701171875
+            ]
+        }
+    },
+    "346": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                4
+            ]
+        },
+        "worldObject": {
+            "position": [
+                838.356689453125,
+                573.09033203125
+            ]
+        }
+    },
+    "347": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                4
+            ]
+        },
+        "worldObject": {
+            "position": [
+                447.3949890136719,
+                580.66650390625
+            ]
+        }
+    },
+    "348": {
+        "floorItem": {
+            "type": 37
+        },
+        "roomCoord": {
+            "position": [
+                -2,
+                4
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                754.5,
+                520.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "355": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                -2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                96.38516998291016,
+                431.35595703125
+            ]
+        }
+    },
+    "356": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                -2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                798.007080078125,
+                284.5005187988281
+            ]
+        }
+    },
+    "363": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                -1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                777.109130859375,
+                413.1832275390625
+            ]
+        }
+    },
+    "371": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                385.23663330078125,
+                463.01763916015625
+            ]
+        }
+    },
+    "372": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1153.1221923828125,
+                598.835205078125
+            ]
+        }
+    },
+    "373": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1153.9127197265625,
+                495.8800354003906
+            ]
+        }
+    },
+    "374": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                150.5996856689453,
+                395.02178955078125
+            ]
+        }
+    },
+    "375": {
+        "floorItem": {
+            "type": 41
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                703.5,
+                429.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "376": {
+        "floorItem": {
+            "type": 39
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                3
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                791.5,
+                237.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "384": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                -1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                205.35763549804688,
+                455.2904052734375
+            ]
+        }
+    },
+    "385": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                -1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                146.85537719726563,
+                418.3194885253906
+            ]
+        }
+    },
+    "402": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 1
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                632.0,
+                402.62957763671875
+            ]
+        }
+    },
+    "403": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 2
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                632.0,
+                403.0409240722656
+            ]
+        }
+    },
+    "404": {
+        "floorItem": {
+            "type": 37
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                794.5,
+                583.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "405": {
+        "floorItem": {
+            "type": 39
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                719.5,
+                465.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "414": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 3
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                344.2248840332031,
+                381.49517822265625
+            ]
+        }
+    },
+    "415": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                2
+            ]
+        },
+        "worldObject": {
+            "position": [
+                992.8535766601563,
+                382.9553527832031
+            ]
+        }
+    },
+    "416": {
+        "floorItem": {
+            "type": 39
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                2
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                879.5,
+                600.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "417": {
+        "floorItem": {
+            "type": 37
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                2
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                710.5,
+                449.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "425": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                293.299560546875,
+                301.6435546875
+            ]
+        }
+    },
+    "426": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1120.8070068359375,
+                333.7409362792969
+            ]
+        }
+    },
+    "427": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                3
+            ]
+        },
+        "worldObject": {
+            "position": [
+                669.62841796875,
+                386.2826843261719
+            ]
+        }
+    },
+    "435": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                -1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1154.6068115234375,
+                338.58953857421875
+            ]
+        }
+    },
+    "436": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                -1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                855.0480346679688,
+                579.9058227539063
+            ]
+        }
+    },
+    "444": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                547.408447265625,
+                285.56048583984375
+            ]
+        }
+    },
+    "445": {
+        "floorItem": {
+            "type": 38
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                823.5,
+                513.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "446": {
+        "floorItem": {
+            "type": 43
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                755.5,
+                276.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "456": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                1
+            ]
+        },
+        "worldObject": {
+            "position": [
+                441.2178955078125,
+                638.753173828125
+            ]
+        }
+    },
+    "457": {
+        "floorItem": {
+            "type": 40
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                811.5,
+                529.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "458": {
+        "floorItem": {
+            "type": 43
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                755.5,
+                413.5
+            ],
+            "scale": [
+                75.0,
+                75.0
+            ]
+        }
+    },
+    "466": {
+        "deadly": {
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 70.0
+        },
+        "roomCoord": {
+            "position": [
+                2,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1108.865234375,
+                350.3997802734375
+            ]
+        }
+    },
+    "467": {
+        "deadly": {
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5
+        },
+        "motion": {
+            "max_speed": 100.0
+        },
+        "roomCoord": {
+            "position": [
+                2,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                712.5735473632813,
+                498.4141845703125
+            ]
+        }
+    },
+    "61": {
+        "floorItem": {
+            "type": 43
+        }
+    },
+    "62": {
+        "floorItem": {
+            "type": 42
+        }
+    },
+    "71": {
+        "floorItem": {
+            "type": 37
+        }
+    }
+}

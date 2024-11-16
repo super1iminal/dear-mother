@@ -49,6 +49,7 @@ bool GameManager::init()
 	pause.init(&renderer, window);
 	shop.init(&renderer, window);
 	world.init(&renderer, window);
+	reload.init(&renderer, window);
 	return true;
 }
 
@@ -76,6 +77,7 @@ void GameManager::on_key(int key, int sc, int action, int mod) {
 		case SCENE_TYPE::MENU:
 		{
 			// Update the menu screen
+			menu.on_key(key, sc, action, mod);
 			break;
 		}
 		case SCENE_TYPE::HELP:

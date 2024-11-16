@@ -10,6 +10,7 @@
 #include <iostream>
 #include <ui_system.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <reloadability_system.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -259,17 +260,21 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		else if (scalingFactor > 2)
 			numEnemies += 2;
 
-		for (int i = 0; i < numEnemies; i++) { // create a variable number of enemies of random type
-			createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
+		if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+			for (int i = 0; i < numEnemies; i++) { // create a variable number of enemies of random type
+				createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
+			}
 		}
+		
 	}
-
-	// create numFloorItems floor items (functionally a wall)
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		// create numFloorItems floor items (functionally a wall)
 	// need to be cautious of spawn location, not near doors (euclidean distance) or player/enemies (overlap) or on top of each other (overlap)
 	int numFloorItems = (int)rand() % 3;
-	
+
 	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
 	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
 
 	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
 	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
@@ -285,7 +290,10 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 		createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, randomFloorItem(), coord);
 		numFloorItems--;
 	}
+	}
+
 	
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -321,7 +329,7 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 
 	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
 	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
-
+	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -363,6 +371,7 @@ void WorldSystem::createBossRoomTwo(ivec2 coord) {
 	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
 	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
 
+	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -412,6 +421,7 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 
+	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
@@ -430,6 +440,12 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 }
 
 void WorldSystem::generate_map() {
+	if (registry.map.components.size() > 0) {
+		registry.remove_all_components_of(registry.map.entities[0]);
+	}
+	auto entity = Entity();
+	registry.map.emplace(entity);
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, 0}] = ROOM_TYPE::EMPTY;
 	roomMap[{1, 1}] = ROOM_TYPE::EMPTY;
@@ -448,7 +464,6 @@ void WorldSystem::generate_map() {
 	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
 	roomMap[{2, 1}] = ROOM_TYPE::EMPTY;
 	roomMap[{2, 3}] = ROOM_TYPE::EMPTY;
-
 	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{-1, 3}] = ROOM_TYPE::ENEMY_ROOM;
@@ -459,42 +474,60 @@ void WorldSystem::generate_map() {
 
 // 
 void WorldSystem::generate_rooms() {
-	generate_map();
-	// Iterating using structured bindings
-	for (const auto& room : roomMap) {
-		const ivec2 coord = { room.first.first, room.first.second };
-		ROOM_TYPE type = room.second;
+	auto roomMap = registry.map.components[0].roomMap;
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		generate_map();
+		// Iterating using structured bindings
+		for (const auto& room : roomMap) {
+			const ivec2 coord = { room.first.first, room.first.second };
+			ROOM_TYPE type = room.second;
 
-		switch (type) {
-		case ROOM_TYPE::ENEMY_ROOM:
-			createEnemyRoom(coord);
-			break;
-		case ROOM_TYPE::EMPTY:
-			createEmptyRoom(coord);
-			break;
-		case ROOM_TYPE::BOSS_ROOM_ONE:
-			createBossRoomOne(coord);
-			break;
-		case ROOM_TYPE::BOSS_ROOM_TWO:
-			createBossRoomTwo(coord);
-			break;
+			switch (type) {
+				case ROOM_TYPE::ENEMY_ROOM:
+					createEnemyRoom(coord);
+				break;
+				case ROOM_TYPE::EMPTY:
+					createEmptyRoom(coord);
+				break;
+				case ROOM_TYPE::BOSS_ROOM_ONE:
+					createBossRoomOne(coord);
+				break;
+				case ROOM_TYPE::BOSS_ROOM_TWO:
+					createBossRoomTwo(coord);
+				break;
+			}
 		}
-	}
+		std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
+		auto temp  = registry.map;
+		for (const auto& room : roomMap) {
+			const ivec2 coord = { room.first.first, room.first.second };
+			ROOM_TYPE type = room.second;
 
-	// need to only have the current entities as active. 
-	// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
-	registry.activeComponents.clear();
-	for (Entity entity : registry.gameSceneComponents.entities) {
-		if (!registry.roomCoords.has(entity)) {
-			registry.activeComponents.emplace(entity);
+			switch (type) {
+				case ROOM_TYPE::ENEMY_ROOM:
+					createEnemyRoom(coord);
+				break;
+				case ROOM_TYPE::EMPTY:
+					createEmptyRoom(coord);
+				break;
+			}
 		}
-		else if (registry.roomCoords.get(entity).position == current_room) {
-			registry.activeComponents.emplace(entity);
+
+		// need to only have the current entities as active.
+		// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
+		registry.activeComponents.clear();
+		for (Entity entity : registry.gameSceneComponents.entities) {
+			if (!registry.roomCoords.has(entity)) {
+				registry.activeComponents.emplace(entity);
+			}
+			else if (registry.roomCoords.get(entity).position == current_room) {
+				registry.activeComponents.emplace(entity);
+			}
 		}
 	}
 }
-
 void WorldSystem::change_rooms(ivec2 new_room) {
+	auto roomMap = registry.map.components[0].roomMap;
 	current_room = new_room;
 	if (roomMap[{new_room.x, new_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE
 		&& !registry.players.get(player).boss_one_beat) {
@@ -541,8 +574,15 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// create a new Player entity
-	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+	} else {
+		ReloadabilitySystem::loadGame();
+		player = registry.players.entities[0];
+		change_rooms(registry.roomCoords.get(player).position);
+		update_player_modifier();
+	}
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
 
@@ -557,6 +597,10 @@ void WorldSystem::restart_game() {
 	initUpgrades();
 
 	initGameUI();
+	if (registry.gameLoadingHelper.components.size() > 0) {
+		registry.gameLoadingHelper.components[0].savedGame = false;
+	}
+
 }
 
 void WorldSystem::increaseScrap(int amt) 
@@ -1565,7 +1609,7 @@ void WorldSystem::shoot(Entity& entity) {
 				float angle = atan2(ypos - entity_object.position.y, xpos - entity_object.position.x);
 
 				// Apply modifiers to player bullets
-				Modifier projectile_mod = registry.modifiers.get(player);
+				Modifier projectile_mod = registry.modifiers.get(entity);
 				angle += (2 * (uniform_dist(rng) - 0.5)) * projectile_mod.accuracy_modifier;
 				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
@@ -1671,6 +1715,10 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 			current_speed += 0.1f;
 			printf("Current speed = %f\n", current_speed);
 		}
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
+		ReloadabilitySystem::saveGame();
 	}
 }
 
