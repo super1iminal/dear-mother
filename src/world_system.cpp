@@ -477,6 +477,7 @@ void WorldSystem::generate_rooms() {
 	
 	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
 		generate_map();
+	}
 		// Iterating using structured bindings
 		auto roomMap = registry.map.components[0].roomMap;
 		for (const auto& room : roomMap) {
@@ -524,7 +525,7 @@ void WorldSystem::generate_rooms() {
 				registry.activeComponents.emplace(entity);
 			}
 		}
-	}
+
 }
 void WorldSystem::change_rooms(ivec2 new_room) {
 	auto roomMap = registry.map.components[0].roomMap;
@@ -953,7 +954,7 @@ void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 				player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
 			else
 				player_worldobject.position = { window_width_px / 2, window_height_px - (WALL_WIDTH + 80) };
-
+			registry.roomCoords.get(player).position = new_room;
 			change_rooms(new_room);
 		}
 		player_seen = true;
