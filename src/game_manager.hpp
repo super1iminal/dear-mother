@@ -11,7 +11,6 @@
 #include "ai_system.hpp"
 #include "physics_system.hpp"
 #include "collision_system.hpp"
-#include <reloadability_system.hpp>
 
 // ui stuff
 #include "ui_system.hpp"
@@ -44,7 +43,6 @@ private:
 	MenuSystem menu;
 	HelpSystem help;
 	PauseSystem pause;
-	ReloadabilitySystem reload;
 	ShopSystem shop;
 
 
