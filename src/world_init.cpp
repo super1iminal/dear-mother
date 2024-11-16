@@ -182,6 +182,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+	deadly.immune = false;
 
   deadly.type = (int) rand() % 2;  // 0 for grey melee, 1 for slower yellow projectile
 
@@ -221,6 +222,127 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 				GEOMETRY_BUFFER_ID::SPRITE,
 				9 });
 	}
+
+	return entity;
+}
+
+Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	vec3& text_color = registry.colors.emplace(entity);
+	text_color = vec3(1.f, 0.f, 0.f);
+
+	registry.floorTexts.emplace(entity).text = text;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::FLOOR_TEXT,
+			GEOMETRY_BUFFER_ID::SQUARE });
+
+	return entity;
+}
+
+Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0.f;
+
+	auto& health = registry.healthComponents.emplace(entity);
+	health.max_health = 20;
+	health.curr_health = 10;
+
+	auto& deadly = registry.deadlys.emplace(entity);
+	deadly.t = std::chrono::high_resolution_clock::now();
+	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+
+	// Manage boss states
+	registry.bossOnes.emplace(entity).boss_pos = boss_pos;
+
+	registry.shooters.emplace(entity).fire_rate = 1000.f;
+
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 4;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 1;
+	enemy_animation.current_frame = 0;
+
+	if (boss_pos == BOSS_ONE_POS::MOTHER) {
+		deadly.type = 3;
+		deadly.immune = true;
+		health.curr_health = 20;
+		worldobject.scale = vec2({ 1000, 50 });
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		deadly.type = 2;
+		deadly.immune = false;
+		worldobject.scale = vec2({ 70, 100 });
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+
+	return entity;
+}
+
+Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0;
+	worldobject.scale = { window_width_px, WALL_WIDTH };
+
+	registry.bossTwos.emplace(entity).curr_wave = BOSS_TWO_WAVE::WAVE_ONE;
+
+	registry.walls.emplace(entity);
+
+	registry.blockers.emplace(entity);
+	// don't be fooled, type is type
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HORZ_WALL,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
@@ -335,7 +457,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord) {
 	// create an interactable entity
 	Entity entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -348,6 +470,21 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	ItemStat& item = registry.itemStats.emplace(entity);
 
 	int roll_type = uniform_dist(rng) * 100;
+	if (spec_type == ITEM_TYPE::HEALTH_PACK) {
+		roll_type = 1;
+	}
+	else if (spec_type == ITEM_TYPE::RANGE) {
+		roll_type = 21;
+	}
+	else if (spec_type == ITEM_TYPE::FIRE_RATE) {
+		roll_type = 41;
+	}
+	else if (spec_type == ITEM_TYPE::SPEED) {
+		roll_type = 61;
+	}
+	else if (spec_type == ITEM_TYPE::DAMAGE) {
+		roll_type = 81;
+	}
 	int roll_item;
 	if (roll_type > 80) {
 		roll_item = (rand() % registry.damage_items.size());

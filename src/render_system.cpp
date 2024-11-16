@@ -218,6 +218,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindVertexArray(0);
 		return;
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::FLOOR_TEXT) {
+		floor_text_to_render.push_back(entity);
+
+		glBindVertexArray(0);
+		return;
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -380,6 +386,7 @@ void RenderSystem::draw(float elapsed_ms)
 			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+			drawFloorText();
 		}
 		break;
 	}
@@ -439,6 +446,27 @@ void RenderSystem::draw(float elapsed_ms)
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+void RenderSystem::drawFloorText() {
+	for (Entity text : floor_text_to_render) {
+		WorldObject world_object = registry.worldObjects.get(text);
+		FloorText floor_text = registry.floorTexts.get(text);
+
+		glm::mat4 trans = glm::mat4(1.0f);
+		/*trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
+		trans = glm::translate(trans, glm::vec3(world_object.position, 0.0f));*/
+		render_text(
+			floor_text.text,
+			world_object.position.x,
+			world_object.position.y,
+			world_object.scale.x,
+			//vec3(1.0f, 1.0f, 1.0f),
+			registry.colors.get(text),
+			trans
+		);
+	}
+	floor_text_to_render.clear();
 }
 
 void RenderSystem::drawText() {
