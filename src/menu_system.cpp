@@ -1,4 +1,5 @@
 #include "menu_system.hpp"
+#include "reloadability_system.hpp"
 
 
 MenuSystem::MenuSystem()
@@ -108,4 +109,21 @@ void MenuSystem::on_mouse_move(vec2 mouse_position) {
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
 	// change cursor to be hover
+}
+
+//tempory for load game testing
+void MenuSystem::on_key(int key, int sc, int action, int mod) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_C) {
+		std::cout << "Loading game" << std::endl;
+		if (registry.gameLoadingHelper.size() > 0) {
+			registry.gameLoadingHelper.components[0].savedGame = true;
+		} else {
+			auto entity = Entity();
+			GameLoadingHelper& option = registry.gameLoadingHelper.emplace(entity);
+			option.savedGame = true;
+		}
+
+		scene_manager.set_scene(SCENE_TYPE::GAME);
+		ReloadabilitySystem::loadGame();
+	}
 }

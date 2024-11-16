@@ -18,7 +18,7 @@ public:
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
-	void PauseSystem::on_key(int key, int sc, int action, int mod);
+	void on_key(int key, int sc, int action, int mod);
 
 private:
 	RenderSystem* renderer;
