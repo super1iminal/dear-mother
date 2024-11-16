@@ -119,7 +119,7 @@ public:
         }
         if (map_entity_componentID.count(e) == 0)
         {
-            static_assert(has_compareFunction<Component>::value , "Component does not have compareFunction defined");
+            static_assert(has_compareFunction<Component>::value && "Component does not have compareFunction defined");
             bool inserted = false;
             for (int i = 0; i < entities.size(); i++) {
                 if (c.compareFunction(c, get(entities[i])) < 1) {  // if this entity should come before entities[i]
