@@ -78,8 +78,13 @@ struct Collision
 // Player component
 struct Player
 {
-
+	bool in_combat = false;
+	bool combat_boss_one = false;
+	bool boss_one_beat = false;
+	bool combat_boss_two = false;
+	bool boss_two_beat = false;
 };
+
 struct Shooter
 {
 	// Fire Rate in ms (Temp: change to ranged weapon later)
@@ -116,7 +121,35 @@ struct Deadly
 	std::chrono::steady_clock::time_point t;
 	std::chrono::steady_clock::time_point t_patrol;
 	bool attacking = false;
+	bool immune = false;
 	unsigned int type = 0;
+	int melee_damge = 1;
+};
+
+struct BossOne
+{
+	BOSS_ONE_POS boss_pos;
+	BOSS_ONE_STATE boss_state = BOSS_ONE_STATE::START;
+	bool top_left_alive = true;
+	bool top_right_alive = true;
+	bool bot_left_alive = true;
+	bool bot_right_alive = true;
+	bool shot_pattern = false;
+	bool mother = true;
+	float bullet_angle = 0.f;
+};
+
+struct BossTwo
+{
+	BOSS_TWO_WAVE curr_wave;
+
+	int wave_1 = 4;
+
+	int wave_2 = 6;
+
+	int wave_3 = 8;
+
+	int wave_4 = 10;
 };
 
 // anything that the player can interact with
@@ -254,7 +287,10 @@ struct MeshFlag {
 
 };
 
-
+struct FloorText
+{
+	std::string text;
+};
 
 struct FloorItem
 {
@@ -352,7 +388,8 @@ enum class EFFECT_ASSET_ID {
 	EGG = COLOURED + 1,
 	UI_ELEMENT = EGG + 1,
 	FONT = UI_ELEMENT + 1,
-	SALMON = FONT + 1,
+	FLOOR_TEXT = FONT + 1,
+	SALMON = FLOOR_TEXT + 1,
 	TEXTURED = SALMON + 1,
 	ANIM = TEXTURED + 1,
 	WATER = ANIM + 1,

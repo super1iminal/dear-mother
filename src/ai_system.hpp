@@ -16,5 +16,7 @@ public:
 
 	void pathfinding(Entity& entity);
 	void handleStateChange(Entity& entity);
+	void handleBossOneStateChange(Entity& entity);
+	void boss_one_ai();
 	void step(float elapsed_ms);
 };
