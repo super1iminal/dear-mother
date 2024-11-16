@@ -119,3 +119,15 @@ bool Mesh::loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out
 
 	return true;
 }
+
+int RenderRequest::compareFunction(RenderRequest request_one, RenderRequest request_two) {
+	if (request_one.render_order > request_two.render_order) {
+		return 1;	// render_one comes after render_two
+	}
+	else if (request_one.render_order < request_two.render_order) {
+		return -1;	// render_one comes before render_two
+	}
+	else {
+		return 0;	// the render orders are equal
+	}
+}

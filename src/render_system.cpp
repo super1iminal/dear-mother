@@ -195,15 +195,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
-
-		// could be useful for on-dmg effects later
-		if (render_request.used_effect == EFFECT_ASSET_ID::SALMON)
-		{
-			// Light up?
-			GLint light_up_uloc = glGetUniformLocation(program, "light_up");
-			assert(light_up_uloc >= 0);
-			gl_has_errors();
-		}
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::UI_ELEMENT) {
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
@@ -219,15 +210,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
 								sizeof(ColoredVertex), (void*)sizeof(vec3));
 		gl_has_errors();
-
-		GLint value_loc = glGetUniformLocation(program, "value");
-
-		UIElement& ui_element = registry.uiElements.get(entity);
-		glUniform1f(value_loc, ui_element.value);
-		gl_has_errors();
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
-		// let renderText() handle this
+		// let render_text() handle this
 		text_to_render.push_back(entity);
 		
 		glBindVertexArray(0);
@@ -248,6 +233,23 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
 	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
 	glUniform3fv(color_uloc, 1, (float *)&color);
+	gl_has_errors();
+
+	if (registry.flashingColors.has(entity)) {
+		FlashingColor& flashing_color = registry.flashingColors.get(entity);
+		flashing_color.time_since_last_flash += elapsed_ms;
+		vec3 color = vec3(1);
+		if (flashing_color.time_since_last_flash > flashing_color.flash_rate && !flashing_color.flashing) {
+			vec3 color = flashing_color.color;
+			glUniform3fv(color_uloc, 1, (float*)&color);
+			flashing_color.flashing = true;
+			flashing_color.time_since_last_flash = 0;
+		}
+		else {
+			glUniform3fv(color_uloc, 1, (float*)&color);
+			flashing_color.flashing = false;
+		}
+	}
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -371,58 +373,8 @@ void RenderSystem::draw(float elapsed_ms)
 	switch (scene_manager.get_scene()) {
 	case SCENE_TYPE::GAME: {
 		// draw game
-		// add floors first
-		for (Entity entity : registry.floors.entities) {
-			render_list.push_back(entity);
-		}
-		for (Entity entity : registry.floorTexts.entities) {
-			render_list.push_back(entity);
-		}
-		
-		// then interactables
-		for (Entity entity : registry.interactables.entities) {
-			render_list.push_back(entity);
-		}
-		// then particles
-		for (Entity entity : registry.particles.entities) {
-			render_list.push_back(entity);
-		}
-		// then the player
-		render_list.push_back(registry.players.entities[0]);
-		// then enemies
-		for (Entity entity : registry.deadlys.entities) {
-			render_list.push_back(entity);
-		}
-		// then projectiles
-		for (Entity entity : registry.projectiles.entities) {
-			render_list.push_back(entity);
-		}
-		// then walls
-		for (Entity entity : registry.walls.entities) {
-			render_list.push_back(entity);
-		}
-		// then floor items
-		for (Entity entity : registry.floorItems.entities) {
-      render_list.push_back(entity);
-    }
-    // then doors
-		for (Entity entity : registry.doors.entities) {
-			render_list.push_back(entity);
-		}
-		// then UI elements, starting with the base UI
-		for (Entity entity : registry.baseUI.entities) {
-			render_list.push_back(entity);
-		}
-		for (Entity entity : registry.uiElements.entities) {
-			render_list.push_back(entity);
-		}
-		// finally, the crosshair
-		for (Entity entity : registry.crosshairs.entities) {
-			render_list.push_back(entity);
-		}
-
 		// Draw all textured meshes that have a position and size component
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			// note that activeComponents are ONLY USED for game entities
 			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
@@ -440,22 +392,8 @@ void RenderSystem::draw(float elapsed_ms)
 	}
 	case SCENE_TYPE::MENU: {
 		// draw menu
-		Entity crosshair_entity;
-		for (Entity entity : registry.menuSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
 
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
@@ -465,22 +403,7 @@ void RenderSystem::draw(float elapsed_ms)
 	}
 	case SCENE_TYPE::HELP: {
 		// draw help screen
-		Entity crosshair_entity;
-		for (Entity entity : registry.helpSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
-
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
 				continue;
@@ -489,25 +412,20 @@ void RenderSystem::draw(float elapsed_ms)
 		break;
 	}
 	case SCENE_TYPE::PAUSE: {
-		// draw help screen
-		Entity crosshair_entity;
-		for (Entity entity : registry.pauseSceneComponents.entities) {
-			// this is a very hack-y check to put the crosshair at the very end of the render list
-			// so that it doesn't disappear when new menu panels are rendered.
-			// TODO: this should be changed once we get z-buffering
-			if (!registry.crosshairs.has(entity)) {
-				render_list.push_back(entity);
-			}
-			else {
-				crosshair_entity = entity;
-			}
-		}
-
-		render_list.push_back(crosshair_entity);
-
-		for (Entity entity : render_list)
+		// draw pause screen
+		for (Entity entity : registry.renderRequests.entities)
 		{
 			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
+		break;
+	}
+	case SCENE_TYPE::SHOP: {
+		// draw shop screen
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -556,15 +474,20 @@ void RenderSystem::drawText() {
 		UIElement ui_elt = registry.uiElements.get(text_to_render[i]);
 		WorldObject world_object = registry.worldObjects.get(text_to_render[i]);
 
+		vec3 color = vec3(1.0f, 1.0f, 1.0f);
+
+		if (registry.colors.has(text_to_render[i])) {
+			color = registry.colors.get(text_to_render[i]);
+		}
+
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
-		trans = glm::translate(trans, glm::vec3(world_object.position, 0.0f));
 		render_text(
-			std::to_string(ui_elt.value), 
+			ui_elt.value, 
 			world_object.position.x, 
-			world_object.position.y, 
-			world_object.scale.x,
-			vec3(1.0f, 1.0f, 1.0f),
+			window_height_px - world_object.position.y,
+			world_object.scale.y,
+			color,
 			trans
 		);
 	}

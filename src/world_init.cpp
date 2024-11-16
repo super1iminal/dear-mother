@@ -60,11 +60,13 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 	lifetime.time_remaining_ms = (((1.0f / VELOCITY_THRESHOLD) - (1.0f / speed)) * (2.0f * motion.mass) / (M_RHO * PARTICLE_DRAG_COEF)) + 500;
 
 	// adding renderRequest component
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ type,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			5
+		});
 }
 
 void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
@@ -99,11 +101,12 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 
 	registry.blockers.emplace(entity);
 	// don't be fooled, type is type
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ type,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			3 });
 
 	return entity;
 
@@ -148,11 +151,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	player_animation.current_frame = 0;
 	player_animation.time_since_last_frame = 0;
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
 			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			10 });
 
 	return entity;
 }
@@ -204,17 +208,19 @@ Entity createEnemy(RenderSystem* renderer, vec2 position, float speed, ivec2 roo
 	enemy_animation.current_frame = 0;
 	
 	if (registry.deadlys.get(entity).type == 0) {
-		registry.renderRequests.insert(
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_WALK,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				9 });
 	} else {
-		registry.renderRequests.insert(
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				9 });
 	}
 
 	return entity;
@@ -359,11 +365,12 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 	worldobject.angle = 0.f;
 	worldobject.scale = size;
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		floor,
 		{ TEXTURE_ASSET_ID::FLOOR,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			2 });
 
 	return floor;
 }
@@ -409,11 +416,12 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 		break;
 	}
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		door,
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			4 });
 
 	return door;
 }
@@ -439,11 +447,12 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	interactable_object.angle = 0.f;
 	interactable_object.scale = size;
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		interactable_entity,
 		{ TEXTURE_ASSET_ID::BATTERY_PACK,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			5 });
 
 	return interactable_entity;
 }
@@ -527,11 +536,12 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE sp
 		break;
 	}
 
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ item_texture,
 			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			6 });
 
 	return entity;
 }
@@ -567,23 +577,25 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	projectile.friendly = is_friendly;
 	if (is_friendly) 
 	{
-		registry.renderRequests.insert
+		registry.renderRequests.insert_sorted
 		(
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::BULLET_FRIENDLY
+				GEOMETRY_BUFFER_ID::BULLET_FRIENDLY,
+				11
 			}
 		);
 	}
 	else 
 	{
-		registry.renderRequests.insert
+		registry.renderRequests.insert_sorted
 		(
 			entity,
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
-				GEOMETRY_BUFFER_ID::BULLET_ENEMY
+				GEOMETRY_BUFFER_ID::BULLET_ENEMY,
+				12
 			}
 		);
 	}
@@ -599,11 +611,12 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity, {
 			TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::DEBUG_LINE
+			GEOMETRY_BUFFER_ID::DEBUG_LINE,
+			20
 		});
 
 	// Create motion

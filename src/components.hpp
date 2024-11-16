@@ -57,6 +57,14 @@ struct Animation {
 	int time_since_last_frame;
 };
 
+// a struct for a flashing-color rendering effect
+struct FlashingColor {
+	bool flashing = true;	// if the modified color is displayed right now
+	int flash_rate;			// time between flashes in ms
+	int time_since_last_flash = 0;
+	vec3 color;
+};
+
 struct Projectile
 {
 	bool friendly = true;
@@ -101,6 +109,10 @@ struct Health
 struct Modifier {
 
 	int damage_modifier_flat = 0;
+	float damage_modifier_percentage = 1.0f;
+
+	int crit_chance = 1;
+	int dodge_chance = 0;
 
 	float speed_modifier_flat = 0;
 	float speed_modifier_percent = 0;
@@ -215,6 +227,10 @@ struct PauseScene
 {
 };
 
+struct ShopScene
+{
+};
+
 struct TestScene
 {
 };
@@ -261,7 +277,7 @@ struct TexturedVertex
 // contains information relating to UI elements
 struct UIElement {
 	std::string name;
-	int value;
+	std::string value;
 };
 
 // contains information relating to UI buttons
@@ -356,14 +372,20 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
-	START_BUTTON = HELP_SCREEN + 1,
+	SHOP_SCREEN = HELP_SCREEN + 1,
+	START_BUTTON = SHOP_SCREEN + 1,
 	HELP_BUTTON = START_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
 	RESUME_BUTTON = BACK_BUTTON + 1,
 	MENU_BUTTON = RESUME_BUTTON + 1, 
-	PLAYER_WALK = MENU_BUTTON + 1,
+	ITEM_SLOT_BUTTON = MENU_BUTTON + 1,
+	DMG_UPGRADE_BUTTON = ITEM_SLOT_BUTTON + 1,
+	HEALTH_UPGRADE_BUTTON = DMG_UPGRADE_BUTTON + 1,
+	CRIT_UPGRADE_BUTTON = HEALTH_UPGRADE_BUTTON + 1,
+	DODGE_UPGRADE_BUTTON = CRIT_UPGRADE_BUTTON + 1,
+	PLAYER_WALK = DODGE_UPGRADE_BUTTON + 1,
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,
@@ -414,6 +436,8 @@ struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	uint render_order;
+	static int compareFunction(RenderRequest request_one, RenderRequest request_two);
 };
 
 
@@ -442,4 +466,5 @@ struct ItemStat {
 
 struct Inventory {
 	std::vector<struct ItemStat> items;
+	int size;	// how many slots unlocked
 };
