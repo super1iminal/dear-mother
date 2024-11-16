@@ -224,7 +224,6 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// this should change once saving has been implemented but i dont know how
 		// this is the only location where has_just_changed is used and can be removed safely
 		if (scene_manager.has_just_changed()) {
-			scene_manager.set_just_changed(false);
 			if (scene_manager.get_previous_scene() == SCENE_TYPE::MENU) {
 				world.restart_game();
 			}
@@ -271,6 +270,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	}
 	renderer.draw(elapsed_ms);
 	cleanup(); // remove dead entities and entities we want to remove
+	scene_manager.set_just_changed(false);
 	return true;
 }
 

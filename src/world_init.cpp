@@ -15,7 +15,11 @@
 // 7. Add to renderRequests ordering
 // 
 
-void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
+
+
+// ==================== CREATE FUNCTIONS ====================
+
+Entity createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
 	registry.roomCoords.emplace(entity, room_coord);
@@ -67,13 +71,8 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 			GEOMETRY_BUFFER_ID::SPRITE,
 			5
 		});
-}
 
-void createParticles(RenderSystem* renderer, vec2 pos, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, TEXTURE_ASSET_ID type, ivec2 room_coord) {
-	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES) + NUM_PARTICLES_OFFSET;
-	for (int i = 0; i < num_particles; i++) {
-		createParticle(renderer, pos, uniform_dist, rng, type, room_coord);
-	}
+	return entity;
 }
 
 // NOTE: when creating a wall, then angle represents the normal. it is necessary for collision handling
@@ -472,8 +471,14 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-
-Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE spec_type, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord, ItemStat* loaded_item) {
+Entity createItem(RenderSystem* renderer, 
+	vec2 position, 
+	vec2 size, 
+	ITEM_TYPE spec_type, 
+	std::uniform_real_distribution<float> uniform_dist, 
+	std::default_random_engine& rng, 
+	ivec2 room_coord, ItemStat* loaded_item
+) {
 
 	// create an interactable entity
 	Entity entity = Entity();
@@ -657,6 +662,335 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.debugComponents.emplace(entity);
 	return entity;
 }
+
+
+// ==================== COMPLEX CREATE FUNCTIONS ====================
+
+void createParticles(RenderSystem* renderer, 
+	vec2 pos, 
+	std::uniform_real_distribution<float> uniform_dist, 
+	std::default_random_engine& rng, 
+	TEXTURE_ASSET_ID type, 
+	ivec2 room_coord
+) {
+	float num_particles = ceil(uniform_dist(rng) * MAX_NUM_PARTICLES) + NUM_PARTICLES_OFFSET;
+	for (int i = 0; i < num_particles; i++) {
+		createParticle(renderer, pos, uniform_dist, rng, type, room_coord);
+	}
+}
+
+void createEmptyRoom(RenderSystem* renderer, ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+
+	auto roomMap = registry.map.components[0].roomMap;
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		if (roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_ONE // TODO: why??!
+			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
+			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		}
+	}
+}
+
+bool notSafe(vec2 pos) {
+	// check proximity to doors
+	float leftRightDoorY = ((window_height_px - WALL_WIDTH - BASE_UI_HEIGHT) + WALL_WIDTH + BASE_UI_HEIGHT) / 2.f;
+	float upDoorY = WALL_WIDTH + BASE_UI_HEIGHT;
+	float leftDoorX = WALL_WIDTH;
+	float rightDoorX = window_width_px - WALL_WIDTH;
+	float upDownDoorX = window_height_px / 2.f;
+	float downDoorY = window_height_px - WALL_WIDTH;
+	if (sqrt(((pos.x - leftDoorX) * (pos.x - leftDoorX)) + ((pos.y - leftRightDoorY) * (pos.y - leftRightDoorY))) < 400) // left door
+		return true;
+	if (sqrt(((pos.x - rightDoorX) * (pos.x - rightDoorX)) + ((pos.y - leftRightDoorY) * (pos.y - leftRightDoorY))) < 400) // right door
+		return true;
+	if (sqrt(((pos.x - upDownDoorX) * (pos.x - upDownDoorX)) + ((pos.y - upDoorY) * (pos.y - upDoorY))) < 400) // top door
+		return true;
+	if (sqrt(((pos.x - upDownDoorX) * (pos.x - upDownDoorX)) + ((pos.y - downDoorY) * (pos.y - downDoorY))) < 400) // bottom door
+		return true;
+
+	return false;
+}
+void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+	
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	//createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1, { 0, 0 });
+
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	if (!(coord.x == 0 && coord.y == 0)) { // no enemies in base room
+		float scalingFactor = sqrt(coord.x * coord.x + coord.y + coord.y); // gets harder as you move further from spawn
+		int numEnemies = ((int)rand() % 2) + 1;
+		if (scalingFactor > 4)
+			numEnemies += 1;
+		else if (scalingFactor > 2)
+			numEnemies += 2;
+
+		if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+			for (int i = 0; i < numEnemies; i++) { // create a variable number of enemies of random type
+				createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
+			}
+		}
+
+	}
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		// create numFloorItems floor items (functionally a wall)
+	// need to be cautious of spawn location, not near doors (euclidean distance) or player/enemies (overlap) or on top of each other (overlap)
+		int numFloorItems = (int)rand() % 3;
+
+		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+
+		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+		float xPos;
+		float yPos;
+		while (numFloorItems > 0) {
+			do {
+				xPos = minX + rand() % (int)xRange;
+				yPos = minY + rand() % (int)yRange;
+			} while (notSafe({ xPos, yPos }));
+
+			TEXTURE_ASSET_ID floortexture;
+			int seed = rand() % 7;
+			switch (seed) {
+			case 0:
+				floortexture = TEXTURE_ASSET_ID::FURNACE;
+			case 1:
+				floortexture = TEXTURE_ASSET_ID::BROKEN_GENERATOR;
+			case 2:
+				floortexture = TEXTURE_ASSET_ID::DEAD_ROBOT;
+			case 3:
+				floortexture = TEXTURE_ASSET_ID::BROKEN_CONTROL_PANEL;
+			case 4:
+				floortexture = TEXTURE_ASSET_ID::FLOOR_HOLE;
+			case 5:
+				floortexture = TEXTURE_ASSET_ID::RUSTY_PIPES;
+			default:
+				floortexture = TEXTURE_ASSET_ID::SLAG_PIT;
+			}
+
+			createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, floortexture, coord);
+			numFloorItems--;
+		}
+	}
+
+
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		if (roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_ONE
+			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
+			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		}
+	}
+}
+
+void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+	auto roomMap = registry.map.components[0].roomMap;
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}*/
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+	}
+
+	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 40 }, BOSS_ONE_POS::TOP_LEFT, coord);
+	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 40 }, BOSS_ONE_POS::TOP_RIGHT, coord);
+
+	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_LEFT, coord);
+	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_RIGHT, coord);
+
+	createBossOne(renderer, { CENTER_X, 234.5 }, BOSS_ONE_POS::MOTHER, coord);
+}
+
+void createBossRoomTwo(RenderSystem* renderer, ivec2 coord) {
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	// Boss Two
+	createBossTwo(renderer, { window_width_px / 2, 25.f + 120.f }, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
+	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
+	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
+
+	float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
+	float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
+
+	auto roomMap = registry.map.components[0].roomMap;
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}*/
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+	}
+
+}
+
+void generate_map() {
+	if (registry.map.components.size() > 0) {
+		registry.remove_all_components_of(registry.map.entities[0]);
+	}
+	auto entity = Entity();
+	registry.map.emplace(entity);
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
+	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 0}] = ROOM_TYPE::EMPTY;
+	roomMap[{1, 1}] = ROOM_TYPE::EMPTY;
+	//roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
+	//roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 1}] = ROOM_TYPE::EMPTY;
+	//roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, 2}] = ROOM_TYPE::EMPTY;
+	roomMap[{1, 3}] = ROOM_TYPE::EMPTY;
+	//roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, 2}] = ROOM_TYPE::EMPTY;
+	//roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{0, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
+	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
+	roomMap[{2, 1}] = ROOM_TYPE::EMPTY;
+	roomMap[{2, 3}] = ROOM_TYPE::EMPTY;
+	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-1, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 3}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 2}] = ROOM_TYPE::ENEMY_ROOM;
+	roomMap[{-2, 4}] = ROOM_TYPE::ENEMY_ROOM;
+}
+
+void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		generate_map();
+	}
+	// Iterating using structured bindings
+	auto roomMap = registry.map.components[0].roomMap;
+	for (const auto& room : roomMap) {
+		const ivec2 coord = { room.first.first, room.first.second };
+		ROOM_TYPE type = room.second;
+
+		switch (type) {
+		case ROOM_TYPE::ENEMY_ROOM:
+			createEnemyRoom(renderer, coord, uniform_dist, rng);
+			break;
+		case ROOM_TYPE::EMPTY:
+			createEmptyRoom(renderer, coord);
+			break;
+		case ROOM_TYPE::BOSS_ROOM_ONE:
+			createBossRoomOne(renderer, coord);
+			break;
+		case ROOM_TYPE::BOSS_ROOM_TWO:
+			createBossRoomTwo(renderer, coord);
+			break;
+		}
+	}
+	auto temp = registry.map;
+	for (const auto& room : roomMap) {
+		const ivec2 coord = { room.first.first, room.first.second };
+		ROOM_TYPE type = room.second;
+
+		switch (type) {
+		case ROOM_TYPE::ENEMY_ROOM:
+			createEnemyRoom(renderer, coord, uniform_dist, rng);
+			break;
+		case ROOM_TYPE::EMPTY:
+			createEmptyRoom(renderer, coord);
+			break;
+		}
+	}
+
+	// need to only have the current entities as active.
+	// some entities, such as UI elements and the player, do not have room coords, and must always be rendered
+	registry.activeComponents.clear();
+	for (Entity entity : registry.gameSceneComponents.entities) {
+		if (!registry.roomCoords.has(entity)) {
+			registry.activeComponents.emplace(entity);
+		}
+		else if (registry.roomCoords.get(entity).position == current_room) {
+			registry.activeComponents.emplace(entity);
+		}
+	}
+}
+
+// useless lol
+Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room) {
+	return createFloorText(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 350, window_height_px / 2 - 100 }, { 6, 2 }, current_room);
+} 
+
 
 void buildItemSet() {
 	ItemStat shattered_quartz;
