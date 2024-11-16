@@ -197,6 +197,7 @@ Entity createEnemy(
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
 	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+  
 	deadly.immune = false;
 
 	deadly.type = type;  // 0 for grey melee, 1 for slower yellow projectile
