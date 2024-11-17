@@ -46,7 +46,8 @@ void ReloadabilitySystem::saveGame() {
     if (registry.healthComponents.has(entity)) {
         Health& health = registry.healthComponents.get(entity);
         save[id]["health"] = {
-            {"curr_health", health.curr_health}
+            {"curr_health", health.curr_health},
+			{"max_health", health.max_health}
         };
     }
 	if (registry.roomCoords.has(entity)) {
@@ -106,7 +107,8 @@ void ReloadabilitySystem::saveGame() {
 		if (registry.healthComponents.has(entity)) {
 			Health& health = registry.healthComponents.get(entity);
 			save[id]["health"] = {
-				{"curr_health", health.curr_health}
+				{"curr_health", health.curr_health},
+				{"max_health", health.max_health}
 			};
 		}
 
@@ -214,9 +216,11 @@ void ReloadabilitySystem::loadGame() {
         if (data.contains("player")) {
             vec2 pos = { data["worldObject"]["position"][0], data["worldObject"]["position"][1] };
             int curr_health = data["health"]["curr_health"];
+            int max_health = data["health"]["max_health"];
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
 
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
+            registry.healthComponents.get(player).max_health = max_health;
             Inventory& inventory = registry.inventory.get(player);
             for (auto& item : data["inventory"]) {
                 auto entity = Entity();
@@ -243,9 +247,11 @@ void ReloadabilitySystem::loadGame() {
             float speed = data["motion"]["max_speed"];
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
             int curr_health = data["health"]["curr_health"];
+            int max_health = data["health"]["max_health"];
             int type = data["deadly"]["type"];
 
-            createEnemy(renderer, pos, speed, room_coord, curr_health, type);
+            Entity enemy = createEnemy(renderer, pos, speed, room_coord, curr_health, type);
+            registry.healthComponents.get(enemy).max_health = max_health;
         }
         else if (data.contains("floorItem")) {
             if (!data.contains("worldObject") || !data.contains("roomCoord")) {

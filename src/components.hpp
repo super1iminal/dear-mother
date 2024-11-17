@@ -87,12 +87,10 @@ struct Collision
 };
 
 // Player component
-struct Player
+struct Player // TODO: why are these variables here im crying
 {
-	bool in_combat = false;
-	bool combat_boss_one = false;
+	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
-	bool combat_boss_two = false;
 	bool boss_two_beat = false;
 };
 
@@ -100,7 +98,7 @@ struct Shooter
 {
 	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 0.0f;
-	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point t = std::chrono::high_resolution_clock::now();
 };
 // Common Health component
 struct Health

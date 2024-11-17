@@ -48,6 +48,7 @@ private:
 
     std::vector<std::function<void(Entity)>> onEntityAddedCallbacks;
     std::vector<std::function<void(Entity)>> onEntityRemovedCallbacks;
+    std::vector<std::function<void()>> onClearCallbacks;
 
     // check if a component has compareFunction, which is necessary for sorting
     // using SFINAE (Substitution Failure Is Not An Error)
@@ -242,6 +243,9 @@ public:
         components.clear();
         components_entities.clear();
         entities.clear();
+		for (auto& callback : onClearCallbacks) {
+			callback();
+		}
     }
 
     // Report the number of components of type 'Component'
@@ -284,6 +288,10 @@ public:
     void registerOnRemoveCallback(const std::function<void(Entity)>& callback) {
         onEntityRemovedCallbacks.push_back(callback);
     }
+
+	void registerOnClearCallback(const std::function<void()>& callback) {
+		onClearCallbacks.push_back(callback);
+	}
 
     void setSorted(bool sorted_value) {
         sorted = sorted_value;
@@ -333,6 +341,17 @@ private:
         }
     }
 
+    void onClear() {
+        for (auto it = entities.begin(); it != entities.end(); ) {
+            if (!componentCC.has(*it) || !filterCC.has(*it)) {
+                it = entities.erase(it); // Erase returns an iterator to the next element
+            }
+            else {
+                ++it; // Move to the next element
+            }
+        }
+    }
+
 public:
     // Store entities that have both components
     std::vector<Entity> entities;
@@ -344,6 +363,8 @@ public:
         componentCC.registerOnRemoveCallback([this](Entity e) { onComponentRemoved(e); });
         filterCC.registerOnAddCallback([this](Entity e) { onFilterComponentAdded(e); });
         filterCC.registerOnRemoveCallback([this](Entity e) { onFilterComponentRemoved(e); });
+		componentCC.registerOnClearCallback([this]() { onClear(); });
+		filterCC.registerOnClearCallback([this]() { onClear(); });
 
         // Initialize entities vector
         for (const auto& e : componentCC.entities) {

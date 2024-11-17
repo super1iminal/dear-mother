@@ -93,16 +93,28 @@ public:
 	FilteredComponentContainer<UIButton, ShopScene> shopSceneButtons;
 	FilteredComponentContainer<UIButton, TestScene> testSceneButtons;
 
+	// for active deadlys
+	FilteredComponentContainer<Deadly, Active> activeDeadlys;
+
+	// for active shooters
+	FilteredComponentContainer<Shooter, Active> activeShooters;
+
+	// for active gamescene objects
+	FilteredComponentContainer<Active, GameScene> gameSceneActives;
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
-	ECSRegistry() : 
+	ECSRegistry() :
 		gameSceneRenderRequests(renderRequests, gameSceneComponents),
 		gameSceneWorldObjects(worldObjects, gameSceneComponents),
 		menuSceneButtons(uiButtons, menuSceneComponents),
 		helpSceneButtons(uiButtons, helpSceneComponents),
 		pauseSceneButtons(uiButtons, pauseSceneComponents),
 		shopSceneButtons(uiButtons, shopSceneComponents),
-		testSceneButtons(uiButtons, testSceneComponents)
+		testSceneButtons(uiButtons, testSceneComponents),
+		activeDeadlys(deadlys, activeComponents),
+		activeShooters(shooters, activeComponents),
+		gameSceneActives(activeComponents, gameSceneComponents)
 	{
 		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
@@ -150,6 +162,7 @@ public:
 		registry_list.push_back(&map);
 		registry_list.push_back(&floorTexts);
 		registry_list.push_back(&bossOnes);
+		registry_list.push_back(&bossTwos);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
@@ -161,6 +174,9 @@ public:
 		registry_filtered.push_back(&pauseSceneButtons);
 		registry_filtered.push_back(&shopSceneButtons);
 		registry_filtered.push_back(&testSceneButtons);
+		registry_filtered.push_back(&activeDeadlys);
+		registry_filtered.push_back(&activeShooters);
+		registry_filtered.push_back(&gameSceneActives);
 
 		// denote sorted component containers
 		renderRequests.setSorted(true);

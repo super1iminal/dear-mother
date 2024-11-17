@@ -10,6 +10,12 @@ const float ENEMY_BB_HEIGHT = 130.f;
 const float ENEMY_SPEED = 100.f;
 const float PLAYER_MAX_SPEED = 300.f;
 const float PLAYER_SIZE = 80.f;
+const int PLAYER_MAX_HEALTH = 3;
+const int DEADLY_MAX_HEALTH = 5;
+const int PLAYER_BASE_INV_SIZE = 2;
+
+const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
+const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
@@ -53,7 +59,7 @@ Entity createParticle(RenderSystem* renderer,
 );
 
 // the player
-Entity createPlayer(RenderSystem* renderer,vec2 pos,int curr_health = 10,
+Entity createPlayer(RenderSystem* renderer,vec2 pos,int curr_health = PLAYER_MAX_HEALTH,
 	ivec2 room_coord = {0, 0});
 
 // the walls

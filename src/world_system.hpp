@@ -24,7 +24,7 @@
 class WorldSystem
 {
 public:
-	
+	// ==================== BASIC FUNCTIONS ====================
 	WorldSystem();
 	// Releases all associated resources
 	~WorldSystem();
@@ -37,15 +37,15 @@ public:
 
 
 	// ==================== HANDLING FUNCTIONS ====================
+	// ran once per step. public ones are called from game_manager.cpp
 	// Check for collisions
 	void handle_collisions();
 	// Check for deaths
 	void handle_deaths();
-	// check for interactions
-	void handle_interactions();
 
 
 	// ==================== UPDATE FUNCTIONS ====================
+	// ran once per step. public ones are called from game_manager.cpp
 	// update animations
 	void update_animations();
 
@@ -78,7 +78,6 @@ private:
 
 	// Shooting vars
 	bool left_mouse_button = false;
-	bool first_shot = true;
 
 	// Boss one vars
 	Entity final_phase_text;
@@ -94,7 +93,6 @@ private:
 	Mix_Music* combat_music;
 	//Music control
 	bool change_music = true;
-	bool enable_music = true;
 
 	// Player state
 	Entity player;
@@ -102,7 +100,6 @@ private:
 	unsigned int player_health;
 	uint level = 1;
 	uint scrap = 0;
-	bool player_seen = false;
 
 	// Game state
 	float current_speed;
@@ -133,10 +130,12 @@ private:
 
 
 	// ==================== HANDLING FUNCTIONS ====================
+	// ran once per step. private ones are called from inside world_system.cpp
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
-
 	void handle_item_pickup(Entity item);
+	// check for interactions
+	void handle_interactions();
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
@@ -149,6 +148,7 @@ private:
 
 
 	// ==================== UPDATE FUNCTIONS ====================
+	// ran once per step. private ones are called from inside world_system.cpp
 	// update HUD
 	void updateGameUI();
 

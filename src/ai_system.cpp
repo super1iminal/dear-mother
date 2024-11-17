@@ -744,7 +744,7 @@ void AISystem::step(float elapsed_ms) {
 
 	Entity& player = playerRegistry.entities[0]; // assuming always only 1 player
 
-	if (playerRegistry.get(player).combat_boss_one) {
+	if (playerRegistry.get(player).combat_state == COMBAT_STATE::BOSS_ONE_COMBAT) {
 		boss_one_ai();
 	} else {
 		for (int i = 0; i < deadlyRegistry.entities.size(); i++) {

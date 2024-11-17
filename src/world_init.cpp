@@ -146,7 +146,7 @@ Entity createPlayer(
 	auto& shooter = registry.shooters.emplace(entity);
 	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = 10;
+	health.max_health = PLAYER_MAX_HEALTH;
 	health.curr_health = curr_health;
 
 	registry.inventory.emplace(entity);
@@ -206,7 +206,7 @@ Entity createEnemy(
 		shooter.fire_rate = std::numeric_limits<int>::max();
 	}
   	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = 5;
+	health.max_health = DEADLY_MAX_HEALTH;
 	health.curr_health = curr_health;
 
 	// setting position, scale, orientation
@@ -392,6 +392,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 // need to add to collisions
 Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation) {
 	// create an entity in order to render the floor background
+	printf("creating door at %d, %d\n", room_coord.x, room_coord.y);
 	auto door = Entity();
 	registry.gameSceneComponents.emplace(door);
 	registry.roomCoords.emplace(door, room_coord);
@@ -941,6 +942,7 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 	auto roomMap = registry.map.components[0].roomMap;
 	for (const auto& room : roomMap) {
 		const ivec2 coord = { room.first.first, room.first.second };
+		printf("creating room at %d, %d\n", coord.x, coord.y);
 		ROOM_TYPE type = room.second;
 
 		switch (type) {
@@ -955,20 +957,6 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 			break;
 		case ROOM_TYPE::BOSS_ROOM_TWO:
 			createBossRoomTwo(renderer, coord);
-			break;
-		}
-	}
-	auto temp = registry.map;
-	for (const auto& room : roomMap) {
-		const ivec2 coord = { room.first.first, room.first.second };
-		ROOM_TYPE type = room.second;
-
-		switch (type) {
-		case ROOM_TYPE::ENEMY_ROOM:
-			createEnemyRoom(renderer, coord, uniform_dist, rng);
-			break;
-		case ROOM_TYPE::EMPTY:
-			createEmptyRoom(renderer, coord);
 			break;
 		}
 	}
@@ -1042,8 +1030,8 @@ void createLoadedGame(RenderSystem *renderer) {
 	auto& shooter = registry.shooters.emplace(entity);
 	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = 5;
-	health.curr_health = 5;
+	health.max_health = PLAYER_MAX_HEALTH;
+	health.curr_health = PLAYER_MAX_HEALTH; // TODO: why doesn't this load the player's health?
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
 		Animation& player_animation = registry.animations.emplace(entity);
@@ -1068,8 +1056,8 @@ void createLoadedGame(RenderSystem *renderer) {
 		auto& shooter = registry.shooters.emplace(entity);
 		shooter.fire_rate = std::numeric_limits<int>::max();
 		auto& health = registry.healthComponents.emplace(entity);
-		health.max_health = 5;
-		health.curr_health = 5;
+		health.max_health = DEADLY_MAX_HEALTH;
+		health.curr_health = DEADLY_MAX_HEALTH;
 		Animation& enemy_animation = registry.animations.emplace(entity);
 		enemy_animation.cols = 4;
 		enemy_animation.rows = 1;
