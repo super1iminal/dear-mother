@@ -178,3 +178,9 @@ enum class ROOM_TYPE {
 	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
 	// ...
 };
+
+enum class FLOOR_TYPE {
+	DEFAULT = 0,
+	BOSS_ROOM_ONE = DEFAULT + 1,
+	// ...
+};

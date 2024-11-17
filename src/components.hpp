@@ -149,7 +149,7 @@ struct BossOne
 	bool top_right_alive = true;
 	bool bot_left_alive = true;
 	bool bot_right_alive = true;
-	bool shot_pattern = false;
+	int shot_pattern = 0;
 	bool mother = true;
 	float bullet_angle = 0.f;
 };
@@ -391,18 +391,24 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,
 	ENEMY_2_ATTACK = ENEMY_2_WALK + 1,
+	MOTHER_FINAL_IDLE = ENEMY_2_ATTACK + 1,
+	BOSS_ONE_IDLE = MOTHER_FINAL_IDLE + 1,
+	BOSS_ONE_FLOOR = BOSS_ONE_IDLE + 1,
+	BOSS_ONE_HORZ_WALL = BOSS_ONE_FLOOR + 1,
+	BOSS_ONE_VERT_WALL = BOSS_ONE_HORZ_WALL + 1,
 
 	// floor items must be kept together ====================================================================
-	BROKEN_GENERATOR = ENEMY_2_ATTACK + 1,
+	BROKEN_GENERATOR = BOSS_ONE_VERT_WALL + 1,
 	BROKEN_CONTROL_PANEL = BROKEN_GENERATOR + 1,
 	DEAD_ROBOT = BROKEN_CONTROL_PANEL + 1,
 	FLOOR_HOLE = DEAD_ROBOT + 1,
 	FURNACE = FLOOR_HOLE + 1,
 	RUSTY_PIPES = FURNACE + 1,
 	SLAG_PIT = RUSTY_PIPES  + 1,
+	ENEMY_ROBOT_OFF = SLAG_PIT + 1,
 	// floor items must be kept together ====================================================================
 
-	TEXTURE_COUNT = SLAG_PIT + 1,
+	TEXTURE_COUNT = ENEMY_ROBOT_OFF + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

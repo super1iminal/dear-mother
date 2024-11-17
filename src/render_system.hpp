@@ -56,8 +56,8 @@ class RenderSystem {
 			textures_path("base_UI.png"),
 			textures_path("enemy_robot.png"),
 			textures_path("enemy_robot_2.png"),
-			textures_path("horz_wall.png"),
-			textures_path("vert_wall.png"),
+			textures_path("horz_wall_new.png"),
+			textures_path("vert_wall_new.png"),
 			textures_path("door_leftright.png"),
 			textures_path("door_updown.png"),
 			textures_path("battery.png"),
@@ -87,6 +87,11 @@ class RenderSystem {
 			textures_path("/anims/attack/enemy_robot_attack.png"),
 			textures_path("/anims/walk/enemy_robot_2_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack_2.png"),
+			textures_path("/anims/idle/final_boss_anim.png"),
+			textures_path("/anims/idle/boss_1-sheet.png"),
+			textures_path("floor_final_boss.png"),
+			textures_path("horz_wall_final_boss.png"),
+			textures_path("vert_wall_final_boss.png"),
 
 			// floor items must be kept together ====================================================================
 			textures_path("BrokenGenerator.png"),
@@ -96,6 +101,7 @@ class RenderSystem {
 			textures_path("Furnace.png"),
 			textures_path("RustyPipes4.png"),  // potential for animation
 			textures_path("SlagPit1.png"), // potential for animation
+			textures_path("enemy_robot_off.png"),
 			// Also potential for a floor item of variable size in conveyor belts. Not on git yet.
 			// Also potential for an interactable floor item oil spill, which the player slides across without control
 			// floor items must be kept together ====================================================================
