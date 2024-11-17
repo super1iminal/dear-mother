@@ -68,7 +68,7 @@ Entity UISystem::createPanel(
 		{ texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			14 });
+			RENDER_ORDER::UI_PANEL });
 
 	return entity;
 }
@@ -123,7 +123,7 @@ Entity UISystem::createSquareUIElement(
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::UI_ELEMENT,
 			GEOMETRY_BUFFER_ID::SQUARE,
-			16 });
+			RENDER_ORDER::UI_ELEMENT });
 
 	return entity;
 }
@@ -180,7 +180,7 @@ Entity UISystem::createTextUIElement(
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::FONT,
 			GEOMETRY_BUFFER_ID::SQUARE,
-			16 });
+			RENDER_ORDER::UI_ELEMENT });
 
 	return entity;
 }
@@ -233,7 +233,7 @@ Entity UISystem::createTexturedUIElement(
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			15 });
+			RENDER_ORDER::TEXTURED_UI_ELEMENT });
 
 	return entity;
 }
@@ -287,7 +287,7 @@ Entity UISystem::createButton(
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			17 });
+			RENDER_ORDER::UI_BUTTON });
 
 	return entity;
 }
@@ -351,7 +351,7 @@ Entity UISystem::createTextButton(
 		{	TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::FONT,
 			GEOMETRY_BUFFER_ID::SQUARE,
-			17 });
+			RENDER_ORDER::UI_BUTTON });
 
 	return entity;
 }
@@ -397,7 +397,7 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 			texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			25
+			RENDER_ORDER::CROSSHAIR
 		});
 
 	return entity;
