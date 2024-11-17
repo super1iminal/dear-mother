@@ -65,7 +65,7 @@ void createParticle(RenderSystem* renderer, vec2 pos, std::uniform_real_distribu
 		{ type,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			5
+			RENDER_ORDER::PARTICLE
 		});
 }
 
@@ -107,7 +107,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 		{ type,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			3 });
+			RENDER_ORDER::WALL });
 
 	return entity;
 
@@ -164,7 +164,7 @@ Entity createPlayer(
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
 			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			10 });
+			RENDER_ORDER::PLAYER });
 
 	return entity;
 }
@@ -229,14 +229,14 @@ Entity createEnemy(
 			{ TEXTURE_ASSET_ID::ENEMY_WALK,
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE,
-				9 });
+				RENDER_ORDER::ENEMY });
 	} else {
 		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE,
-				9 });
+				RENDER_ORDER::ENEMY });
 	}
 
 	return entity;
@@ -386,7 +386,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 		{ TEXTURE_ASSET_ID::FLOOR,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			2 });
+			RENDER_ORDER::FLOOR });
 
 	return floor;
 }
@@ -437,7 +437,7 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			4 });
+			RENDER_ORDER::DOOR });
 
 	return door;
 }
@@ -468,7 +468,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 		{ TEXTURE_ASSET_ID::BATTERY_PACK,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			5 });
+			RENDER_ORDER::INTERACTABLE });
 
 	return interactable_entity;
 }
@@ -567,7 +567,7 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, ITEM_TYPE sp
 		{ item_texture,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			6 });
+			RENDER_ORDER::ITEM });
 
 	return entity;
 }
@@ -609,7 +609,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
 				GEOMETRY_BUFFER_ID::BULLET_FRIENDLY,
-				11
+				RENDER_ORDER::FRIENDLY_PROJECTILE
 			}
 		);
 	}
@@ -621,7 +621,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 			{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 				EFFECT_ASSET_ID::SALMON,
 				GEOMETRY_BUFFER_ID::BULLET_ENEMY,
-				12
+				RENDER_ORDER::DEADLY_PROJECTILE
 			}
 		);
 	}
@@ -642,7 +642,7 @@ Entity createLine(vec2 position, vec2 scale)
 			TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::DEBUG_LINE,
-			20
+			RENDER_ORDER::LINE
 		});
 
 	// Create motion
@@ -722,7 +722,8 @@ void createLoadedGame(RenderSystem *renderer) {
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
 			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_ORDER::PLAYER });
 
 	for (Entity entity : registry.deadlys.entities) {
 		registry.gameSceneComponents.emplace(entity);
@@ -747,7 +748,8 @@ void createLoadedGame(RenderSystem *renderer) {
 			{
 				TEXTURE_ASSET_ID::ENEMY,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY
 			});
 	}
 }
