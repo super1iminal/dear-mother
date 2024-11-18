@@ -39,7 +39,7 @@ const float VELOCITY_THRESHOLD = 0.1f; // if a particle is slower than this, it 
 const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 
 // wall stuff
-const float WALL_WIDTH = 75.f;
+const float WALL_WIDTH = 60.f;
 
 // center x pos
 const float CENTER_X = (102.5 + 1177.5) / 2;
@@ -90,7 +90,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
 
 // floors
-Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord);
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type = FLOOR_TYPE::DEFAULT);
 
 // doors
 Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation);

@@ -320,9 +320,9 @@ void AISystem::boss_one_ai() {
 	int RIGHT_OUTER_X_BOUND = 1136;
 	int RIGHT_INNER_X_BOUND = 714;
 
-	int TOP_OUTER_Y_BOUND = 270 + 40;
+	int TOP_OUTER_Y_BOUND = 270 + 50;
 	//int TOP_INNER_Y_BOUND = 350;
-	int BOT_OUTER_Y_BOUND = 570 + 30;
+	int BOT_OUTER_Y_BOUND = 550;
 	//int BOT_INNER_Y_BOUND = 500;
 
 	int CENTER_X = 638;
