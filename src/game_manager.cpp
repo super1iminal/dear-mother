@@ -273,6 +273,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	{
 		// Update the menu screen
 		if (scene_manager.has_just_changed()) {
+			printf("updating menu music\n");
 			menu.update_music();
 		}
 		break;

@@ -1,6 +1,6 @@
 {
-    "current_run": 0,
-    "interacted_this_run": true,
+    "current_run": null,
+    "interacted_this_run": false,
     "next_run": 1,
     "run0": {
         "int0": {
@@ -149,7 +149,7 @@
                 "text": "CAW!"
             }
         },
-        "next_interaction": 0,
+        "next_interaction": 2,
         "next_run": 1
     }
 }
