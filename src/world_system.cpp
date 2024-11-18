@@ -1202,11 +1202,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+			remove_item(item);
 		}
 		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
+			remove_item(item);
 		}
-		remove_item(item);
 	}
 	else {
 		std::cout << "Already have " << player_inventory.size << " items" << std::endl;
