@@ -243,14 +243,15 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 
 	//createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1, { 0, 0 });
 
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 	// top wall
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+
 
 	if (!(coord.x == 0 && coord.y == 0)) { // no enemies in base room
 		float scalingFactor = sqrt(coord.x * coord.x + coord.y + coord.y); // gets harder as you move further from spawn
@@ -315,14 +316,15 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord, FLOOR_TYPE::BOSS_ROOM_ONE);
 
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
 	// top wall
 	createWall(renderer, { window_width_px / 2, /*25.f + 120.f*/ 90 }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 40.f }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 40.f }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
+
 
 	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
 	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
@@ -351,6 +353,7 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 
 	createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
 
+	// Decoration
 	createWall(renderer, { WALL_WIDTH + 300, WALL_WIDTH + BASE_UI_HEIGHT - 20}, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30}, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
 	createWall(renderer, { WALL_WIDTH + 200, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
 	createWall(renderer, { WALL_WIDTH + 100, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
@@ -364,14 +367,16 @@ void WorldSystem::createBossRoomTwo(ivec2 coord) {
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
 
+
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 	// Boss Two
-	boss_two =  createBossTwo(renderer, { window_width_px / 2, 25.f + 120.f }, coord);
+	boss_two =  createBossTwo(renderer, { window_width_px / 2, 60.f + 120.f }, coord);
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
 	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
@@ -419,14 +424,14 @@ void WorldSystem::createEmptyRoom(ivec2 coord) {
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
 
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 	// top wall
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
-	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 
 	auto roomMap = registry.map.components[0].roomMap;

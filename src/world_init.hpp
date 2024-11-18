@@ -30,7 +30,7 @@ const float VELOCITY_THRESHOLD = 0.1f; // if a particle is slower than this, it 
 const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 
 // wall stuff
-const float WALL_WIDTH = 75.f;
+const float WALL_WIDTH = 60.f;
 
 // center x pos
 const float CENTER_X = (102.5 + 1177.5) / 2;
