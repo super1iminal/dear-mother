@@ -1,0 +1,155 @@
+{
+  "current_run": 0,
+  "interacted_this_run": false,
+  "next_run": 0,
+  "run0": {
+    "int0": {
+      "next": "int1",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "CAW!"
+      },
+      "sent1": {
+        "next_sent": "sent2",
+        "text": "CAW! CAW! CAW!"
+      },
+      "sent2": {
+        "next_sent": "none",
+        "text": "CAW!!!! CAW!!!! CAW!!!!! CAW!!!!!"
+      }
+    },
+    "int1": {
+      "next": "int2",
+      "sent0": {
+        "next_sent": "none",
+        "text": "CAW?"
+      }
+    },
+    "int2": {
+      "next": "int3",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "You can ignore me now."
+      },
+      "sent1": {
+        "next_sent": "none",
+        "text": "Hm... usually that works..."
+      }
+    },
+    "int3": {
+      "next": "int4",
+      "sent0": {
+        "next_sent": "none",
+        "text": "*robot processing noises*"
+      }
+    },
+    "int4": {
+      "next": "int5",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "Who-CAW-are you?"
+      },
+      "sent1": {
+        "next_sent": "sent2",
+        "text": "A robot, you say? Why, aren't we all?"
+      },
+      "sent2": {
+        "next_sent": "sent3",
+        "text": "Who am I?"
+      },
+      "sent3": {
+        "next_sent": "sent4",
+        "text": "I'm but a humble scarecrow. I stand in the background, as evil, corrupted, twisted, disgusting, horrible, terrible robots scour the factory."
+      },
+      "sent4": {
+        "next_sent": "sent5",
+        "text": "My home is the floor of-CAW-disurption."
+      },
+      "sent5": {
+        "next_sent": "none",
+        "text": "But my Mother has changed... oh, she has changed... *sad robot noises*"
+      }
+    },
+    "int5": {
+      "next": "int6",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "What is your mission-CAW-birdie?"
+      },
+      "sent1": {
+        "next_sent": "sent2",
+        "text": "Your mission... is to purge the factory... caw..."
+      },
+      "sent2": {
+        "next_sent": "sent3",
+        "text": "Should the humble scarecrow be afraid?"
+      },
+      "sent3": {
+        "next_sent": "sent4",
+        "text": "The humble scarecrow is afraid of nothing."
+      },
+      "sent4": {
+        "next_sent": "sent5",
+        "text": "The humble scarecrow is not a-CAW-threat? The humble scarecrow is the-CAW-Most Powerful Robot!"
+      },
+      "sent5": {
+        "next_sent": "none",
+        "text": "Well, perhaps not anymore. The humble scarecrow is gentle, now. The humble scarecrow is humble."
+      }
+    },
+    "int6": {
+      "next": "int6",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "The humble scarecrow is strong..."
+      },
+      "sent1": {
+        "next_sent": "sent2",
+        "text": "The humble scarecrow is great..."
+      },
+      "sent2": {
+        "next_sent": "none",
+        "text": "The hubmle scarecrow is humble..."
+      }
+    },
+    "next_interaction": 0,
+    "next_run": 1
+  },
+  "run1": {
+    "int0": {
+      "next": "int1",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "CAW!!!!!!!!!"
+      },
+      "sent1": {
+        "next_sent": "none",
+        "text": "The humble scarecrow apologizes. The humble scarecrow did not recognize you."
+      }
+    },
+    "int1": {
+      "next": "int2",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "You are a strong robot. You remind the humble scarecrow of himself."
+      },
+      "sent1": {
+        "next_sent": "none",
+        "text": "Try again, robot. The humble scarecrow is always watching."
+      }
+    },
+    "int2": {
+      "next": "int2",
+      "sent0": {
+        "next_sent": "sent1",
+        "text": "The humble scarecrow is always watching."
+      },
+      "sent1": {
+        "next_sent": "none",
+        "text": "CAW!"
+      }
+    },
+    "next_interaction": 0,
+    "next_run": 1
+  }
+}

@@ -441,7 +441,7 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 	return door;
 }
 
-Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value, ivec2 room_coord) {
+Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<bool(int, Entity)> function, int value, ivec2 room_coord) {
 	// create an interactable entity
 	Entity interactable_entity = Entity();
 	registry.gameSceneComponents.emplace(interactable_entity);
@@ -664,6 +664,73 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
+Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, NPC_TYPE npc_type) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0.f;
+	worldobject.scale = size;
+
+	NPC& npc = registry.NPCs.emplace(entity, "", npc_type);
+
+	TEXTURE_ASSET_ID texture_id;
+	switch (npc_type) {
+		case (NPC_TYPE::OLD_ROBOT_NPC):
+			texture_id = TEXTURE_ASSET_ID::OLD_MAN;
+			npc.dialogue_path = dialogue_path("old_robot.json");
+			break;
+		case (NPC_TYPE::SCARECROW_NPC):
+			texture_id = TEXTURE_ASSET_ID::SCARECROW;
+			npc.dialogue_path = dialogue_path("scarecrow.json");
+			break;
+		default:
+			printf("NPC type not recognized\n");
+			exit(1);
+	}
+
+	Interactable& interactable =  registry.interactables.emplace(entity);
+	interactable.range = 200.f;
+	interactable.interaction = [](int arg1, Entity arg2) {
+		if (registry.dialogueStates.size() == 0) {
+			Entity dialogueEntity = Entity();
+			DialogueState& dialogueState = registry.dialogueStates.emplace(dialogueEntity);
+			dialogueState.talking_to = arg2;
+		}
+		else if (registry.dialogueStates.size() == 1) {
+			registry.dialogueStates.components[0].talking_to = arg2;
+		}
+		else {
+			printf("Too many dialogue states\n");
+			exit(1);
+		}
+		scene_manager.set_scene(SCENE_TYPE::DIALOGUE);
+		return true;
+	};
+	// TODO: call or somehow call the dialogue system using interactable.parent as the NPC, perhaps change functionality to enum?
+	// also, need to switch scenes to dialogue scene
+	interactable.value = 0;
+
+	registry.blockers.emplace(entity);
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ texture_id,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			8 });
+
+	return entity;
+}
+
 
 // ==================== COMPLEX CREATE FUNCTIONS ====================
 
@@ -824,6 +891,30 @@ void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_dist
 	}
 }
 
+void createNPCRoom(RenderSystem* renderer, ivec2 coord, NPC_TYPE npc_type) {
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	createEmptyRoom(renderer, coord);
+
+	switch (npc_type) {
+	case NPC_TYPE::OLD_ROBOT_NPC:
+		createNPC(renderer,
+			vec2(WALL_WIDTH + OLD_ROBOT_WIDTH / 2.f, WALL_WIDTH + BASE_UI_HEIGHT + OLD_ROBOT_HEIGHT / 2.f),
+			vec2({ OLD_ROBOT_WIDTH, OLD_ROBOT_HEIGHT }),
+			coord,
+			npc_type);
+		break;
+	case NPC_TYPE::SCARECROW_NPC:
+		createNPC(renderer, 
+			vec2(window_width_px - WALL_WIDTH - SCARECROW_WIDTH / 2.f, WALL_WIDTH + BASE_UI_HEIGHT + SCARECROW_HEIGHT / 2.f),
+			vec2({ SCARECROW_WIDTH, SCARECROW_HEIGHT }),
+			coord,
+			npc_type);
+		break;
+	}
+	
+}
+
 void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
@@ -908,8 +999,8 @@ void generate_map() {
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{1, 0}] = ROOM_TYPE::EMPTY;
-	roomMap[{1, 1}] = ROOM_TYPE::EMPTY;
+	roomMap[{1, 0}] = ROOM_TYPE::OLD_ROBOT_ROOM;
+	roomMap[{1, 1}] = ROOM_TYPE::SCARECROW_ROOM;
 	//roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
 	//roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, 1}] = ROOM_TYPE::EMPTY;
@@ -957,6 +1048,12 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 			break;
 		case ROOM_TYPE::BOSS_ROOM_TWO:
 			createBossRoomTwo(renderer, coord);
+			break;
+		case ROOM_TYPE::OLD_ROBOT_ROOM:
+			createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
+			break;
+		case ROOM_TYPE::SCARECROW_ROOM:
+			createNPCRoom(renderer, coord, NPC_TYPE::SCARECROW_NPC);
 			break;
 		}
 	}

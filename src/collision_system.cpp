@@ -218,10 +218,12 @@ void CollisionSystem::add_collisions() {
     for (size_t i = 0; i < entityCount; ++i) {
         Entity entity_i = entities[i];
         if (!registry.activeComponents.has(entity_i)) { continue; } // Skip inactive entities
+        if (!registry.worldObjects.has(entity_i)) { continue; } // skip entities with no worldobjects
 
         for (size_t j = i + 1; j < entityCount; ++j) {
             Entity entity_j = entities[j];
             if (!registry.activeComponents.has(entity_j)) { continue; } // Skip inactive entities
+            if (!registry.worldObjects.has(entity_j)) { continue; } // skip entities with no worldobjects
 
             // Avoid self-collisions
             if (entity_i == entity_j) { continue; }

@@ -41,7 +41,7 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} "src/collision_system.cpp" "src/collision_system.hpp" "src/scene_manager.cpp" "src/scene_manager.hpp" "src/ui_system.cpp" "src/menu_system.cpp" "src/shop_system.cpp" "src/help_system.cpp" "src/game_manager.cpp"
         src/reloadability_system.hpp
-        ext/json/json.hpp)
+        ext/json/json.hpp "src/dialogue_system.cpp")
 
 target_include_directories(${PROJECT_NAME} PUBLIC src/)
 

@@ -20,6 +20,8 @@ public:
 	void on_mouse_move(vec2 mouse_position);
 	void on_key(int key, int sc, int action, int mod);
 
+	void update_music();
+
 private:
 	RenderSystem* renderer;
 
@@ -29,6 +31,8 @@ private:
 	vec2 cursor_position;
 
 	SCENE_TYPE* scene;
+
+	Mix_Music* menu_music;
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 };

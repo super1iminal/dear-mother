@@ -17,6 +17,7 @@
 #include "physics_system.hpp"
 #include "ui_system.hpp"
 #include "scene_manager.hpp"
+#include "dialogue_system.hpp"
 
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -48,7 +49,7 @@ public:
 	// ran once per step. public ones are called from game_manager.cpp
 	// update animations
 	void update_animations();
-
+	void update_music();
 
 	// ==================== CALLBACK FUNCTIONS ====================
 	// Input callback functions

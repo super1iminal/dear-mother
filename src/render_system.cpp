@@ -296,10 +296,11 @@ void RenderSystem::drawToScreen()
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
-	// Enabling alpha channel for textures
+	// Disabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
+	gl_has_errors();
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -341,6 +342,11 @@ void RenderSystem::drawToScreen()
 		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
 				  // no offset from the bound index buffer
 	gl_has_errors();
+
+	// Disabling alpha channel for textures
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	gl_has_errors();
 }
 
 // Render our game world
@@ -377,7 +383,7 @@ void RenderSystem::draw(float elapsed_ms)
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			// note that activeComponents are ONLY USED for game entities
-			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity) || registry.crosshairs.has(entity))
 				continue;
 			if (registry.roomCoords.has(entity)) {
 				if (!registry.activeComponents.has(entity))
@@ -395,7 +401,7 @@ void RenderSystem::draw(float elapsed_ms)
 
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity) || registry.crosshairs.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -405,7 +411,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw help screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity) || registry.crosshairs.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -415,7 +421,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw pause screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity) || registry.crosshairs.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -425,11 +431,36 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw shop screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity) || registry.crosshairs.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
 		break;
+	}
+	case SCENE_TYPE::DIALOGUE: {
+		// draw game entities:
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			// note that activeComponents are ONLY USED for game entities
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity) || registry.crosshairs.has(entity))
+				continue;
+			if (registry.roomCoords.has(entity)) {
+				if (!registry.activeComponents.has(entity))
+					continue;
+			}
+			if (!on_screen(registry.worldObjects.get(entity).position))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+			drawFloorText();
+		}
+
+		// then draw dialogue on top of everything. simple, yipeeeeee!:
+		for (Entity entity : registry.renderRequests.entities)
+		{
+			if (!registry.worldObjects.has(entity) || !registry.dialogueSceneComponents.has(entity) || registry.crosshairs.has(entity))
+				continue;
+			drawTexturedMesh(entity, projection_2D, elapsed_ms);
+		}
 	}
 	case SCENE_TYPE::TEST: {
 		// draw test scene
@@ -442,6 +473,13 @@ void RenderSystem::draw(float elapsed_ms)
 
 	// render all text
 	drawText();
+
+	if (registry.crosshairs.size() > 0) {
+		Entity crosshair = registry.crosshairs.entities[0];
+		drawTexturedMesh(crosshair, projection_2D, elapsed_ms); // TODO: drawing it twice. doesn't matter rn since nothinhg happens in drawtoscreen, but 
+																// might need to add a check above
+	}
+	
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
@@ -514,22 +552,27 @@ void RenderSystem::render_text(std::string text, float x, float y, float scale, 
 		glGetUniformLocation(fontShaderProgram, "transform");
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 	gl_has_errors();
+	float origX = x; // Save original x position to reset on new lines
 
 	glBindVertexArray(fontVAO);
 	gl_has_errors();
 
-	// iterate through all characters
-	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
-	{
-		Character ch = m_ftCharacters[*c];
+	for (char c : text) {
+		if (c == '\n') {
+			x = origX;             // Reset x to original x position
+			y -= lineHeight * scale* LINE_SPACING; // Move y position down by line height*1.5
+			continue;
+		}
+
+		Character ch = m_ftCharacters[c];
 
 		float xpos = x + ch.Bearing.x * scale;
 		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
 		float w = ch.Size.x * scale;
 		float h = ch.Size.y * scale;
-		// update VBO for each character
+
+		// Update VBO for each character
 		float vertices[6][4] = {
 			{ xpos,     ypos + h,   0.0f, 0.0f },
 			{ xpos,     ypos,       0.0f, 1.0f },
@@ -540,25 +583,25 @@ void RenderSystem::render_text(std::string text, float x, float y, float scale, 
 			{ xpos + w, ypos + h,   1.0f, 0.0f }
 		};
 
-		// render glyph texture over quad
+		// Render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 		gl_has_errors();
-		// std::cout << "binding texture: " << ch.character << " = " << ch.TextureID << std::endl;
 
-		// update content of VBO memory
+		// Update content of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, fontVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		gl_has_errors();
 
-		// render quad
+		// Render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		gl_has_errors();
 
-		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+		// Advance cursor for next glyph
+		x += (ch.Advance >> 6) * scale;
 		gl_has_errors();
 	}
+
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -578,4 +621,21 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+std::vector<float> RenderSystem::getCharacterWidths(const std::string& text, const float scale) const {
+	std::vector<float> widths;
+	for (char c : text) {
+		auto it = m_ftCharacters.find(c);
+		if (it != m_ftCharacters.end()) {
+			// Use Advance to get the character width
+			float width = (it->second.Advance >> 6) * scale;
+			widths.push_back(width);
+		}
+		else {
+			// If the character isn't found, append a default width (e.g., 0)
+			widths.push_back(0.0f);
+		}
+	}
+	return widths;
 }

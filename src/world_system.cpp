@@ -49,15 +49,6 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	this->renderer = renderer_arg;
 	this->window = window;
 	//////////////////////////////////////
-	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		exit(1);
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		exit(1);
-	}
 
 	// Audio from:
 	// https://kenney.nl/assets/category:Audio
@@ -82,12 +73,6 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 		exit(1);
 	}
 
-
-	// Playing background music indefinitely
-	Mix_FadeInMusic(post_combat_music, -1, 5000);
-	Mix_VolumeMusic(16);
-	fprintf(stderr, "Loaded music\n");
-
 	// Create Item Set
 	srand(time(0));
 	buildItemSet();
@@ -99,6 +84,9 @@ void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 	printf("Restarting\n");
+
+	reset_dialogue_run_status(); // dialogue-related, 
+	// TODO: the above needs to occur when a new run happens, but not upon continue. currently happens on both
 
 	// Reset the game speed
 	current_speed = 1.f;
@@ -149,6 +137,19 @@ void WorldSystem::restart_game() {
 	}
 }
 
+void WorldSystem::update_music() {
+	if (registry.players.get(player).combat_state == COMBAT_STATE::NO_COMBAT) {
+		Mix_VolumeMusic(8);
+		Mix_FadeInMusic(post_combat_music, -1, 2500);
+	}
+	else if (registry.players.get(player).combat_state != COMBAT_STATE::NO_COMBAT) {
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(combat_music, -1, 5000);
+	}
+
+	// TODO: can changed based on boss
+}
+
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove debug info from the last step. Need to iterate backwards to avoid catastrophic error
@@ -189,21 +190,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		shoot(entity);
 	}
 
-	// Set music based on whether or not there are enemies alive
+	// Set player state
 	int activeDeadlyCounter = registry.activeDeadlys.size();
 	if (activeDeadlyCounter > 0) {
 		if (registry.players.get(player).combat_state == COMBAT_STATE::NO_COMBAT) {
-			Mix_VolumeMusic(8);
-			Mix_FadeInMusic(combat_music, -1, 2500);
 			registry.players.get(player).combat_state = COMBAT_STATE::NORMAL_COMBAT;
-			// TODO: add diff changes for diff bosses
+			update_music();
 		}
 	}
 	else {
 		if (registry.players.get(player).combat_state != COMBAT_STATE::NO_COMBAT) {
-			Mix_VolumeMusic(16);
-			Mix_FadeInMusic(post_combat_music, -1, 5000);
 			registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
+			update_music();
 		}
 	}
 
@@ -410,8 +408,6 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
-		Mix_VolumeMusic(16);
-		Mix_FadeInMusic(post_combat_music, -1, 5000);
 		//registry.players.get(player).in_combat = false;
 	}
 
@@ -572,6 +568,10 @@ void WorldSystem::initGameUI() {
 	}
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
+
+	// the following was a test. you can safely delete it. i may have forgotten to.
+	//UISystem::createTextBox(renderer, vec2(window_width_px / 2, window_height_px / 2), vec2(DIALOGUE_BOX_WIDTH, DIALOGUE_BOX_HEIGHT), vec3(1.f, 1.f, 1.f), SCENE_TYPE::GAME, 
+	//	"Hello. My name is Asher. \nThis is a test for dialogue boxes. The line needs a line break at some point. Let's see! Bah be boo be bahh be boo be bahh be boo be");
 }
 
 
@@ -1082,7 +1082,7 @@ void WorldSystem::handle_interactions() {
 				handle_item_pickup(interactableEntity);
 			}
 			else {
-				interactable.interaction(interactable.value);
+				interactable.interaction(interactable.value, interactableEntity);
 			}
 		}
 	}
@@ -1107,7 +1107,7 @@ void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 			player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
 		}
 		else if (dy == 1) {
-			player_worldobject.position = { window_width_px / 2, window_height_px /2 };
+			player_worldobject.position = { window_width_px / 2, (window_height_px - WALL_WIDTH) - 80 };
 		}
 		else if (dy == -1) {
 			player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };

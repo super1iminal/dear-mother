@@ -31,6 +31,13 @@ inline std::string mesh_path(const std::string& name) {return data_path() + "/me
 inline std::string reload_path(const std::string& name) {
 	return data_path() + "/saved_game/" + std::string(name);
 };
+inline std::string dialogue_path(const std::string& name) {
+	return data_path() + "/dialogue/" + std::string(name);
+};
+
+inline std::string npc_path(const std::string& name) {
+	return textures_path("npcs/") + std::string(name);
+};
 const int window_width_px = 1280;
 const int window_height_px = 720;
 bool on_screen(vec2 position);
@@ -176,7 +183,8 @@ enum class ROOM_TYPE {
 	ENEMY_ROOM = EMPTY + 1,
 	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
 	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
-	// ...
+	OLD_ROBOT_ROOM = BOSS_ROOM_TWO + 1,
+	SCARECROW_ROOM = OLD_ROBOT_ROOM + 1
 };
 
 enum class COMBAT_STATE {
@@ -185,3 +193,14 @@ enum class COMBAT_STATE {
 	BOSS_ONE_COMBAT = NORMAL_COMBAT + 1,
 	BOSS_TWO_COMBAT = BOSS_ONE_COMBAT + 1,
 };
+
+enum class NPC_TYPE {
+	OLD_ROBOT_NPC = 0,
+	SCARECROW_NPC = OLD_ROBOT_NPC + 1,
+	// ...
+};
+
+/*enum class INTERACTION_TYPE {
+	NPC_INTERACTION = 0,
+	INTERACTION_COUNT = NPC_INTERACTION + 1,
+}*/;

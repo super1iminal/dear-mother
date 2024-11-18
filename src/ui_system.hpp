@@ -4,6 +4,11 @@
 #include "common.hpp"
 #include <render_system.hpp>
 
+// constants
+const float DIALOGUE_BOX_MARGINS = 12.5f;
+
+const float DIALOGUE_TEXT_SCALE = 2.f;
+
 class UISystem
 {
 public:
@@ -68,7 +73,7 @@ public:
 		SCENE_TYPE scene_type);
 
 	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
-
+	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text);
 private:
 	// Window handle
 	GLFWwindow* window;

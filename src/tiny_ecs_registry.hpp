@@ -60,6 +60,10 @@ public:
 	ComponentContainer<FloorText> floorTexts;
 	ComponentContainer<BossOne> bossOnes;
 	ComponentContainer<BossTwo> bossTwos;
+	ComponentContainer<DialogueScene> dialogueSceneComponents;
+	ComponentContainer<NPC> NPCs;
+	ComponentContainer<TextBox> textBoxes; // note that this will contain 2 other entities
+	ComponentContainer<DialogueState> dialogueStates; // should be only 1 of em (don't need to save)
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -163,6 +167,10 @@ public:
 		registry_list.push_back(&floorTexts);
 		registry_list.push_back(&bossOnes);
 		registry_list.push_back(&bossTwos);
+		registry_list.push_back(&dialogueSceneComponents);
+		registry_list.push_back(&NPCs);
+		registry_list.push_back(&textBoxes);
+		registry_list.push_back(&dialogueStates);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);

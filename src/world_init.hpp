@@ -13,6 +13,11 @@ const float PLAYER_SIZE = 80.f;
 const int PLAYER_MAX_HEALTH = 3;
 const int DEADLY_MAX_HEALTH = 5;
 const int PLAYER_BASE_INV_SIZE = 2;
+const float OLD_ROBOT_WIDTH = 296.f;
+const float OLD_ROBOT_HEIGHT = 176.f;
+
+const float SCARECROW_WIDTH = 131.2f;
+const float SCARECROW_HEIGHT = 107.2;
 
 const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
 const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
@@ -109,6 +114,9 @@ Entity createItem(RenderSystem* renderer,
 Entity createLine(vec2 position, vec2 size);
 
 Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
+
+Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, NPC_TYPE npc_type);
+
 
 // ==================== COMPLEX CREATE FUNCTIONS ====================
 // the particles

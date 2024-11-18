@@ -300,4 +300,6 @@ void ReloadabilitySystem::loadGame() {
             }
         }
     }
+
+    // close input file?
 }

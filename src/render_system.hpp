@@ -18,6 +18,8 @@
 #include <SDL_mixer.h>
 #include <map>
 
+const float LINE_SPACING = 1.3f;
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -99,6 +101,9 @@ class RenderSystem {
 			// Also potential for a floor item of variable size in conveyor belts. Not on git yet.
 			// Also potential for an interactable floor item oil spill, which the player slides across without control
 			// floor items must be kept together ====================================================================
+			textures_path("textbox.png"),
+			npc_path("old_man.png"),
+			npc_path("scarecrow.png"),
 
 	};
 
@@ -154,6 +159,10 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	std::vector<float> RenderSystem::getCharacterWidths(const std::string& text, const float scale) const;
+
+	float get_line_height() { return lineHeight; };
+
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, float elapsed_ms);
@@ -177,6 +186,9 @@ private:
 	Entity screen_state_entity;
 
 	int frame_duration = 100;
+
+	// calculated when characters are loaded in. defined as the tallest character height
+	float lineHeight;
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;
