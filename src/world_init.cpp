@@ -86,7 +86,8 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
-	if (type == TEXTURE_ASSET_ID::VERT_WALL || type == TEXTURE_ASSET_ID::HORZ_WALL) {
+	if (type == TEXTURE_ASSET_ID::VERT_WALL || type == TEXTURE_ASSET_ID::HORZ_WALL
+		|| type == TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL || type == TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL) {
 		registry.walls.emplace(entity);
 	}
 	else {
@@ -311,10 +312,10 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 		deadly.type = 3;
 		deadly.immune = true;
 		health.curr_health = 20;
-		worldobject.scale = vec2({ 1000, 50 });
+		worldobject.scale = vec2({ 300, 200 });
 		registry.renderRequests.insert(
 			entity,
-			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
+			{ TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE,
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE });
 	}
@@ -352,18 +353,24 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 
 	registry.walls.emplace(entity);
 
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 5;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 5;
+	enemy_animation.current_frame = 0;
+
 	registry.blockers.emplace(entity);
 	// don't be fooled, type is type
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::HORZ_WALL,
-			EFFECT_ASSET_ID::TEXTURED,
+		{ TEXTURE_ASSET_ID::BOSS_ONE_IDLE,
+			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
 
-Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord) {
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
 	registry.gameSceneComponents.emplace(floor);
@@ -381,12 +388,22 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 	worldobject.angle = 0.f;
 	worldobject.scale = size;
 
-	registry.renderRequests.insert_sorted(
-		floor,
-		{ TEXTURE_ASSET_ID::FLOOR,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_ORDER::FLOOR });
+	if (floor_type == FLOOR_TYPE::DEFAULT) {
+		registry.renderRequests.insert_sorted(
+			floor,
+			{ TEXTURE_ASSET_ID::FLOOR,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::FLOOR });
+	}
+	else if (floor_type == FLOOR_TYPE::BOSS_ROOM_ONE) {
+		registry.renderRequests.insert_sorted(
+			floor,
+			{ TEXTURE_ASSET_ID::BOSS_ONE_FLOOR,
+				EFFECT_ASSET_ID::TEXTURED,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::FLOOR });
+	}
 
 	return floor;
 }

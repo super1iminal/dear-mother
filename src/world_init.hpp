@@ -77,7 +77,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
 
 // floors
-Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord);
+Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type = FLOOR_TYPE::DEFAULT);
 
 // doors
 Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation);

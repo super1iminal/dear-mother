@@ -314,16 +314,17 @@ void WorldSystem::createEnemyRoom(ivec2 coord) {
 
 void WorldSystem::createBossRoomOne(ivec2 coord) {
 	// create a floor entity
-	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord, FLOOR_TYPE::BOSS_ROOM_ONE);
 
 	// left wall
-	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	createWall(renderer, { 25.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
 	// right wall
-	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
 	// top wall
-	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	createWall(renderer, { window_width_px / 2, /*25.f + 120.f*/ 90 }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
 	// bottom wall
-	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
+
 
 	float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
 	float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
@@ -344,21 +345,32 @@ void WorldSystem::createBossRoomOne(ivec2 coord) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
 
-	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 +40}, BOSS_ONE_POS::TOP_LEFT, coord);
-	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 +40}, BOSS_ONE_POS::TOP_RIGHT, coord);
+	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 +50}, BOSS_ONE_POS::TOP_LEFT, coord);
+	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 +50}, BOSS_ONE_POS::TOP_RIGHT, coord);
 
 	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 +30}, BOSS_ONE_POS::BOT_LEFT, coord);
 	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 +30}, BOSS_ONE_POS::BOT_RIGHT, coord);
 
-	createBossOne(renderer, { CENTER_X, 234.5 }, BOSS_ONE_POS::MOTHER, coord);
+	createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
+
+	// Decoration
+	createWall(renderer, { WALL_WIDTH + 300, WALL_WIDTH + BASE_UI_HEIGHT - 20}, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30}, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+	createWall(renderer, { WALL_WIDTH + 200, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+	createWall(renderer, { WALL_WIDTH + 100, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+
+	createWall(renderer, { WALL_WIDTH + 800, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, coord);
+	createWall(renderer, { WALL_WIDTH + 900, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, coord);
+	createWall(renderer, { WALL_WIDTH + 1000, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, coord);
 }
 
 void WorldSystem::createBossRoomTwo(ivec2 coord) {
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
 
+
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 	// Boss Two
-	boss_two =  createBossTwo(renderer, { window_width_px / 2, 25.f + 120.f }, coord);
+	boss_two =  createBossTwo(renderer, { window_width_px / 2, 60.f + 120.f }, coord);
 	// left wall
 	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
 	// right wall
@@ -822,19 +834,35 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 
 	// reset to walking texture
 	if (deadly.type == 0) 		// select robot 1
+	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
 	else if (deadly.type == 1)						// select robot 2
+	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
 	else if (deadly.type == 2) // Boss one bodygaurd
+	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-	else if (deadly.type == 3) // Boss one mother
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
-
-	enemy_animation.cols = 4;
-	enemy_animation.frames = 4;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
+	else if (deadly.type == 3) // Boss one mother 
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
+		enemy_animation.cols = 22;
+		enemy_animation.frames = 22;
+	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
 		// enemy is moving; play walking animation (4 frames)
+		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
+	}
+	else if (deadly.type == 3) {
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
 	else {
@@ -852,18 +880,24 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 
 	if (deadly.type == 0) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
 	}
 	else if (deadly.type == 1) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
 	}
-	else if (deadly.type == 2) { // Boss one bodygaurds
+	else if (deadly.type == 2) { // Final mother bodygaurds
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
 	}
-	else if (deadly.type == 3) { // Boss one mother
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
+	else if (deadly.type == 3) { // Final mother (no attack animation at the moment)
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
+		enemy_animation.cols = 22;
+		enemy_animation.frames = 22;
 	}
-	enemy_animation.cols = 7;
-	enemy_animation.frames = 7;
 
 	deadly.attacking = false;
 }
@@ -1168,11 +1202,12 @@ void WorldSystem::handle_item_pickup(Entity item) {
 		Health& player_health = registry.healthComponents.get(player);
 		if (player_health.curr_health + new_item.heal_size <= player_health.max_health) {
 			player_health.curr_health = player_health.curr_health + new_item.heal_size;
+			remove_item(item);
 		}
 		else if (player_health.curr_health < player_health.max_health) {
 			player_health.curr_health = player_health.max_health;
+			remove_item(item);
 		}
-		remove_item(item);
 	}
 	else {
 		std::cout << "Already have " << player_inventory.size << " items" << std::endl;
@@ -1264,11 +1299,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 1" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 300, 234 + 25 * left }, 200, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 990, 234 + 25 * right }, 200, current_room);
 				right++;
 			}
 		}
@@ -1561,33 +1596,54 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		}
 	}
 	else if (boss.boss_state == BOSS_ONE_STATE::ALL_DEAD) {
-		if (boss.shot_pattern) {
-			boss.shot_pattern = !boss.shot_pattern;
-			createProjectile(renderer, { 100, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 225, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 350, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+		float wave = 15.f;
+		if (boss.shot_pattern == 0) {
+			boss.shot_pattern++;
 
-			createProjectile(renderer, { 475, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 600, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 725, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f), 350.0f, false, current_room);
 
-			createProjectile(renderer, { 850, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 975, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 1100, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f), 350.0f, false, current_room);
+
+			createProjectile(renderer, entity_object.position, radians(140.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
 		}
-		else {
-			boss.shot_pattern = !boss.shot_pattern;
-			createProjectile(renderer, { 150, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 275, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 400, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+		else if (boss.shot_pattern == 1) {
+			boss.shot_pattern++;
 
-			createProjectile(renderer, { 525, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 650, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 775, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f - wave), 350.0f, false, current_room);
 
-			createProjectile(renderer, { 900, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 1025, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
-			createProjectile(renderer, { 1150, entity_object.position.y }, radians(90.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f - wave), 350.0f, false, current_room);
+
+			createProjectile(renderer, entity_object.position, radians(140.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f - wave), 350.0f, false, current_room);
+		}
+		else if (boss.shot_pattern == 2) {
+			boss.shot_pattern = 0;
+
+			createProjectile(renderer, entity_object.position, radians(0.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f + wave), 350.0f, false, current_room);
+
+			createProjectile(renderer, entity_object.position, radians(60.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f + wave), 350.0f, false, current_room);
+
+			createProjectile(renderer, entity_object.position, radians(140.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f + wave), 350.0f, false, current_room);
 		}
 	}
 	set_last_shot_time(entity);

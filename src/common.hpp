@@ -197,3 +197,9 @@ enum class RENDER_ORDER {
 	LINE = 20,
 	CROSSHAIR = 25,
 };
+
+enum class FLOOR_TYPE {
+	DEFAULT = 0,
+	BOSS_ROOM_ONE = DEFAULT + 1,
+	// ...
+};
