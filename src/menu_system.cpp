@@ -77,6 +77,18 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	);
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
+
+	// menu music
+	menu_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 14 Vereor Nox-compressed.wav").c_str());
+	if (menu_music == nullptr) {
+		fprintf(stderr, "Failed to load pause music. Error: %s\n", Mix_GetError());
+		exit(1);
+	}
+}
+
+void MenuSystem::update_music() {
+	Mix_VolumeMusic(8);
+	Mix_FadeInMusic(menu_music, -1, 2000);
 }
 
 void MenuSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)

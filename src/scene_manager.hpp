@@ -21,7 +21,8 @@ enum SCENE_TYPE {
 	PAUSE = HELP + 1,
 	SHOP = PAUSE + 1,
 	TEST = SHOP + 1,
-	SCENE_COUNT = TEST + 1
+	DIALOGUE = TEST + 1,
+	SCENE_COUNT = DIALOGUE + 1
 };
 
 class SceneManager

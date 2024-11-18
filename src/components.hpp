@@ -41,6 +41,11 @@ struct ScreenState
 	int health_status = 0;
 };
 
+struct DialogueState
+{
+	Entity talking_to;
+};
+
 // gamescene stuff
 struct GameScene
 {
@@ -87,12 +92,10 @@ struct Collision
 };
 
 // Player component
-struct Player
+struct Player // TODO: why are these variables here im crying
 {
-	bool in_combat = false;
-	bool combat_boss_one = false;
+	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
-	bool combat_boss_two = false;
 	bool boss_two_beat = false;
 };
 
@@ -100,7 +103,7 @@ struct Shooter
 {
 	// Fire Rate in ms (Temp: change to ranged weapon later)
 	float fire_rate = 0.0f;
-	std::chrono::steady_clock::time_point t;
+	std::chrono::steady_clock::time_point t = std::chrono::high_resolution_clock::now();
 };
 // Common Health component
 struct Health
@@ -141,6 +144,14 @@ struct Deadly
 	int melee_damge = 1;
 };
 
+struct NPC
+{
+	std::string dialogue_path;
+	NPC_TYPE type;
+	NPC(std::string dialogue_path, NPC_TYPE type) : dialogue_path(dialogue_path), type(type) {}
+};
+
+
 struct BossOne
 {
 	BOSS_ONE_POS boss_pos;
@@ -172,7 +183,7 @@ struct Interactable {
 	// the range that the player must be within to interact
 	float range;
 	// placeholder, not sure what we want the interaction function to do yet
-	std::function<void(int)> interaction;
+	std::function<bool(int, Entity)> interaction;
 	// value to be used in function call
 	int value;
 };
@@ -238,6 +249,12 @@ struct TestScene
 {
 };
 
+struct DialogueScene
+{
+
+};
+
+// if an entity has Active, it MUST have RoomCoordinate!
 struct RoomCoordinate
 {
 	ivec2 position;
@@ -245,6 +262,8 @@ struct RoomCoordinate
 };
 
 // for GAME objects that are in the current room. nothing else.
+// Its existence means that the object is in the current room
+// if an entity has Active, it MUST have RoomCoordinate!
 struct Active
 {
 };
@@ -315,6 +334,11 @@ struct FloorText
 struct BaseUI
 {
 	std::string name;
+};
+
+struct TextBox {
+	Entity textbox_sprite;
+	Entity textbox_text;
 };
 
 struct Crosshair {
@@ -407,8 +431,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SLAG_PIT = RUSTY_PIPES  + 1,
 	ENEMY_ROBOT_OFF = SLAG_PIT + 1,
 	// floor items must be kept together ====================================================================
-
-	TEXTURE_COUNT = ENEMY_ROBOT_OFF + 1,
+	TEXT_BOX = ENEMY_ROBOT_OFF + 1,
+	OLD_MAN = TEXT_BOX + 1,
+	SCARECROW = OLD_MAN + 1,
+	TEXTURE_COUNT = SCARECROW + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

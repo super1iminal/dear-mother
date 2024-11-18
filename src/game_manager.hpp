@@ -20,6 +20,7 @@
 #include "help_system.hpp"
 #include "pause_system.hpp"
 #include "shop_system.hpp"
+#include "dialogue_system.hpp"
 
 // scene stuff
 #include "scene_manager.hpp"
@@ -34,9 +35,10 @@ private:
 	void cleanup();
 
 	// Game systems
-	WorldSystem world;
 	PhysicsSystem physics;
 	AISystem ai;
+	DialogueSystem dialogue; // kinda
+	WorldSystem world;
 
 	// when adding here, remember to add init calls in init() function and add the mouse and keyboard callbacks in the switch statements
 	// you'll also need to add the scene name in the enum in common.hpp
@@ -46,6 +48,7 @@ private:
 	PauseSystem pause;
 	ReloadabilitySystem reload;
 	ShopSystem shop;
+	
 
 
 	// Scene systems

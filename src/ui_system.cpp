@@ -46,6 +46,9 @@ Entity UISystem::createPanel(
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -98,6 +101,9 @@ Entity UISystem::createSquareUIElement(
 		break;
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
@@ -155,6 +161,9 @@ Entity UISystem::createTextUIElement(
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -170,7 +179,7 @@ Entity UISystem::createTextUIElement(
 	// setting value for UI
 	UIElement& ui_elt = registry.uiElements.emplace(entity);
 	ui_elt.name = element_name;
-	ui_elt.value = element_value;
+	ui_elt.value = element_value; // the actual text to be rendered
 
 	vec3& ui_color = registry.colors.emplace(entity);
 	ui_color = color;
@@ -210,6 +219,9 @@ Entity UISystem::createTexturedUIElement(
 		break;
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
@@ -263,6 +275,9 @@ Entity UISystem::createButton(
 		break;
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
 		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
@@ -321,6 +336,9 @@ Entity UISystem::createTextButton(
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -375,6 +393,9 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 	case SCENE_TYPE::SHOP:
 		registry.shopSceneComponents.emplace(entity);
 		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
+		break;
 	case SCENE_TYPE::TEST:
 		registry.testSceneComponents.emplace(entity);
 		break;
@@ -403,3 +424,115 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 	return entity;
 }
 
+
+
+// ==================== COMPLEX FUNCTIONS ====================
+// WHEN GETTING RID OF A TEXT BOX, GET RID OF ITS CONSTITUENT ENTITIES FIRST!
+// linebreaks automatically inserted when text is too long
+// size is the size of the text box, not the text (text scale is defined by a constant)
+Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text) {
+	// right now, its not a button, but it could be modified to be one
+	Entity entity = Entity();
+	switch (scene_type) {
+	case SCENE_TYPE::GAME:
+		registry.gameSceneComponents.emplace(entity);
+		registry.activeComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::MENU:
+		registry.menuSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::HELP:
+		registry.helpSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::PAUSE:
+		registry.pauseSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::SHOP:
+		registry.shopSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::DIALOGUE:
+		registry.dialogueSceneComponents.emplace(entity);
+		break;
+	case SCENE_TYPE::TEST:
+		registry.testSceneComponents.emplace(entity);
+		break;
+	}
+	
+	TextBox& textbox = registry.textBoxes.emplace(entity);
+
+	std::vector<float> widths = renderer->getCharacterWidths(text, DIALOGUE_TEXT_SCALE); // a list of the widths of each character in the string.
+	float line_height = renderer->get_line_height(); // height of a line of text. if the number of lines exceeds num_lines * line_height * scale
+	float max_line_width = size.x - (2.f * DIALOGUE_BOX_MARGINS);
+
+	assert(widths.size() == text.length() && "Text size isn't equal to the number of widths :(");
+
+	// calculate the total height of the text box and insert linebreaks
+	std::string formatted_text;
+	float curr_width = 0.f;
+	float total_height = line_height;
+	int last_space_idx = -1; // Index in formatted_text
+
+	for (size_t i = 0, w = 0; i < text.length(); ++i, ++w) {
+		char c = text[i];
+		float char_width = widths[w];
+
+		// If the current character is a newline, reset variables
+		if (c == '\n') {
+			formatted_text += c;
+			total_height += line_height * LINE_SPACING * 2;
+			curr_width = 0.f;
+			last_space_idx = -1;
+			continue;
+		}
+
+		// Check if adding the current character exceeds the maximum line width
+		if (curr_width + char_width > max_line_width) {
+			if (last_space_idx != -1) {
+				// Replace the space at last_space_idx with a newline
+				formatted_text[last_space_idx] = '\n';
+
+				// Calculate the width of the substring after the newline
+				curr_width = 0.f;
+				for (size_t k = last_space_idx + 1; k < formatted_text.length(); ++k) {
+					// Find the corresponding width index
+					size_t width_idx = k;
+					if (width_idx < widths.size()) {
+						curr_width += widths[width_idx];
+					}
+				}
+
+				total_height += line_height * LINE_SPACING * 2;
+				last_space_idx = -1;
+			}
+			else {
+				// No space found, insert a newline before the current character
+				formatted_text += '\n';
+				total_height += line_height * LINE_SPACING*2;
+				curr_width = 0.f;
+			}
+		}
+
+		// Add the current character to the formatted text
+		formatted_text += c;
+		curr_width += char_width;
+
+		// Update the last space index if the current character is a space
+		if (c == ' ') {
+			last_space_idx = formatted_text.length() - 1; // Current index in formatted_text
+		}
+	}
+
+
+	if (total_height > (size.y - 2.f * DIALOGUE_BOX_MARGINS)) {
+		std::cout << "Text box too small for text!" << std::endl;
+		printf("total height %f greater than than y-size %f", total_height, size.y - 2.f * DIALOGUE_BOX_MARGINS);
+		exit(1);
+	}
+
+	vec2 text_pos = { pos.x - size.x / 2.f + DIALOGUE_BOX_MARGINS, pos.y - (size.y / 2.f) + (line_height + DIALOGUE_BOX_MARGINS) };
+
+	textbox.textbox_sprite = createTexturedUIElement(renderer, pos, size, "textbox", TEXTURE_ASSET_ID::TEXT_BOX, scene_type);
+	textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+
+	return entity;
+}

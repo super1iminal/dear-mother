@@ -37,6 +37,17 @@ bool GameManager::init()
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, on_mouse_button);
 
+	// initialize SDL, MIX and music!
+	// Loading music and sounds with SDL
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		fprintf(stderr, "Failed to initialize SDL Audio");
+		exit(1);
+	}
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
+		fprintf(stderr, "Failed to open audio device");
+		exit(1);
+	}
+
 	// Initialize renderer
 	renderer.init(window);
 
@@ -48,8 +59,13 @@ bool GameManager::init()
 	help.init(&renderer, window);
 	pause.init(&renderer, window);
 	shop.init(&renderer, window);
+	dialogue.init(&renderer, window);
 	world.init(&renderer, window);
 	reload.init(&renderer, window);
+	
+	reset_dialogue_run_status();
+
+	menu.update_music(); // play main menu music (hardcoded)
 	return true;
 }
 
@@ -98,6 +114,11 @@ void GameManager::on_key(int key, int sc, int action, int mod) {
 		case SCENE_TYPE::TEST:
 		{
 			// Update the test screen
+			break;
+		}
+		case SCENE_TYPE::DIALOGUE:
+		{
+			dialogue.on_key(key, sc, action, mod);
 			break;
 		}
 		case SCENE_TYPE::SCENE_COUNT:
@@ -158,6 +179,11 @@ void GameManager::on_mouse_move(vec2 pos) {
 		// Update the test screen
 		break;
 	}
+	case SCENE_TYPE::DIALOGUE:
+	{
+
+		break;
+	}
 	case SCENE_TYPE::SCENE_COUNT:
 	{
 		// This should never happen
@@ -201,6 +227,10 @@ void GameManager::on_mouse_button(GLFWwindow* window, int button, int action, in
 		// Update the test screen
 		break;
 	}
+	case SCENE_TYPE::DIALOGUE:
+	{
+
+	}
 	case SCENE_TYPE::SCENE_COUNT:
 	{
 		// This should never happen
@@ -224,9 +254,10 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// this should change once saving has been implemented but i dont know how
 		// this is the only location where has_just_changed is used and can be removed safely
 		if (scene_manager.has_just_changed()) {
-			scene_manager.set_just_changed(false);
 			if (scene_manager.get_previous_scene() == SCENE_TYPE::MENU) {
 				world.restart_game();
+			} if (scene_manager.get_previous_scene() != SCENE_TYPE::DIALOGUE) {
+				world.update_music();
 			}
 		}
 		world.step(elapsed_ms);
@@ -241,6 +272,10 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::MENU:
 	{
 		// Update the menu screen
+		if (scene_manager.has_just_changed()) {
+			printf("updating menu music\n");
+			menu.update_music();
+		}
 		break;
 	}
 	case SCENE_TYPE::HELP:
@@ -251,6 +286,9 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::PAUSE:
 	{
 		// Update the pause screen
+		if (scene_manager.has_just_changed()) {
+			pause.update_music();
+		}
 		break;
 	}
 	case SCENE_TYPE::SHOP:
@@ -263,6 +301,18 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// Update the test screen
 		break;
 	}
+	case SCENE_TYPE::DIALOGUE:
+	{
+		if (scene_manager.has_just_changed()) {
+			if (!dialogue.load_dialogue()) {
+				scene_manager.set_scene(SCENE_TYPE::GAME);
+			}
+			else {
+				dialogue.continue_dialogue(); // show the first box
+			}
+		}
+		break;
+	}
 	case SCENE_TYPE::SCENE_COUNT:
 	{
 		// This should never happen
@@ -271,6 +321,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	}
 	renderer.draw(elapsed_ms);
 	cleanup(); // remove dead entities and entities we want to remove
+	scene_manager.set_just_changed(false);
 	return true;
 }
 

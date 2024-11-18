@@ -19,6 +19,7 @@ public:
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
 	void on_key(int key, int sc, int action, int mod);
+	void update_music();
 
 private:
 	RenderSystem* renderer;
@@ -27,6 +28,8 @@ private:
 	GLFWwindow* window;
 
 	vec2 cursor_position;
+
+	Mix_Music* pause_music;
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 };

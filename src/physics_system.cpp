@@ -15,7 +15,7 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	auto& motion_registry = registry.motions;
 	auto& world_object_registry = registry.worldObjects;
-	float lerpFactor = 0.1f;
+	float lerpFactor = 0.3f;
 
 	float step_seconds = elapsed_ms / 1000.f;
 

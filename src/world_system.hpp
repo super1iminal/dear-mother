@@ -17,6 +17,7 @@
 #include "physics_system.hpp"
 #include "ui_system.hpp"
 #include "scene_manager.hpp"
+#include "dialogue_system.hpp"
 
 
 // Container for all our entities and game logic. Individual rendering / update is
@@ -24,108 +25,118 @@
 class WorldSystem
 {
 public:
+	// ==================== BASIC FUNCTIONS ====================
 	WorldSystem();
-
-	// starts the game
-	void init(RenderSystem* renderer_arg, GLFWwindow* window);
-
 	// Releases all associated resources
 	~WorldSystem();
-
+	// starts the game
+	void init(RenderSystem* renderer_arg, GLFWwindow* window);
+	// restart level
+	void restart_game();
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
-	// update animations
-	void update_animations();
 
+	// ==================== HANDLING FUNCTIONS ====================
+	// ran once per step. public ones are called from game_manager.cpp
 	// Check for collisions
 	void handle_collisions();
-
 	// Check for deaths
 	void handle_deaths();
 
-	// check for interactions
-	void handle_interactions();
 
+	// ==================== UPDATE FUNCTIONS ====================
+	// ran once per step. public ones are called from game_manager.cpp
+	// update animations
+	void update_animations();
+	void update_music();
+
+	// ==================== CALLBACK FUNCTIONS ====================
 	// Input callback functions
 	void on_key(int key, int sc, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 
-	// restart level
-	void restart_game();
+
+
+private:
+	// ==================== INIT FUNCTIONS ====================
+	// upgrades
+	void initUpgrades();
+	// initialize HUD
+	void initGameUI();
 	
+
+	// ==================== MEMBER VARIABLES ====================
+	// Basics
+	// OpenGL window handle
+	GLFWwindow* window;
+	RenderSystem* renderer;
+
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-private:
-
-	// Shooting stuff
+	// Shooting vars
 	bool left_mouse_button = false;
-	bool first_shot = true;
-	void shoot(Entity& entity);
 
-	// Boss One Stuff
-	void boss_one_shoot(Entity& entity, WorldObject& entity_object);
+	// Boss one vars
 	Entity final_phase_text;
 	bool text_shown = false;
-	Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
-	void handle_boss_one_death(Entity& entity);
 
-	// Boss Two Stuff
-	void createBossRoomTwo(ivec2 coord);
-	void handle_boss_two();
+	// Audio
+	// music references
+	Mix_Chunk* melee_sound;
+	Mix_Chunk* player_shooting_sound;
+	Mix_Chunk* enemy_shooting_sound;
+	Mix_Chunk* player_projectile_damage_sound;
+	Mix_Music* post_combat_music;
+	Mix_Music* combat_music;
+	//Music control
+	bool change_music = true;
 
-	// Time management
-	std::chrono::steady_clock::time_point t;
-	std::chrono::steady_clock::time_point get_curr_time();
-	void set_last_shot_time(Entity& entity);
-	std::chrono::steady_clock::time_point get_last_shot_time(Entity& entity);
-
-	// animation updates
-	void updatePlayerAnimation();
-	void updateEnemyAnimation(Entity enemy);
-	void playEnemyAttack(Entity enemy);
-
-	// Item stuff
-	void update_player_modifier() const;
-	void handle_item_pickup(Entity item);
-
-	// OpenGL window handle
-	GLFWwindow* window;
-
-	// Number of fish eaten by the salmon, displayed in the window title
-	unsigned int points;
-
-	// Player health displayed on window
+	// Player state
+	Entity player;
+	// player health displayed on window
 	unsigned int player_health;
-
-	void increaseScrap(int amt);
-
-	// Game state
-	RenderSystem* renderer;
-	float current_speed;
 	uint level = 1;
 	uint scrap = 0;
-	Entity player;
-	Entity boss_two;
+
+	// Game state
+	float current_speed;
 	Entity floor;
+	ivec2 current_room;
 
 	// HUD
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
 	std::vector<Entity> items_ui;
+	
 
-	// upgrades
-	void initUpgrades();
+	// ==================== ACTION FUNCTIONS ====================
+	// functions that set/get/act things directly
+	void shoot(Entity& entity);
+	void increaseScrap(int amt);
+	// Boss One Stuff
+	void boss_one_shoot(Entity& entity, WorldObject& entity_object);
+	// room stuff
+	void change_rooms(ivec2 new_room);
+	void set_last_shot_time(Entity& entity);
+	// For selecting item texture
+	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
+	std::chrono::steady_clock::time_point get_curr_time();
+	// animation playing
+	void playEnemyAttack(Entity enemy);
 
-	// initialize HUD
-	void initGameUI();
 
-	// update HUD
-	void updateGameUI();
+	// ==================== HANDLING FUNCTIONS ====================
+	// ran once per step. private ones are called from inside world_system.cpp
+	void handle_boss_one_death(Entity& entity);
+	void handle_boss_two();
+	void handle_item_pickup(Entity item);
+	// check for interactions
+	void handle_interactions();
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
@@ -136,30 +147,16 @@ private:
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
 
-	TEXTURE_ASSET_ID randomFloorItem();
 
-	// music references
-	Mix_Chunk* melee_sound;
-	Mix_Chunk* player_shooting_sound;
-	Mix_Chunk* enemy_shooting_sound;
-	Mix_Chunk* player_projectile_damage_sound;
-	Mix_Music* post_combat_music;
-	Mix_Music* combat_music;
+	// ==================== UPDATE FUNCTIONS ====================
+	// ran once per step. private ones are called from inside world_system.cpp
+	// update HUD
+	void updateGameUI();
 
-	//Music control
-	bool change_music = true;
-	bool enable_music = true;
+	// animation updates
+	void updatePlayerAnimation();
+	void updateEnemyAnimation(Entity enemy);
 
-	
-
-	// For selecting item texture
-	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
-	void generate_rooms();
-	void generate_map();
-	void change_rooms(ivec2 new_room);
-	void createEnemyRoom(ivec2 coord);
-	void createEmptyRoom(ivec2 coord);
-	void createBossRoomOne(ivec2 coord);
-	bool notSafe(vec2 position);
-	ivec2 current_room;
+	// Item stuff
+	void update_player_modifier() const;	
 };

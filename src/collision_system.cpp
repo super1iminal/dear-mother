@@ -212,110 +212,126 @@ bool CollisionSystem::collides(Entity entity1, Entity entity2)
  - this has a lot of repetition that I don't know how to get rid of
 */
 void CollisionSystem::add_collisions() {
-	// Start with Projectiles. Projectiles can only collide with one thing at a time.
-	for (Entity entity_projectile : registry.projectiles.entities)
-	{
-		WorldObject worldobject_projectile = registry.worldObjects.get(entity_projectile);
-		if (registry.projectiles.get(entity_projectile).friendly)
-		{
-			// Check for projectile-deadly collisions
-			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
-			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
-			for (Entity entity_enemy : registry.deadlys.entities)
-			{
-				if (!registry.activeComponents.has(entity_enemy)) { continue; } // O(1
-				WorldObject worldobject_enemy = registry.worldObjects.get(entity_enemy);
-				if (collides(entity_projectile, entity_enemy))
-				{
-					assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
-					registry.collisions.emplace(entity_projectile, entity_enemy, COLLISION_TYPE::PROJECTILE_DEADLY);
-					break; // we don't want any more collisions for this projectile
-				}
-			}
-		}
-		else {
-			// Check for projectile-player collisions
-			// Check if we've already processed this entity (don't technically need it here, but adding in case I rearrange)
-			if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
-			WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
-			if (collides(entity_projectile, registry.players.entities[0]))
-			{
-				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
-				registry.collisions.emplace(entity_projectile, registry.players.entities[0], COLLISION_TYPE::PROJECTILE_PLAYER);
-			}
-		}
-		// Check for projectile-blocker collisions
-		// Check if we've already processed this entity
-		if (registry.collisions.has(entity_projectile)) { continue; } // O(1)
-		for (Entity entity_blocker : registry.blockers.entities)
-		{
-			if (!registry.activeComponents.has(entity_blocker)) { continue; } 
-			WorldObject worldobject_blocker = registry.worldObjects.get(entity_blocker);
-			if (collides(entity_projectile, entity_blocker))
-			{
-				assert(registry.collisions.has(entity_projectile) == false && "Projectile already collided with something");
-				registry.collisions.emplace(entity_projectile, entity_blocker, COLLISION_TYPE::PROJECTILE_BLOCKER);
-				break; // we don't want any more collisions for this projectile
-			}
-		}
+    const auto& entities = registry.gameSceneActives.entities;
+    size_t entityCount = entities.size();
 
-	}
+    for (size_t i = 0; i < entityCount; ++i) {
+        Entity entity_i = entities[i];
+        if (!registry.activeComponents.has(entity_i)) { continue; } // Skip inactive entities
+        if (!registry.worldObjects.has(entity_i)) { continue; } // skip entities with no worldobjects
 
-	// next, check player/deadly-blocker collisions
-	for (Entity entity_blocker : registry.blockers.entities) {
-		WorldObject worldobject_blocker = registry.worldObjects.get(entity_blocker);
-		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
-		if (collides(entity_blocker, registry.players.entities[0]))
-		{
-			// i emplace with duplicates because player can collide with multiple things.
-			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_blocker, COLLISION_TYPE::PLAYER_BLOCKER);
-			if (registry.collisions.has(registry.players.entities[0])) {
-			}
+        for (size_t j = i + 1; j < entityCount; ++j) {
+            Entity entity_j = entities[j];
+            if (!registry.activeComponents.has(entity_j)) { continue; } // Skip inactive entities
+            if (!registry.worldObjects.has(entity_j)) { continue; } // skip entities with no worldobjects
 
-		}
-		for (Entity entity_deadly : registry.deadlys.entities) {
-			WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
-			if (collides(entity_blocker, entity_deadly))
-			{
-				// i emplace with duplicates because deadly can collide with multiple things.
-				registry.collisions.emplace_with_duplicates(entity_deadly, entity_blocker, COLLISION_TYPE::DEADLY_BLOCKER);
-			}
-		}
-	}
+            // Avoid self-collisions
+            if (entity_i == entity_j) { continue; }
 
-	// next, check player-deadly collisions
-	for (Entity entity_deadly : registry.deadlys.entities)
-	{
-		WorldObject worldobject_deadly = registry.worldObjects.get(entity_deadly);
-		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
-		Deadly& deadly = registry.deadlys.get(entity_deadly);
-		if (collides(entity_deadly, registry.players.entities[0]))
-		{
-            if (!registry.bossOnes.has(entity_deadly))
-			    registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_deadly, COLLISION_TYPE::PLAYER_DEADLY);
-			deadly.attacking = true;
-		}
-	}
+            // Check for collision between entity_i and entity_j
+            if (collides(entity_i, entity_j)) {
 
-    for (Entity boss : registry.bossOnes.entities)
-    {
-        WorldObject worldobject_boss = registry.worldObjects.get(boss);
-        WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
-        Deadly& deadly = registry.deadlys.get(boss);
-        if (collides(boss, registry.players.entities[0]))
-        {
-            registry.collisions.emplace_with_duplicates(registry.players.entities[0], boss, COLLISION_TYPE::PLAYER_BOSS_ONE);
-            deadly.attacking = true;
+                // Flags to check component types
+                bool isProjectile_i = registry.projectiles.has(entity_i);
+                bool isProjectile_j = registry.projectiles.has(entity_j);
+                bool isPlayer_i = registry.players.has(entity_i);
+                bool isPlayer_j = registry.players.has(entity_j);
+                bool isDeadly_i = registry.deadlys.has(entity_i);
+                bool isDeadly_j = registry.deadlys.has(entity_j);
+                bool isBlocker_i = registry.blockers.has(entity_i);
+                bool isBlocker_j = registry.blockers.has(entity_j);
+                bool isDoor_i = registry.doors.has(entity_i);
+                bool isDoor_j = registry.doors.has(entity_j);
+                bool isBossOne_i = registry.bossOnes.has(entity_i);
+                bool isBossOne_j = registry.bossOnes.has(entity_j);
+
+                // Handle projectile collisions
+                if (isProjectile_i) {
+                    Projectile& projectile = registry.projectiles.get(entity_i);
+                    if (projectile.friendly) {
+                        if (isDeadly_j) {
+                            registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PROJECTILE_DEADLY);
+                        }
+                        else if (isBlocker_j) {
+                            registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PROJECTILE_BLOCKER);
+                        }
+                    }
+                    else {
+                        if (isPlayer_j) {
+                            registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PROJECTILE_PLAYER);
+                        }
+                        else if (isBlocker_j) {
+                            registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PROJECTILE_BLOCKER);
+                        }
+                    }
+                }
+
+                if (isProjectile_j) {
+                    Projectile& projectile = registry.projectiles.get(entity_j);
+                    if (projectile.friendly) {
+                        if (isDeadly_i) {
+                            registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PROJECTILE_DEADLY);
+                        }
+                        else if (isBlocker_i) {
+                            registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PROJECTILE_BLOCKER);
+                        }
+                    }
+                    else {
+                        if (isPlayer_i) {
+                            registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PROJECTILE_PLAYER);
+                        }
+                        else if (isBlocker_i) {
+                            registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PROJECTILE_BLOCKER);
+                        }
+                    }
+                }
+
+                // Handle player-deadly and player-boss collisions
+                if (isPlayer_i && isDeadly_j) {
+                    Deadly& deadly = registry.deadlys.get(entity_j);
+                    deadly.attacking = true;
+                    if (isBossOne_j) {
+                        registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PLAYER_BOSS_ONE);
+                    }
+                    else {
+                        registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PLAYER_DEADLY);
+                    }
+                }
+                else if (isPlayer_j && isDeadly_i) {
+                    Deadly& deadly = registry.deadlys.get(entity_i);
+                    deadly.attacking = true;
+                    if (isBossOne_i) {
+                        registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_BOSS_ONE);
+                    }
+                    else {
+                        registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_DEADLY);
+                    }
+                }
+
+                // Handle player-blocker collisions
+                if (isPlayer_i && isBlocker_j) {
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PLAYER_BLOCKER);
+                }
+                else if (isPlayer_j && isBlocker_i) {
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_BLOCKER);
+                }
+
+                // Handle deadly-blocker collisions
+                if (isDeadly_i && isBlocker_j) {
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::DEADLY_BLOCKER);
+                }
+                else if (isDeadly_j && isBlocker_i) {
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::DEADLY_BLOCKER);
+                }
+
+                // Handle player-door collisions
+                if (isPlayer_i && isDoor_j) {
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::PLAYER_DOOR);
+                }
+                else if (isPlayer_j && isDoor_i) {
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_DOOR);
+                }
+            }
         }
     }
-
-	// next, check for player-door collisions
-	for (Entity entity_door : registry.doors.entities) {
-		WorldObject worldobject_door = registry.worldObjects.get(entity_door);
-		WorldObject worldobject_player = registry.worldObjects.get(registry.players.entities[0]);
-		if (collides(entity_door, registry.players.entities[0]))
-		{
-			registry.collisions.emplace_with_duplicates(registry.players.entities[0], entity_door, COLLISION_TYPE::PLAYER_DOOR);
-		}
-	}
 }

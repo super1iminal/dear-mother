@@ -49,6 +49,18 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	);
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::PAUSE);
+
+	// pause music
+	pause_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 01 Demons from the Dark-compressed.wav").c_str());
+	if (pause_music == nullptr) {
+		fprintf(stderr, "Failed to load pause music. Error: %s\n", Mix_GetError());
+		exit(1);
+	}
+}
+
+void PauseSystem::update_music() {
+	Mix_VolumeMusic(8);
+	Mix_FadeInMusic(pause_music, -1, 2000);
 }
 
 void PauseSystem::on_key(int key, int sc, int action, int mod) {

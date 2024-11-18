@@ -24,7 +24,5 @@ private:
 
 	vec2 cursor_position;
 
-	SCENE_TYPE* scene;
-
 	bool is_mouse_within_button(WorldObject buttonObject);
 };

@@ -24,6 +24,7 @@
 bool RenderSystem::init(GLFWwindow* window_arg)
 {
 	this->window = window_arg;
+	lineHeight = 0.f;
 
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // hides the cursor
@@ -389,6 +390,10 @@ void RenderSystem::initFont(const std::string font_filename, unsigned int font_d
 				(char)c
 			};
 			m_ftCharacters.insert(std::pair<char, Character>(c, character));
+
+			if (character.Size.y > lineHeight) {
+				lineHeight = character.Size.y;
+			}
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
 		gl_has_errors();
