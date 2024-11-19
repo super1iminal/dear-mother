@@ -1094,10 +1094,10 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
-	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+	/*if (roomMap.find({coord.x - 1, coord.y}) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
-	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}*/
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
@@ -1174,14 +1174,14 @@ void generate_map() {
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
 	roomMap[{ 0, -3 }] = ROOM_TYPE::CHECKERBOARD;
-	roomMap[{-1, -3 }] = ROOM_TYPE::TUNNELS;
-	roomMap[{-1, -4 }] = ROOM_TYPE::BIG_X;
+	roomMap[{-1, -3 }] = ROOM_TYPE::BIG_X;
+	roomMap[{-1, -4 }] = ROOM_TYPE::TUNNELS;
 	roomMap[{-1, -5 }] = ROOM_TYPE::SCATTER;
 	roomMap[{-2, -3 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{-3, -3 }] = ROOM_TYPE::OLD_ROBOT_ROOM;
-	roomMap[{ 1,  1 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ 1,  2 }] = ROOM_TYPE::BIG_X;
-	roomMap[{ 2,  2 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 1,  1 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 1,  2 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 2,  2 }] = ROOM_TYPE::BIG_X;
 	roomMap[{ 2,  3 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 2,  5 }] = ROOM_TYPE::TUNNELS;
 	roomMap[{ 3, -1 }] = ROOM_TYPE::CHECKERBOARD;
@@ -1202,12 +1202,11 @@ void generate_map() {
 	roomMap[{ 6, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR TWO MAPS
-	//roomMap[{1, 1}] = ROOM_TYPE::SCARECROW_ROOM;
+	roomMap[{5, 6}] = ROOM_TYPE::SCARECROW_ROOM;
 
 	// BOSS TWO
 	// roomMap[{}] = ROOM_TYPE::BOSS_ROOM_TWO;
-	
-	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
+
 }
 
 void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& room, RenderSystem* renderer)
