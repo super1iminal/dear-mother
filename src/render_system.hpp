@@ -40,7 +40,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_FRIENDLY, mesh_path("bullet-friendly-mesh.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_ENEMY, mesh_path("bullet-enemy-mesh.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GUY, mesh_path("Guy.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -92,6 +93,8 @@ class RenderSystem {
 			textures_path("/anims/attack/enemy_robot_attack.png"),
 			textures_path("/anims/walk/enemy_robot_2_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack_2.png"),
+			textures_path("/anims/walk/heavy_enemy_walk.png"),
+			textures_path("/anims/attack/heavy_enemy_attack.png"),
 			textures_path("/anims/idle/final_boss_anim.png"),
 			textures_path("/anims/idle/boss_1-sheet.png"),
 			textures_path("floor_final_boss.png"),

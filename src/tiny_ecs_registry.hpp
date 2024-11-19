@@ -105,6 +105,7 @@ public:
 
 	// for active gamescene objects
 	FilteredComponentContainer<Active, GameScene> gameSceneActives;
+	FilteredComponentContainer<Active, Interactable> activeInteractables;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -118,7 +119,8 @@ public:
 		testSceneButtons(uiButtons, testSceneComponents),
 		activeDeadlys(deadlys, activeComponents),
 		activeShooters(shooters, activeComponents),
-		gameSceneActives(activeComponents, gameSceneComponents)
+		gameSceneActives(activeComponents, gameSceneComponents),
+		activeInteractables(activeComponents, interactables)
 	{
 		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
@@ -185,6 +187,7 @@ public:
 		registry_filtered.push_back(&activeDeadlys);
 		registry_filtered.push_back(&activeShooters);
 		registry_filtered.push_back(&gameSceneActives);
+		registry_filtered.push_back(&activeInteractables);
 
 		// denote sorted component containers
 		renderRequests.setSorted(true);

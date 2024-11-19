@@ -5,12 +5,12 @@
 #include "render_system.hpp"
 #include <random>
 // ==================== CONSTANTS ==================== 
-const float ENEMY_BB_WIDTH = 100.f;
-const float ENEMY_BB_HEIGHT = 130.f;
+const float ENEMY_BB_WIDTH = 65.f;
+const float ENEMY_BB_HEIGHT = 87.f;
 const float ENEMY_SPEED = 100.f;
 const float PLAYER_MAX_SPEED = 300.f;
-const float PLAYER_SIZE = 80.f;
-const int PLAYER_MAX_HEALTH = 3;
+const float PLAYER_SIZE = 60.f;
+const int PLAYER_MAX_HEALTH = 5;
 const int DEADLY_MAX_HEALTH = 5;
 const int PLAYER_BASE_INV_SIZE = 2;
 const float OLD_ROBOT_WIDTH = 296.f;
@@ -21,6 +21,9 @@ const float SCARECROW_HEIGHT = 107.2;
 
 const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
 const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
+
+const float HEAVY_HEALTH = 10;
+const float HEAVY_TYPE = 4;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
@@ -49,6 +52,7 @@ const float CENTER_Y = (234.5 + 605.5) / 2;
 
 // floor item stuff
 const float FLOOR_ITEM_SIZE = 75.f;
+const float FLOOR_ITEM_BUFFER = 10.f;
 
 // Item drop chance
 const float DROP_CHANCE = 15;
@@ -125,7 +129,9 @@ void createParticles(RenderSystem* renderer,
 // map stuff
 void createEmptyRoom(RenderSystem* renderer, ivec2 coord);
 
-void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);
+void createEnemyRoom(RenderSystem* renderer, ivec2 coord, TEXTURE_ASSET_ID type);
+void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE type);
+void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE type);
 
 void createBossRoomOne(RenderSystem* renderer, ivec2 coord);
 
@@ -142,3 +148,4 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 void buildItemSet();
 
 void createLoadedGame(RenderSystem* renderer);
+TEXTURE_ASSET_ID randomFloorItem();

@@ -212,7 +212,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.health_status = player_health;
 
 	float min_counter_ms = 3000.f;
-	// currently acts on inactive deathTimers. might want to change... but should be fine
+	// cplayer is the only possible entitiy that should have a death timer (currently). use lifetimes for anything else
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
@@ -885,7 +885,11 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
-
+	else if (deadly.type == 4) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
+	}
 	deadly.attacking = false;
 }
 
@@ -948,7 +952,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 			b.mother = false;
 		}
 	}
-	if (!text_shown && (boss_part.top_right_alive ^ boss_part.bot_left_alive ^ boss_part.bot_right_alive ^ boss_part.top_left_alive)) {
+	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
 		final_phase_text = create_self_destruct_text(renderer, current_room);
 		text_shown = true;
 	}
@@ -1146,7 +1150,7 @@ void WorldSystem::increaseScrap(int amt) {
 void WorldSystem::handle_interactions(void (WorldSystem::*func)(Entity)) {
 	printf("interactable handling triggered\n");
 	auto& interactablesRegistry = registry.interactables;
-	for (Entity interactableEntity : interactablesRegistry.entities) {
+	for (Entity interactableEntity : registry.activeInteractables.entities) {
 		Interactable& interactable = interactablesRegistry.get(interactableEntity);
 
 		float range = interactable.range;
@@ -1418,6 +1422,12 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
+	}
+	else if (deadly.type == 4)
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
 	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
