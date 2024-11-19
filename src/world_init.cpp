@@ -127,7 +127,8 @@ Entity createPlayer(
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::GUY);
+	registry.meshFlags.emplace(entity);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion value
@@ -140,7 +141,7 @@ Entity createPlayer(
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
-	worldobject.scale = vec2(mesh.original_size.x * PLAYER_SIZE, mesh.original_size.y * PLAYER_SIZE * 1.3);
+	worldobject.scale = vec2(mesh.original_size.x * 4.f * PLAYER_SIZE, mesh.original_size.y * 4.f * PLAYER_SIZE);
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
@@ -159,13 +160,22 @@ Entity createPlayer(
 	player_animation.current_frame = 0;
 	player_animation.time_since_last_frame = 0;
 
+	
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
 			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_ORDER::PLAYER });
-
+	
+	/* MESH
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::SALMON,
+			GEOMETRY_BUFFER_ID::GUY,
+			RENDER_ORDER::PLAYER });
+	*/
 	return entity;
 }
 
@@ -616,7 +626,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SALMON);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::BULLET_ENEMY);
 	registry.meshFlags.emplace(entity);
 	registry.meshPtrs.emplace(entity, &mesh);
 

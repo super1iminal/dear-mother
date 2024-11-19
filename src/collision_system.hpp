@@ -11,6 +11,7 @@ class CollisionSystem
 private:
 	bool collides(Entity entity1, Entity entity2);
 	bool meshCollides(Entity entity_mesh, Entity entity_bb);
+	bool meshesCollide(Entity entity1, Entity entity2);
 public:
 	void add_collisions();
 

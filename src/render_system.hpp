@@ -40,7 +40,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_FRIENDLY, mesh_path("bullet-friendly-mesh.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_ENEMY, mesh_path("bullet-enemy-mesh.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GUY, mesh_path("Guy.obj"))
 		  // specify meshes of other assets here
 	};
 
