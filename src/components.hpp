@@ -97,6 +97,7 @@ struct Player // TODO: why are these variables here im crying
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
 	bool boss_two_beat = false;
+	int scrap = 0;
 };
 
 struct Shooter

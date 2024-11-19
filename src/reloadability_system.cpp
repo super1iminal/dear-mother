@@ -36,7 +36,12 @@ void ReloadabilitySystem::saveGame() {
     Entity entity = registry.players.entities[0];
     id = to_string((int)entity);
     save[id];
-    save[id]["player"];
+    save[id]["player"] = {
+        {"combat_state", registry.players.get(entity).combat_state},
+        {"boss_one_beat", registry.players.get(entity).boss_one_beat},
+        {"boss_two_beat", registry.players.get(entity).boss_two_beat},
+        {"scrap", registry.players.get(entity).scrap}
+    };
     if (registry.worldObjects.has(entity)) {
         WorldObject& worldObject = registry.worldObjects.get(entity);
         save[id]["worldObject"] = {
@@ -234,6 +239,10 @@ void ReloadabilitySystem::loadGame() {
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
 
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
+            registry.players.components[0].combat_state = data["player"]["combat_state"];
+            registry.players.components[0].boss_one_beat = data["player"]["boss_one_beat"];
+            registry.players.components[0].boss_two_beat = data["player"]["boss_two_beat"];
+            registry.players.components[0].scrap = data["player"]["scrap"];
             registry.healthComponents.get(player).max_health = max_health;
             Inventory& inventory = registry.inventory.get(player);
 

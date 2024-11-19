@@ -455,8 +455,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 // ==================== PRIVATE ====================
 // ==================== INIT FUNCTIONS ====================
 void WorldSystem::initUpgrades() {
-
-	this->scrap = ShopSystem::getScrapLevel();
 	// get the inventory size
 	Inventory& player_inventory = registry.inventory.get(player);
 	Modifier& player_modifier = registry.modifiers.get(player);
@@ -541,7 +539,7 @@ void WorldSystem::initGameUI() {
 		vec2(360.f, 45.f),
 		vec2(8.f, 3.f),
 		"scrap_ui",
-		std::to_string(scrap),
+		std::to_string(registry.players.components[0].scrap),
 		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
@@ -558,13 +556,13 @@ void WorldSystem::initGameUI() {
 	// create item_ui entities
 	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
-	for (uint i = 0; i < player_inventory.items.size(); i++) {
+	for (auto item : player_inventory.items) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(i),
-			getItemTexture(player_inventory.items[i]),
+			"item_ui_" + std::to_string(item.first),
+			getItemTexture(player_inventory.items[item.first]),
 			SCENE_TYPE::GAME);
 	}
 
@@ -1136,14 +1134,13 @@ void WorldSystem::handle_item_drop(int item_key) {
 
 void WorldSystem::handle_scrapping(Entity item) {
 	ItemStat item_stat = registry.itemStats.get(item);
-	scrap += item_stat.scrap_amt;
-	ShopSystem::updateScrapLevel(scrap);
+	registry.players.components[0].scrap += item_stat.scrap_amt;
+	ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
 	remove_item(item);
 	updateGameUI();
 }
 void WorldSystem::increaseScrap(int amt) {
-	scrap += amt;
-	ShopSystem::updateScrapLevel(scrap);
+	registry.players.components[0].scrap += amt;
 	updateGameUI();
 }
 
@@ -1363,11 +1360,12 @@ void WorldSystem::updateGameUI() {
 	health_elt.value = std::to_string(registry.healthComponents.get(player).curr_health);
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
-	scrap_elt.value = std::to_string(scrap);
+	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
 
 	// re render the items
 	// TODO pull this into a helper method later
 	Inventory& player_inventory = registry.inventory.get(player);
+	cout << player_inventory.items.size() << endl;
 	for (auto item : player_inventory.items) {
 		UISystem::createTexturedUIElement(
 			renderer,
