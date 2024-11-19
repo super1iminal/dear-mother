@@ -61,7 +61,7 @@ void ReloadabilitySystem::saveGame() {
         save[id]["inventory"];
         for (auto itemPair : inventory.items) {
             auto item = itemPair.second;
-            save[id]["inventory"][itemPair.first].push_back({
+            save[id]["inventory"][to_string(itemPair.first)] ={
                 {"name", item.name},
                 {"type", item.type},
                 {"flat_damage_mod", item.flat_damage_mod},
@@ -73,7 +73,7 @@ void ReloadabilitySystem::saveGame() {
                 {"percent_range", item.percent_range},
                 {"accuracy", item.accuracy},
                 {"heal_size", item.heal_size}
-            });
+            };
         }
     }
 
@@ -237,11 +237,11 @@ void ReloadabilitySystem::loadGame() {
             registry.healthComponents.get(player).max_health = max_health;
             Inventory& inventory = registry.inventory.get(player);
 
-            for (auto& itemPair : data["inventory"]) {
+            for (auto& itemPair : data["inventory"].items()) {
                 auto entity = Entity();
                 ItemStat& itemstat = registry.itemStats.emplace(entity);
-                auto item = itemPair[1];
-                int idx = itemPair[0];
+                auto idx = stoi(itemPair.key());
+                auto item = itemPair.value();
                 itemstat = {
                     item["name"],
                     item["type"],
