@@ -878,7 +878,11 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
-
+	else if (deadly.type == 4) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
+	}
 	deadly.attacking = false;
 }
 
@@ -1369,6 +1373,12 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
+	}
+	else if (deadly.type == 4)
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
 	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
