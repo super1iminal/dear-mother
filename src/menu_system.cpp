@@ -26,7 +26,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f - 150, 275.f),
+		vec2(window_width_px / 2 - 1.f, 280.f),
 		vec2(162.f, 42.f),
 		[&]() {
 
@@ -38,7 +38,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	);
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 275.f),
+		vec2(window_width_px / 2 - 1.f, 325.f),
 		vec2(162.f, 42.f),
 		[&]() {
 			std::cout << "Loading game" << std::endl;
@@ -59,7 +59,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 3.f, 322.f),
+		vec2(window_width_px / 2 + 3.f, 365.f),
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
@@ -72,7 +72,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, 372.f),
+		vec2(window_width_px / 2, 408.f),
 		vec2(165.f, 44.f),
 		[&]() {
 			std::cout << "Upgrades button pressed!" << std::endl;
@@ -85,7 +85,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 7.f, 420.f),
+		vec2(window_width_px / 2 + 7.f, 450.f),
 		vec2(90.f, 44.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;

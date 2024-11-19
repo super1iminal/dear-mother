@@ -32,13 +32,13 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_game_button",
-		TEXTURE_ASSET_ID::RESUME_BUTTON,
+		TEXTURE_ASSET_ID::SAVE_BUTTON,
 		SCENE_TYPE::PAUSE
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 - 52.f),
+		vec2(window_width_px / 2, window_height_px / 2 - 42.f),
 		vec2(130.f, 28.f),
 		[&]() {
 			printf("return to game button presssed\n");

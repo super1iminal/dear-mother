@@ -83,6 +83,7 @@ class RenderSystem {
 			textures_path("/buttons/back_button.png"),
 			textures_path("/buttons/resume_button.png"),
 			textures_path("/buttons/main_menu_button.png"),
+			textures_path("/buttons/save_button.png"),
 			textures_path("/buttons/item_slot_button.png"),
 			textures_path("/buttons/damage_upgrade_button.png"),
 			textures_path("/buttons/health_upgrade_button.png"),
