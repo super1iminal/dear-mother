@@ -101,14 +101,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord);
 
 // items
-Entity createItem(RenderSystem* renderer, 
-	vec2 position, 
-	vec2 size, 
-	ITEM_TYPE spec_type, 
-	std::uniform_real_distribution<float> uniform_dist, 
-	std::default_random_engine& rng, ivec2 room_coord, 
-	ItemStat* loaded_item = nullptr
-);
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size,  std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type = ITEM_TYPE::RANDOM, ItemStat* loaded_item = nullptr);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

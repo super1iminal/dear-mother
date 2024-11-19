@@ -52,7 +52,7 @@ private:
 
     // check if a component has compareFunction, which is necessary for sorting
     // using SFINAE (Substitution Failure Is Not An Error)
-    template <typename Component>
+    template <typename T>
     class has_compareFunction
     {
     private:

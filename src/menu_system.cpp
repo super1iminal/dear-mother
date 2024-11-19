@@ -26,16 +26,36 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 275.f),
+		vec2(window_width_px / 2 - 1.f - 150, 275.f),
 		vec2(162.f, 42.f),
 		[&]() {
 
 			scene_manager.set_scene(SCENE_TYPE::GAME);
 		},
-		"start_button",
-		TEXTURE_ASSET_ID::START_BUTTON,
+		"run_button",
+		TEXTURE_ASSET_ID::RUN_BUTTON,
 		SCENE_TYPE::MENU
 	);
+	UISystem::createButton(
+		renderer,
+		vec2(window_width_px / 2 - 1.f, 275.f),
+		vec2(162.f, 42.f),
+		[&]() {
+			std::cout << "Loading game" << std::endl;
+		if (registry.gameLoadingHelper.size() > 0) {
+			registry.gameLoadingHelper.components[0].savedGame = true;
+		} else {
+			auto entity = Entity();
+			GameLoadingHelper& option = registry.gameLoadingHelper.emplace(entity);
+			option.savedGame = true;
+		}
+			scene_manager.set_scene(SCENE_TYPE::GAME);
+		},
+		"continue_button",
+		TEXTURE_ASSET_ID::CONTINUE_BUTTON,
+		SCENE_TYPE::MENU
+	);
+
 
 	UISystem::createButton(
 		renderer,
@@ -125,17 +145,17 @@ void MenuSystem::on_mouse_move(vec2 mouse_position) {
 
 //tempory for load game testing
 void MenuSystem::on_key(int key, int sc, int action, int mod) {
-	if (action == GLFW_RELEASE && key == GLFW_KEY_C) {
-		std::cout << "Loading game" << std::endl;
-		if (registry.gameLoadingHelper.size() > 0) {
-			registry.gameLoadingHelper.components[0].savedGame = true;
-		} else {
-			auto entity = Entity();
-			GameLoadingHelper& option = registry.gameLoadingHelper.emplace(entity);
-			option.savedGame = true;
-		}
-
-		scene_manager.set_scene(SCENE_TYPE::GAME);
-		ReloadabilitySystem::loadGame();
-	}
+	// if (action == GLFW_RELEASE && key == GLFW_KEY_C) {
+	// 	std::cout << "Loading game" << std::endl;
+	// 	if (registry.gameLoadingHelper.size() > 0) {
+	// 		registry.gameLoadingHelper.components[0].savedGame = true;
+	// 	} else {
+	// 		auto entity = Entity();
+	// 		GameLoadingHelper& option = registry.gameLoadingHelper.emplace(entity);
+	// 		option.savedGame = true;
+	// 	}
+	//
+	// 	scene_manager.set_scene(SCENE_TYPE::GAME);
+	// 	ReloadabilitySystem::loadGame();
+	// }
 }

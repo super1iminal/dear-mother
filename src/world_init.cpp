@@ -145,10 +145,11 @@ Entity createPlayer(
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
 	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 500.0f;
+	shooter.fire_rate = 50.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = PLAYER_MAX_HEALTH;
 	health.curr_health = curr_health;
+	health.curr_health = 20;
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
@@ -490,14 +491,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, 
-	vec2 position, 
-	vec2 size, 
-	ITEM_TYPE spec_type, 
-	std::uniform_real_distribution<float> uniform_dist, 
-	std::default_random_engine& rng, 
-	ivec2 room_coord, ItemStat* loaded_item
-) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type, ItemStat* loaded_item) {
 
 	// create an interactable entity
 	Entity entity = Entity();
@@ -975,14 +969,15 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_LEFT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_RIGHT, coord);
 
-	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_LEFT, coord);
-	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_RIGHT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_LEFT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_RIGHT, coord);
 
-	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_LEFT, coord);
-	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_RIGHT, coord);
-
-	createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
+		createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
+	}
 
 	// Decoration
 	createWall(renderer, { WALL_WIDTH + 300, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
@@ -1052,8 +1047,8 @@ void generate_map() {
 	//roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{0, -1}] = ROOM_TYPE::ENEMY_ROOM;
 	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
-	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
+	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_ONE;
+	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_TWO;
 	roomMap[{2, 1}] = ROOM_TYPE::EMPTY;
 	roomMap[{2, 3}] = ROOM_TYPE::EMPTY;
 	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
@@ -1154,60 +1149,4 @@ void buildItemSet() {
 	battery_pack.heal_size = 1;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
-}
-
-
-void createLoadedGame(RenderSystem *renderer) {
-	auto entity = registry.players.entities[0];
-	registry.gameSceneComponents.emplace(entity);
-		registry.activeComponents.emplace(entity);
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 500.0f;
-	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = PLAYER_MAX_HEALTH;
-	health.curr_health = PLAYER_MAX_HEALTH; // TODO: why doesn't this load the player's health?
-	registry.inventory.emplace(entity);
-	registry.modifiers.emplace(entity);
-		Animation& player_animation = registry.animations.emplace(entity);
-		player_animation.cols = 4;
-		player_animation.rows = 1;
-		player_animation.frames = 1;
-		player_animation.current_frame = 0;
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::PLAYER_WALK,
-			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_ORDER::PLAYER });
-
-	for (Entity entity : registry.deadlys.entities) {
-		registry.gameSceneComponents.emplace(entity);
-		registry.activeComponents.emplace(entity);
-		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-		registry.meshPtrs.emplace(entity, &mesh);
-		auto& deadly = registry.deadlys.emplace(entity);
-		deadly.t = std::chrono::high_resolution_clock::now();
-		deadly.t_patrol = std::chrono::high_resolution_clock::now();
-		auto& shooter = registry.shooters.emplace(entity);
-		shooter.fire_rate = std::numeric_limits<int>::max();
-		auto& health = registry.healthComponents.emplace(entity);
-		health.max_health = DEADLY_MAX_HEALTH;
-		health.curr_health = DEADLY_MAX_HEALTH;
-		Animation& enemy_animation = registry.animations.emplace(entity);
-		enemy_animation.cols = 4;
-		enemy_animation.rows = 1;
-		enemy_animation.frames = 1;
-		enemy_animation.current_frame = 0;
-		registry.renderRequests.insert(
-			entity,
-			{
-				TEXTURE_ASSET_ID::ENEMY,
-				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE,
-				RENDER_ORDER::ENEMY
-			});
-	}
 }

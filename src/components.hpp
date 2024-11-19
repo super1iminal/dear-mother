@@ -399,7 +399,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HELP_SCREEN = START_MENU + 1,
 	SHOP_SCREEN = HELP_SCREEN + 1,
 	START_BUTTON = SHOP_SCREEN + 1,
-	HELP_BUTTON = START_BUTTON + 1,
+	RUN_BUTTON = START_BUTTON + 1,
+	CONTINUE_BUTTON = RUN_BUTTON + 1,
+	HELP_BUTTON = CONTINUE_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
@@ -498,11 +500,13 @@ struct ItemStat {
 	float accuracy = 0;
 
 	int heal_size = 0;
+
+	int scrap_amt = 50;
 };
 
 
 struct Inventory {
-	std::vector<struct ItemStat> items;
+	std::map<int, struct ItemStat> items;
 	int size;
 };
 
