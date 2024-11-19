@@ -945,7 +945,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 			b.mother = false;
 		}
 	}
-	if (!text_shown && ((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0))) {
+	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
 		final_phase_text = create_self_destruct_text(renderer, current_room);
 		text_shown = true;
 	}
