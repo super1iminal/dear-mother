@@ -1198,6 +1198,9 @@ void generate_map() {
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	
+	// Test room
+	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
 	roomMap[{ 1,  0 }] = ROOM_TYPE::TWO_SIMPLE;
