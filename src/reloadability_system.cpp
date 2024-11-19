@@ -59,8 +59,9 @@ void ReloadabilitySystem::saveGame() {
     if (registry.inventory.has(entity)) {
         Inventory& inventory = registry.inventory.get(entity);
         save[id]["inventory"];
-        for (ItemStat item : inventory.items) {
-            save[id]["inventory"].push_back({
+        for (auto itemPair : inventory.items) {
+            auto item = itemPair.second;
+            save[id]["inventory"][itemPair.first].push_back({
                 {"name", item.name},
                 {"type", item.type},
                 {"flat_damage_mod", item.flat_damage_mod},
@@ -79,10 +80,14 @@ void ReloadabilitySystem::saveGame() {
     //save deadly
     for (Entity entity : registry.deadlys.entities) {
         id = to_string((int)entity);
+        Deadly& deadly = registry.deadlys.get(entity);
         save[id];
-
         save[id]["deadly"];
-
+        save[id]["deadly"] = {
+                {"type" , deadly.type},
+            {"immune", deadly.immune},
+            {"attacking", deadly.attacking}
+			};
         if (registry.worldObjects.has(entity)) {
             WorldObject& worldObject = registry.worldObjects.get(entity);
             save[id]["worldObject"] = {
@@ -112,11 +117,20 @@ void ReloadabilitySystem::saveGame() {
 			};
 		}
 
-		if (registry.deadlys.has(entity)) {
-			Deadly& deadly = registry.deadlys.get(entity);
-			save[id]["deadly"] = {
-                {"type" , deadly.type}
-			};
+		if (registry.bossOnes.has(entity)) {
+		    BossOne& boss = registry.bossOnes.get(entity);
+		    cout << "boss one" << endl;
+		    save[id]["bossOne"] = {
+		        {"BOSS_ONE_POS", boss.boss_pos},
+		        {"BOSS_ONE_STATE", boss.boss_state},
+		        {"top_left_alive", boss.top_left_alive},
+                {"top_right_alive", boss.top_right_alive},
+                {"bot_left_alive", boss.bot_left_alive},
+                {"bot_right_alive", boss.bot_right_alive},
+                {"shot_pattern", boss.shot_pattern},
+                {"mother", boss.mother},
+		        {"bullet_angle", boss.bullet_angle}
+		    };
 		}
     }
 
@@ -194,8 +208,8 @@ void ReloadabilitySystem::saveGame() {
 
 
 void ReloadabilitySystem::loadGame() {
-    for (Entity entity : registry.deadlys.entities) {
-        registry.remove_all_components_of(entity);
+    while (registry.deadlys.entities.size() > 0) {
+        registry.remove_all_components_of(registry.deadlys.entities[0]);
     }
     std::ifstream input_file(reload_path("test.json"));
     if (!input_file) {
@@ -222,9 +236,12 @@ void ReloadabilitySystem::loadGame() {
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
             registry.healthComponents.get(player).max_health = max_health;
             Inventory& inventory = registry.inventory.get(player);
-            for (auto& item : data["inventory"]) {
+
+            for (auto& itemPair : data["inventory"]) {
                 auto entity = Entity();
                 ItemStat& itemstat = registry.itemStats.emplace(entity);
+                auto item = itemPair[1];
+                int idx = itemPair[0];
                 itemstat = {
                     item["name"],
                     item["type"],
@@ -238,7 +255,7 @@ void ReloadabilitySystem::loadGame() {
                     item["accuracy"],
                     item["heal_size"]
                 };
-                inventory.items.push_back(itemstat);
+                inventory.items[idx] = itemstat;
             }
 
         }
@@ -249,9 +266,27 @@ void ReloadabilitySystem::loadGame() {
             int curr_health = data["health"]["curr_health"];
             int max_health = data["health"]["max_health"];
             int type = data["deadly"]["type"];
+            if (data.contains("bossOne")) {
+                BOSS_ONE_POS boss_pos = data["bossOne"]["BOSS_ONE_POS"];
+                Entity entity = createBossOne(renderer, pos, boss_pos, room_coord);
+                BossOne& boss = registry.bossOnes.get(entity);
+                boss.boss_state = data["bossOne"]["BOSS_ONE_STATE"];
+                boss.top_left_alive = data["bossOne"]["top_left_alive"];
+                boss.top_right_alive = data["bossOne"]["top_right_alive"];
+                boss.bot_left_alive = data["bossOne"]["bot_left_alive"];
+                boss.bot_right_alive = data["bossOne"]["bot_right_alive"];
+                boss.shot_pattern = data["bossOne"]["shot_pattern"];
+                boss.mother = data["bossOne"]["mother"];
+                boss.bullet_angle = data["bossOne"]["bullet_angle"];
+                Deadly& deadly = registry.deadlys.get(entity);
+                deadly.immune = data["deadly"]["immune"];
+                deadly.attacking = data["deadly"]["attacking"];
+            }
+            else {
+                Entity enemy = createEnemy(renderer, pos, speed, room_coord, curr_health, type);
+                registry.healthComponents.get(enemy).max_health = max_health;
+            }
 
-            Entity enemy = createEnemy(renderer, pos, speed, room_coord, curr_health, type);
-            registry.healthComponents.get(enemy).max_health = max_health;
         }
         else if (data.contains("floorItem")) {
             if (!data.contains("worldObject") || !data.contains("roomCoord")) {
@@ -289,7 +324,7 @@ void ReloadabilitySystem::loadGame() {
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
             std::uniform_real_distribution<float> uniform_dist;
             std::default_random_engine rng = std::default_random_engine(std::random_device()());
-            //createItem(renderer, pos, size, uniform_dist, rng, room_coord, &itemstat);
+            createItem(renderer, pos, size, uniform_dist, rng, room_coord,ITEM_TYPE::RANDOM, &itemstat);
         }
         else if (data.contains("map")) {
             auto entity = registry.map.entities[0];
@@ -302,4 +337,111 @@ void ReloadabilitySystem::loadGame() {
     }
 
     // close input file?
+}
+
+
+void ReloadabilitySystem::recordPlayerDeathRoom() {
+    Entity entity = registry.players.entities[0];
+    if (registry.deathTimers.has(entity)) {
+        return;
+    }
+    std::ifstream input_file(reload_path("death_record.json"));
+    if (!input_file) {
+        cout << "failed to open file";
+        return;
+    }
+    json save;
+    try {
+        input_file >> save;
+    }
+    catch (const json::parse_error& e) {
+        cout << "parse fail" << e.what() << std::endl;
+        save = json();
+    }
+    int idx = 0;
+    while (save.contains(to_string(idx))) {
+        idx++;
+    }
+
+
+    ivec2 room_coord = registry.roomCoords.get(entity).position;
+    string id = to_string((int)entity);
+    string index = to_string(idx);
+    save[index];
+    save[index][id]["player"];
+    save[index][id]["worldObject"] = {
+        {"position", {registry.worldObjects.get(entity).position.x, registry.worldObjects.get(entity).position.y}}
+    };
+
+    for (Entity entity : registry.itemStats.entities) {
+        if (!registry.roomCoords.has(entity)) {
+            continue;
+        }
+
+        if (registry.roomCoords.get(entity).position != room_coord) {
+            continue;
+        }
+
+        string id = to_string((int)entity);
+        save[index][id];
+        save[index][id]["itemStat"] = {
+            {"name", registry.itemStats.get(entity).name},
+            {"type", registry.itemStats.get(entity).type},
+            {"flat_damage_mod", registry.itemStats.get(entity).flat_damage_mod},
+            {"flat_speed_mod", registry.itemStats.get(entity).flat_speed_mod},
+            {"percent_speed_mod", registry.itemStats.get(entity).percent_speed_mod},
+            {"flat_fire_rate", registry.itemStats.get(entity).flat_fire_rate},
+            {"percent_fire_rate", registry.itemStats.get(entity).percent_fire_rate},
+            {"flat_range", registry.itemStats.get(entity).flat_range},
+            {"percent_range", registry.itemStats.get(entity).percent_range},
+            {"accuracy", registry.itemStats.get(entity).accuracy},
+            {"heal_size", registry.itemStats.get(entity).heal_size}
+        };
+        if (registry.worldObjects.has(entity)) {
+            WorldObject& worldObject = registry.worldObjects.get(entity);
+            save[index][id]["worldObject"] = {
+                {"position", {worldObject.position.x, worldObject.position.y}},
+                {"angle", worldObject.angle},
+                {"scale", {worldObject.scale.x, worldObject.scale.y}}
+            };
+        }
+
+    }
+
+
+    for (Entity entity : registry.floorItems.entities) {
+
+        if (!registry.roomCoords.has(entity)) {
+        continue;
+        }
+        if (registry.roomCoords.get(entity).position != room_coord) {
+            continue;
+        }
+        id = to_string((int)entity);
+        save[index][id];
+        save[index][id]["floorItem"] = {
+            {"type", registry.floorItems.get(entity).type}
+        };
+        if (registry.worldObjects.has(entity)) {
+            WorldObject& worldObject = registry.worldObjects.get(entity);
+            save[index][id]["worldObject"] = {
+                {"position", {worldObject.position.x, worldObject.position.y}},
+                {"angle", worldObject.angle},
+                {"scale", {worldObject.scale.x, worldObject.scale.y}}
+            };
+        }
+    }
+
+    std::ofstream output_file(reload_path("death_record.json"), std::ios::out | std::ios::trunc);
+    if (!output_file) {
+        cout << "failed to open file" << endl;
+    } else {
+        try {
+            output_file << save.dump(4); // Pretty-print with indentation
+            cout << "save successful" << endl;
+        } catch (const std::exception& e) {
+            cout << "save failed" << e.what() << endl;
+        }
+        output_file.close();
+    }
 }

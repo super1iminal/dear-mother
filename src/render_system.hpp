@@ -74,6 +74,9 @@ class RenderSystem {
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
 			textures_path("/buttons/start_button.png"),
+
+		textures_path("/buttons/run_button.png"),
+		textures_path("/buttons/continue_button.png"),
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
@@ -168,7 +171,7 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	std::vector<float> RenderSystem::getCharacterWidths(const std::string& text, const float scale) const;
+	std::vector<float> getCharacterWidths(const std::string& text, const float scale) const;
 
 	float get_line_height() { return lineHeight; };
 

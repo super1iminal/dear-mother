@@ -381,6 +381,7 @@ int ShopSystem::getScrapLevel() {
 			int value;
 			if (std::getline(ss, tag, ',') && ss >> value) {
 				if (tag == "scrap") {
+					std::cout << "Scrap: " << value << std::endl;
 					return value;
 				}
 			}
@@ -393,6 +394,51 @@ int ShopSystem::getScrapLevel() {
 		return -1;
 	}
 }
+
+
+void ShopSystem::updateScrapLevel(int updated_value) {
+	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
+	std::vector<std::pair<std::string, int>> data;
+	if (read_file.is_open()) {
+		std::string line;
+		while (std::getline(read_file, line)) {
+			std::stringstream ss(line);
+			std::string tag;
+			int value;
+			if (std::getline(ss, tag, ',') && ss >> value) {
+				if (tag == "scrap") {
+					data.emplace_back(tag, updated_value);
+					std::cout << updated_value << std::endl;
+				}
+				else {
+					data.emplace_back(tag, value);
+				}
+			}
+		}
+		read_file.close();
+	}
+	else {
+		std::cerr << "Unable to open file for reading.\n";
+	}
+
+	// now save the updated data to the csv file
+	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
+	if (write_file.is_open()) {
+		for (const auto& entry : data) {
+			write_file << entry.first << "," << entry.second << "\n";
+		}
+		write_file.close();
+		for (Entity entity : registry.uiElements.entities) {
+			if (registry.uiElements.get(entity).name == "current_scrap_display") {
+				registry.uiElements.get(entity).value = std::to_string(updated_value);
+			}
+		}
+	}
+	else {
+		std::cerr << "Unable to open file for writing.\n";
+	}
+}
+
 
 void ShopSystem::buyUpgrade() {
 	std::string upgrade = "";

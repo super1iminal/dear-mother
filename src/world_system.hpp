@@ -101,6 +101,7 @@ private:
 	unsigned int player_health;
 	uint level = 1;
 	uint scrap = 0;
+	vec2 death_coor = {-1,-1};
 
 	// Game state
 	float current_speed;
@@ -135,8 +136,10 @@ private:
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
 	void handle_item_pickup(Entity item);
+	void handle_scrapping(Entity item);
+	void handle_item_drop(int item_key);
 	// check for interactions
-	void handle_interactions();
+	void handle_interactions(void (WorldSystem::*func)(Entity));
 
 	// Collision handling helpers
 	void handlePlayerDeadly(Entity player, Entity deadly);
