@@ -211,7 +211,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.health_status = player_health;
 
 	float min_counter_ms = 3000.f;
-	// currently acts on inactive deathTimers. might want to change... but should be fine
+	// cplayer is the only possible entitiy that should have a death timer (currently). use lifetimes for anything else
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
@@ -945,7 +945,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 			b.mother = false;
 		}
 	}
-	if (!text_shown && (boss_part.top_right_alive ^ boss_part.bot_left_alive ^ boss_part.bot_right_alive ^ boss_part.top_left_alive)) {
+	if (!text_shown && ((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0))) {
 		final_phase_text = create_self_destruct_text(renderer, current_room);
 		text_shown = true;
 	}
@@ -1101,7 +1101,7 @@ void WorldSystem::handle_item_pickup(Entity item) {
 void WorldSystem::handle_interactions() {
 	printf("interactable handling triggered\n");
 	auto& interactablesRegistry = registry.interactables;
-	for (Entity interactableEntity : interactablesRegistry.entities) {
+	for (Entity interactableEntity : registry.activeInteractables.entities) {
 		Interactable& interactable = interactablesRegistry.get(interactableEntity);
 
 		float range = interactable.range;

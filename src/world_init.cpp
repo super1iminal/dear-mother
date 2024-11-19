@@ -1198,8 +1198,8 @@ void generate_map() {
 	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
-	// BOSS ONE
-	roomMap[{ 6, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
+	// BOSS ONE (6, -1)
+	roomMap[{ 0, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR TWO MAPS
 	roomMap[{5, 6}] = ROOM_TYPE::SCARECROW_ROOM;
