@@ -1209,7 +1209,7 @@ void generate_map() {
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
-	roomMap[{ 0, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
+	roomMap[{ -1, 0 }] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR TWO MAPS
 	roomMap[{5, 6}] = ROOM_TYPE::SCARECROW_ROOM;
