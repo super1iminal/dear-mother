@@ -194,6 +194,8 @@ enum class ROOM_TYPE {
 	BIG_X = CHECKERBOARD + 1,
 	TUNNELS = BIG_X + 1,
 	SCATTER = TUNNELS + 1,
+	TWO_HEAVY = SCATTER + 1,
+	ENEMY_SOCIAL = TWO_HEAVY + 1,
 	// ...
 };
 

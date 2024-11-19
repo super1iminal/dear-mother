@@ -229,7 +229,7 @@ Entity createEnemy(
 	worldobject.angle = 0.f;
 	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 	if (type == 4)
-		worldobject.scale = vec2({ -3.f / 2.f * ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+		worldobject.scale = vec2({ -4.5 / 2.f * ENEMY_BB_WIDTH, 1.5 * ENEMY_BB_HEIGHT });
 
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
@@ -931,6 +931,18 @@ void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE typ
 		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_WIDTH * 2.1, bottomY + ENEMY_BB_HEIGHT * 0.7), ENEMY_SPEED, coord);
 		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_WIDTH * 4.2, topY - FLOOR_ITEM_SIZE * 0.7), ENEMY_SPEED, coord);
 		break;
+	case ROOM_TYPE::ONE_HEAVY:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		break;
+	case ROOM_TYPE::TWO_HEAVY:
+		createEnemy(renderer, vec2(window_width_px / 3.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 3.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		break;
+	case ROOM_TYPE::ENEMY_SOCIAL:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 2.f - ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 3.f + ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
+		break;
 	}
 }
 
@@ -1054,6 +1066,15 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px - WALL_WIDTH - .5 * FLOOR_ITEM_SIZE, topY }, scale, 0.f, randomFloorItem(), coord);
 		createWall(renderer, { window_width_px - WALL_WIDTH - 5.5 * FLOOR_ITEM_SIZE, bottomY }, scale, 0.f, randomFloorItem(), coord);
 		break;
+	case ROOM_TYPE::TWO_HEAVY:
+		createWall(renderer, { window_width_px / 2.f, middleY }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::ENEMY_SOCIAL:
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		break;
 	}
 }
 
@@ -1104,10 +1125,10 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
-	/*if (roomMap.find({coord.x - 1, coord.y}) != roomMap.end()) {
+	if (roomMap.find({coord.x - 1, coord.y}) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
-	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+	/*if (roomMap.find({coord.x, coord.y + 1}) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}*/
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
@@ -1209,13 +1230,33 @@ void generate_map() {
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
-	roomMap[{ -1, 0 }] = ROOM_TYPE::BOSS_ROOM_ONE;
+	roomMap[{ 6, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
 
-	// FLOOR TWO MAPS
-	roomMap[{5, 6}] = ROOM_TYPE::SCARECROW_ROOM;
+	// FLOOR TWO MAP
+	roomMap[{7, -1}] = ROOM_TYPE::ONE_HEAVY;
+	roomMap[{7, -2}] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{7, -3}] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{6, -3}] = ROOM_TYPE::ENEMY_SOCIAL;
+	roomMap[{8, -3}] = ROOM_TYPE::SCATTER;
+	roomMap[{8, -4}] = ROOM_TYPE::TUNNELS;
+	roomMap[{8, -5}] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{8, -6}] = ROOM_TYPE::BIG_X;
+	roomMap[{9, -5}] = ROOM_TYPE::SCARECROW_ROOM;
+	roomMap[{8, -1}] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{8, 0}] = ROOM_TYPE::LAPS;
+	roomMap[{9, -1}] = ROOM_TYPE::TWO_HEAVY;
+	roomMap[{9, 0}] = ROOM_TYPE::TUNNELS;
+	roomMap[{10, 0}] = ROOM_TYPE::BIG_X;
+	roomMap[{10, 1}] = ROOM_TYPE::ONE_HEAVY;
+	roomMap[{10, 2}] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{9, 2}] = ROOM_TYPE::ENEMY_SOCIAL;
+	roomMap[{11, 2}] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{9, 3}] = ROOM_TYPE::TWO_HEAVY;
+	roomMap[{8, 3}] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{8, 4}] = ROOM_TYPE::MIDLINE_PROJ;
 
 	// BOSS TWO
-	// roomMap[{}] = ROOM_TYPE::BOSS_ROOM_TWO;
+	roomMap[{8, 5}] = ROOM_TYPE::BOSS_ROOM_TWO;
 
 }
 
