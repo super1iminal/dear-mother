@@ -75,11 +75,11 @@ void GameManager::on_key(int key, int sc, int action, int mod) {
 	//	glfwSetWindowShouldClose(window, GL_TRUE);
 	//}
 	// Debugging mode toggle
-	if (key == GLFW_KEY_X) {
-		debugging.in_debug_mode = (action != GLFW_RELEASE);
-	}
+	//if (key == GLFW_KEY_X) {
+	//	debugging.in_debug_mode = (action != GLFW_RELEASE);
+	//}
 	// List all components
-	else if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
 		registry.list_all_components();
 		printf("current scene: %d", scene_manager.get_scene());
 	}
