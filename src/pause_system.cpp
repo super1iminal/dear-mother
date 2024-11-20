@@ -1,5 +1,7 @@
 #include "pause_system.hpp"
 
+#include "reloadability_system.hpp"
+
 PauseSystem::PauseSystem()
 {
 
@@ -21,10 +23,22 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		"help_screen",
 		TEXTURE_ASSET_ID::START_MENU
 	);
+	UISystem::createButton(
+		renderer,
+		vec2(window_width_px / 2, window_height_px / 2 - 82.f),
+		vec2(130.f, 28.f),
+		[&]() {
+			ReloadabilitySystem::saveGame();
+			scene_manager.set_scene(SCENE_TYPE::MENU);
+		},
+		"return_to_game_button",
+		TEXTURE_ASSET_ID::SAVE_BUTTON,
+		SCENE_TYPE::PAUSE
+	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 - 52.f),
+		vec2(window_width_px / 2, window_height_px / 2 - 42.f),
 		vec2(130.f, 28.f),
 		[&]() {
 			printf("return to game button presssed\n");

@@ -18,7 +18,8 @@ public:
 
 	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void on_mouse_move(vec2 mouse_position);
-
+	static void updateScrapLevel(int updated_value);
+	static int getScrapLevel();
 private:
 	RenderSystem* renderer;
 
@@ -61,8 +62,6 @@ private:
 	void initButtons();
 
 	int getUpgradeLevel(UPGRADE_TYPE upgrade_type);
-
-	int getScrapLevel();
 
 	void updateUpgrade(UPGRADE_TYPE upgrade_type);
 

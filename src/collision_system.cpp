@@ -116,6 +116,72 @@ bool triangle_intersects_AABB(const vec2& v0, const vec2& v1, const vec2& v2, co
     return false;
 }
 
+bool CollisionSystem::meshesCollide(Entity entity1, Entity entity2) {
+    bool playerIsEntity1 = false;
+    if (registry.players.has(entity1))
+        playerIsEntity1 = true;
+    // Retrieve WorldObjects for both entities
+    WorldObject& object1 = registry.worldObjects.get(entity1);
+    WorldObject& object2 = registry.worldObjects.get(entity2);
+
+    // Retrieve the Mesh for the mesh entity
+    Mesh& mesh1 = *registry.meshPtrs.get(entity1);
+    Mesh& mesh2 = *registry.meshPtrs.get(entity2);
+
+    vec2 object1Scale = object1.scale;
+    vec2 object2Scale = object2.scale;
+    if (playerIsEntity1)
+        object1Scale = vec2(object1.scale.x, -object1.scale.y);
+    else
+        object2Scale = vec2(object2.scale.x, -object2.scale.y);
+
+    // Build the transformation matrix for each mesh entity
+    Transform transform1;
+    transform1.translate(object1.position);
+    transform1.rotate(object1.angle);
+    transform1.scale(object1Scale);
+
+    Transform transform2;
+    transform2.translate(object2.position);
+    transform2.rotate(object2.angle);
+    transform2.scale(object2Scale);
+
+    // For each triangle in mesh1
+    size_t num_triangles = mesh1.vertex_indices.size() / 3;
+    for (size_t i = 0; i < num_triangles; i++) {
+        uint16_t idx0 = mesh1.vertex_indices[i * 3];
+        uint16_t idx1 = mesh1.vertex_indices[i * 3 + 1];
+        uint16_t idx2 = mesh1.vertex_indices[i * 3 + 2];
+
+        vec3 v0 = vec3(mesh1.vertices[idx0].position.x, mesh1.vertices[idx0].position.y, 1.0f);
+        vec3 v1 = vec3(mesh1.vertices[idx1].position.x, mesh1.vertices[idx1].position.y, 1.0f);
+        vec3 v2 = vec3(mesh1.vertices[idx2].position.x, mesh1.vertices[idx2].position.y, 1.0f);
+
+        // Transform vertices into world space
+        vec3 tv0 = transform1.mat * v0;
+        vec3 tv1 = transform1.mat * v1;
+        vec3 tv2 = transform1.mat * v2;
+
+        // remove z-dimension
+        vec2 tv0_2D = vec2(tv0.x, tv0.y);
+        vec2 tv1_2D = vec2(tv1.x, tv1.y);
+        vec2 tv2_2D = vec2(tv2.x, tv2.y);
+
+        // Check if the triangle intersects each point in the other mesh
+        for (const auto& vertex : mesh2.vertices) {
+            vec3 p0 = vec3(vertex.position.x, vertex.position.y, 1.0f);
+            vec3 tp0 = transform2.mat * p0;
+            vec2 tp0_2D = vec2(tp0.x, tp0.y);
+
+            if (point_in_triangle(tp0_2D, tv0_2D, tv1_2D, tv2_2D)) {
+                return true; // Collision detected
+            }
+        }
+    }
+
+    return false;
+}
+
 bool CollisionSystem::meshCollides(Entity entity_mesh, Entity entity_bb) {
     // Retrieve WorldObjects for both entities
     WorldObject& object_mesh = registry.worldObjects.get(entity_mesh);
@@ -165,10 +231,6 @@ bool CollisionSystem::meshCollides(Entity entity_mesh, Entity entity_bb) {
     return false;
 }
 
-
-
-
-
 // This is a KINDA APPROXIMATE check that puts a retangle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box. 
 bool CollisionSystem::collides(Entity entity1, Entity entity2)
@@ -186,7 +248,10 @@ bool CollisionSystem::collides(Entity entity1, Entity entity2)
 		if (std::abs(dp.y) < (half_extent1.y + half_extent2.y))
 		{
 			// Collision detected
-			if (registry.meshFlags.has(entity1)) {
+            if (registry.meshFlags.has(entity1) && registry.meshFlags.has(entity2) && (registry.players.has(entity1) || registry.players.has(entity2))) {
+                return meshesCollide(entity1, entity2);
+            }
+            if (registry.meshFlags.has(entity1)) {
 				return meshCollides(entity1, entity2);
 			}
 			else if (registry.meshFlags.has(entity2)) {

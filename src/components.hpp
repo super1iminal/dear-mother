@@ -97,6 +97,7 @@ struct Player // TODO: why are these variables here im crying
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
 	bool boss_two_beat = false;
+	int scrap = 0;
 };
 
 struct Shooter
@@ -399,13 +400,16 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	HELP_SCREEN = START_MENU + 1,
 	SHOP_SCREEN = HELP_SCREEN + 1,
 	START_BUTTON = SHOP_SCREEN + 1,
-	HELP_BUTTON = START_BUTTON + 1,
+	RUN_BUTTON = START_BUTTON + 1,
+	CONTINUE_BUTTON = RUN_BUTTON + 1,
+	HELP_BUTTON = CONTINUE_BUTTON + 1,
 	SHOP_BUTTON = HELP_BUTTON + 1,
 	QUIT_BUTTON = SHOP_BUTTON + 1,
 	BACK_BUTTON = QUIT_BUTTON + 1,
 	RESUME_BUTTON = BACK_BUTTON + 1,
-	MENU_BUTTON = RESUME_BUTTON + 1, 
-	ITEM_SLOT_BUTTON = MENU_BUTTON + 1,
+	MENU_BUTTON = RESUME_BUTTON + 1,
+	SAVE_BUTTON = MENU_BUTTON + 1,
+	ITEM_SLOT_BUTTON = SAVE_BUTTON + 1,
 	DMG_UPGRADE_BUTTON = ITEM_SLOT_BUTTON + 1,
 	HEALTH_UPGRADE_BUTTON = DMG_UPGRADE_BUTTON + 1,
 	CRIT_UPGRADE_BUTTON = HEALTH_UPGRADE_BUTTON + 1,
@@ -415,7 +419,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,
 	ENEMY_2_ATTACK = ENEMY_2_WALK + 1,
-	MOTHER_FINAL_IDLE = ENEMY_2_ATTACK + 1,
+	HEAVY_WALK = ENEMY_2_ATTACK + 1,
+	HEAVY_ATTACK = HEAVY_WALK + 1,
+	MOTHER_FINAL_IDLE = HEAVY_ATTACK + 1,
 	BOSS_ONE_IDLE = MOTHER_FINAL_IDLE + 1,
 	BOSS_ONE_FLOOR = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_HORZ_WALL = BOSS_ONE_FLOOR + 1,
@@ -465,7 +471,8 @@ enum class GEOMETRY_BUFFER_ID {
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	GUY = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = GUY + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -498,11 +505,13 @@ struct ItemStat {
 	float accuracy = 0;
 
 	int heal_size = 0;
+
+	int scrap_amt = 50;
 };
 
 
 struct Inventory {
-	std::vector<struct ItemStat> items;
+	std::map<int, struct ItemStat> items;
 	int size;
 };
 

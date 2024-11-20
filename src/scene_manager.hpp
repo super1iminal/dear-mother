@@ -39,7 +39,15 @@ public:
 
 	void set_scene(SCENE_TYPE scene);
 	SCENE_TYPE get_scene() { return current_scene; };
-	bool has_just_changed() { return just_changed; }
+	bool has_just_changed_and_set_just_changed_to_false() { 
+		if (just_changed) {
+			just_changed = false;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 	void set_just_changed(bool changed) { just_changed = changed; }
 	SCENE_TYPE get_previous_scene() { return previous_scene; }
 	

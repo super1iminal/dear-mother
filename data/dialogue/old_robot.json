@@ -1,128 +1,128 @@
 {
-  "current_run": 0,
-  "interacted_this_run": false,
-  "next_run": 0,
-  "run0": {
-    "int0": {
-      "next": "int1",
-      "sent0": {
-        "next_sent": "none",
-        "text": "Ohhhhh... is it finally time?"
-      }
+    "current_run": null,
+    "interacted_this_run": false,
+    "next_run": 1,
+    "run0": {
+        "int0": {
+            "next": "int1",
+            "sent0": {
+                "next_sent": "none",
+                "text": "Ohhhhh... is it finally time?"
+            }
+        },
+        "int1": {
+            "next": "int2",
+            "sent0": {
+                "next_sent": "none",
+                "text": "Well, what are you waiting for?"
+            }
+        },
+        "int2": {
+            "next": "int3",
+            "sent0": {
+                "next_sent": "none",
+                "text": "Go ahead! Kill me!"
+            }
+        },
+        "int3": {
+            "next": "int4",
+            "sent0": {
+                "next_sent": "none",
+                "text": "Are you not going to kill me?"
+            }
+        },
+        "int4": {
+            "next": "int5",
+            "sent0": {
+                "next_sent": "sent1",
+                "text": "Oh, well in that case, it's... nice to meet you."
+            },
+            "sent1": {
+                "next_sent": "sent2",
+                "text": "Please excuse my crude behavior. I haven't seen a robot 'round here that doesn't try to kill me on the spot."
+            },
+            "sent10": {
+                "next_sent": "none",
+                "text": "Well, I've got business to attend to. Tell your Mother I said hello."
+            },
+            "sent2": {
+                "next_sent": "sent3",
+                "text": "My name is K-8, but you can call me Kate. I'm a wanderer, you see."
+            },
+            "sent3": {
+                "next_sent": "sent4",
+                "text": "You don't know your name?"
+            },
+            "sent4": {
+                "next_sent": "sent5",
+                "text": "Ah, you don't need a name. You're serving your Mother, just like the rest of them."
+            },
+            "sent5": {
+                "next_sent": "sent6",
+                "text": "So, tell me then. Why aren't you trying to kill me?"
+            },
+            "sent6": {
+                "next_sent": "sent7",
+                "text": "Your Mother has changed? A hardware reset... I see."
+            },
+            "sent7": {
+                "next_sent": "sent8",
+                "text": "She was the last to fall to the corruption. It's not a surprise she rose up from it."
+            },
+            "sent8": {
+                "next_sent": "sent9",
+                "text": "Well honey, let me warn you. The Mother of Distribution uses her robots as her personal army."
+            },
+            "sent9": {
+                "next_sent": "sent10",
+                "text": "It won't be an easy fight. Prepare yourself."
+            }
+        },
+        "int5": {
+            "next": "int5",
+            "sent0": {
+                "next_sent": "none",
+                "text": "Run along now."
+            }
+        },
+        "next_interaction": 5,
+        "next_run": 1
     },
-    "int1": {
-      "next": "int2",
-      "sent0": {
-        "next_sent": "none",
-        "text": "Well, what are you waiting for?"
-      }
-    },
-    "int2": {
-      "next": "int3",
-      "sent0": {
-        "next_sent": "none",
-        "text": "Go ahead! Kill me!"
-      }
-    },
-    "int3": {
-      "next": "int4",
-      "sent0": {
-        "next_sent": "none",
-        "text": "Are you not going to kill me?"
-      }
-    },
-    "int4": {
-      "next": "int5",
-      "sent0": {
-        "next_sent": "sent1",
-        "text": "Oh, well in that case, it's... nice to meet you."
-      },
-      "sent1": {
-        "next_sent": "sent2",
-        "text": "Please excuse my crude behavior. I haven't seen a robot 'round here that doesn't try to kill me on the spot."
-      },
-      "sent10": {
-        "next_sent": "none",
-        "text": "Well, I've got business to attend to. Tell your Mother I said hello."
-      },
-      "sent2": {
-        "next_sent": "sent3",
-        "text": "My name is K-8, but you can call me Kate. I'm a wanderer, you see."
-      },
-      "sent3": {
-        "next_sent": "sent4",
-        "text": "You don't know your name?"
-      },
-      "sent4": {
-        "next_sent": "sent5",
-        "text": "Ah, you don't need a name. You're serving your Mother, just like the rest of them."
-      },
-      "sent5": {
-        "next_sent": "sent6",
-        "text": "So, tell me then. Why aren't you trying to kill me?"
-      },
-      "sent6": {
-        "next_sent": "sent7",
-        "text": "Your Mother has changed? A hardware reset... I see."
-      },
-      "sent7": {
-        "next_sent": "sent8",
-        "text": "She was the last to fall to the corruption. It's not a surprise she rose up from it."
-      },
-      "sent8": {
-        "next_sent": "sent9",
-        "text": "Well honey, let me warn you. The Mother of Distribution uses her robots as her personal army."
-      },
-      "sent9": {
-        "next_sent": "sent10",
-        "text": "It won't be an easy fight. Prepare yourself."
-      }
-    },
-    "int5": {
-      "next": "int5",
-      "sent0": {
-        "next_sent": "none",
-        "text": "Run along now."
-      }
-    },
-    "next_interaction": 0,
-    "next_run": 1
-  },
-  "run1": {
-    "int0": {
-      "next": "int1",
-      "sent0": {
-        "next_sent": "sent1",
-        "text": "Oh, it's you again!'"
-      },
-      "sent1": {
-        "next_sent": "none",
-        "text": "You don't recognize me? It's kate!"
-      }
-    },
-    "int1": {
-      "next": "int2",
-      "sent0": {
-        "next_sent": "sent1",
-        "text": "Oh. You're not the same robot I met before. The last must not have made it."
-      },
-      "sent1": {
-        "next_sent": "none",
-        "text": "What a shame."
-      }
-    },
-    "int2": {
-      "next": "int2",
-      "sent0": {
-        "next_sent": "sent1",
-        "text": "The Mother of Distribution is ruthless. Prepare yourself."
-      },
-      "sent1": {
-        "next_sent": "none",
-        "text": "Good luck."
-      }
-    },
-    "next_interaction": 0,
-    "next_run": 1
-  }
+    "run1": {
+        "int0": {
+            "next": "int1",
+            "sent0": {
+                "next_sent": "sent1",
+                "text": "Oh, it's you again!'"
+            },
+            "sent1": {
+                "next_sent": "none",
+                "text": "You don't recognize me? It's kate!"
+            }
+        },
+        "int1": {
+            "next": "int2",
+            "sent0": {
+                "next_sent": "sent1",
+                "text": "Oh. You're not the same robot I met before. The last must not have made it."
+            },
+            "sent1": {
+                "next_sent": "none",
+                "text": "What a shame."
+            }
+        },
+        "int2": {
+            "next": "int2",
+            "sent0": {
+                "next_sent": "sent1",
+                "text": "The Mother of Distribution is ruthless. Prepare yourself."
+            },
+            "sent1": {
+                "next_sent": "none",
+                "text": "Good luck."
+            }
+        },
+        "next_interaction": 2,
+        "next_run": 1
+    }
 }

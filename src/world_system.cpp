@@ -11,6 +11,7 @@
 #include <ui_system.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <reloadability_system.hpp>
+#include "shop_system.hpp"
 
 #include <fstream>
 #include <iomanip>
@@ -216,7 +217,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.health_status = player_health;
 
 	float min_counter_ms = 3000.f;
-	// currently acts on inactive deathTimers. might want to change... but should be fine
+	// cplayer is the only possible entitiy that should have a death timer (currently). use lifetimes for anything else
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
@@ -323,16 +324,18 @@ void WorldSystem::handle_deaths() {
 		{
 			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
-				updateGameUI();
+				updateGameUI();//todo
 				if (!registry.deathTimers.has(entity)) {
+					ReloadabilitySystem::recordPlayerDeathRoom();
 					registry.deathTimers.emplace(entity);
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity)) {
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
+						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
 					handle_boss_one_death(entity);
@@ -418,7 +421,10 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 
 	// Interaction
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
-		handle_interactions();
+		handle_interactions(&WorldSystem::handle_item_pickup);
+	}
+	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+		handle_interactions(&WorldSystem::handle_scrapping);
 	}
 
 	// Adjust current speed with `<` and `>`
@@ -433,8 +439,13 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
-		ReloadabilitySystem::saveGame();
+	// if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
+	// 	ReloadabilitySystem::saveGame();
+	// }
+
+	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9 };
+	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end()) {
+		handle_item_drop(key - GLFW_KEY_1);
 	}
 }
 
@@ -533,7 +544,7 @@ void WorldSystem::initGameUI() {
 		vec2(360.f, 45.f),
 		vec2(8.f, 3.f),
 		"scrap_ui",
-		std::to_string(scrap),
+		std::to_string(registry.players.components[0].scrap),
 		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
@@ -550,13 +561,13 @@ void WorldSystem::initGameUI() {
 	// create item_ui entities
 	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
-	for (uint i = 0; i < player_inventory.items.size(); i++) {
+	for (auto item : player_inventory.items) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(i),
-			getItemTexture(player_inventory.items[i]),
+			"item_ui_" + std::to_string(item.first),
+			getItemTexture(player_inventory.items[item.first]),
 			SCENE_TYPE::GAME);
 	}
 
@@ -794,12 +805,6 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 	set_last_shot_time(entity);
 }
 
-void WorldSystem::increaseScrap(int amt)
-{
-	scrap += amt;
-	updateGameUI();
-}
-
 void WorldSystem::change_rooms(ivec2 new_room) {
 	auto roomMap = registry.map.components[0].roomMap;
 	registry.roomCoords.get(player).position = new_room;
@@ -885,7 +890,11 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
-
+	else if (deadly.type == 4) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_ATTACK;
+		enemy_animation.cols = 7;
+		enemy_animation.frames = 7;
+	}
 	deadly.attacking = false;
 }
 
@@ -948,7 +957,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 			b.mother = false;
 		}
 	}
-	if (!text_shown && (boss_part.top_right_alive ^ boss_part.bot_left_alive ^ boss_part.bot_right_alive ^ boss_part.top_left_alive)) {
+	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
 		final_phase_text = create_self_destruct_text(renderer, current_room);
 		text_shown = true;
 	}
@@ -963,8 +972,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		&& !boss_part.bot_left_alive && !boss_part.bot_right_alive
 		&& !boss_part.mother) {
 		// DROP ITEMS HERE FOR KILLING BOSS
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::HEALTH_PACK, uniform_dist, rng, current_room);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
@@ -1067,9 +1076,9 @@ void WorldSystem::handle_boss_two() {
 	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_FOUR && alive == 0 && !registry.players.get(player).boss_two_beat) {
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
 		registry.players.get(player).boss_two_beat = true;
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		update_music();
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::HEALTH_PACK, uniform_dist, rng, current_room);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), ITEM_TYPE::RANDOM, uniform_dist, rng, current_room);
 	}
 }
 
@@ -1079,7 +1088,11 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	ItemStat new_item = registry.itemStats.get(item);
 	if (!registry.lifetimes.has(item)) { // to avoid adding item more than once
 		if ((player_inventory.items.size() < player_inventory.size) && (new_item.type != ITEM_TYPE::HEALTH_PACK)) {
-			player_inventory.items.push_back(new_item);
+			int key = 0;
+			while (player_inventory.items.find(key) != player_inventory.items.end()) {
+				key++;
+			}
+			player_inventory.items[key] = new_item;
 			update_player_modifier();
 			remove_item(item);
 		}
@@ -1103,10 +1116,47 @@ void WorldSystem::handle_item_pickup(Entity item) {
 	}
 }
 
-void WorldSystem::handle_interactions() {
+void WorldSystem::handle_item_drop(int item_key) {
+	Inventory& player_inventory = registry.inventory.get(player);
+	//print all item keys and values
+	for (auto const& item : player_inventory.items) {
+		std::cout << "Item key: " << item.first << " pressed key: "<<item_key  << std::endl;
+	}
+
+	if (player_inventory.items.find(item_key) == player_inventory.items.end()) {
+		std::cout << "Item not found" << std::endl;
+		return;
+	}
+	ItemStat dropped_item = player_inventory.items[item_key];
+	// create a new item entity
+	Entity new_item = createItem(renderer, registry.worldObjects.get(player).position, vec2(75, 75), uniform_dist, rng, current_room, dropped_item.type, &dropped_item);
+	// remove the item from the player's inventory
+	player_inventory.items.erase(item_key);
+	for (Entity entity : registry.uiElements.entities) {
+		if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item_key)) {
+			registry.pendingRemoves.emplace(entity);
+		}
+	}
+	update_player_modifier();
+	updateGameUI();
+}
+
+void WorldSystem::handle_scrapping(Entity item) {
+	ItemStat item_stat = registry.itemStats.get(item);
+	registry.players.components[0].scrap += item_stat.scrap_amt;
+	ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
+	remove_item(item);
+	updateGameUI();
+}
+void WorldSystem::increaseScrap(int amt) {
+	registry.players.components[0].scrap += amt;
+	updateGameUI();
+}
+
+void WorldSystem::handle_interactions(void (WorldSystem::*func)(Entity)) {
 	printf("interactable handling triggered\n");
 	auto& interactablesRegistry = registry.interactables;
-	for (Entity interactableEntity : interactablesRegistry.entities) {
+	for (Entity interactableEntity : registry.activeInteractables.entities) {
 		Interactable& interactable = interactablesRegistry.get(interactableEntity);
 
 		float range = interactable.range;
@@ -1117,7 +1167,7 @@ void WorldSystem::handle_interactions() {
 		float dist = distance(playerWorldObject.position, interactableObject.position);
 		if (dist < range) {
 			if (registry.itemStats.has(interactableEntity)) {
-				handle_item_pickup(interactableEntity);
+				(this->*func)(interactableEntity);
 			}
 			else {
 				interactable.interaction(interactable.value, interactableEntity);
@@ -1319,18 +1369,19 @@ void WorldSystem::updateGameUI() {
 	health_elt.value = std::to_string(registry.healthComponents.get(player).curr_health);
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
-	scrap_elt.value = std::to_string(scrap);
+	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
 
 	// re render the items
 	// TODO pull this into a helper method later
 	Inventory& player_inventory = registry.inventory.get(player);
-	for (uint i = 0; i < player_inventory.items.size(); i++) {
+	cout << player_inventory.items.size() << endl;
+	for (auto item : player_inventory.items) {
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
 			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(i),
-			getItemTexture(player_inventory.items[i]),
+			"item_ui_" + std::to_string(item.first),
+			getItemTexture(player_inventory.items[item.first]),
 			SCENE_TYPE::GAME);
 	}
 }
@@ -1379,6 +1430,12 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
+	else if (deadly.type == 4)
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
 		// enemy is moving; play walking animation (4 frames)
@@ -1408,7 +1465,8 @@ void WorldSystem::update_player_modifier() const {
 
 	float new_accuracy = 0;
 
-	for (ItemStat& item : registry.inventory.get(player).items) {
+	for (auto object : registry.inventory.get(player).items) {
+		auto item = object.second;
 		new_damage_flat += item.flat_damage_mod;
 
 		new_speed_flat += item.flat_speed_mod;
