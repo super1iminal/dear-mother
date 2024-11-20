@@ -418,7 +418,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
 		handle_interactions(&WorldSystem::handle_item_pickup);
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_T) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
 		handle_interactions(&WorldSystem::handle_scrapping);
 	}
 
@@ -434,9 +434,9 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
-		ReloadabilitySystem::saveGame();
-	}
+	// if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
+	// 	ReloadabilitySystem::saveGame();
+	// }
 
 	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9 };
 	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end()) {

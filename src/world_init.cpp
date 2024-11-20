@@ -146,11 +146,10 @@ Entity createPlayer(
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
 	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 50.0f;
+	shooter.fire_rate = 500.0f;
 	auto& health = registry.healthComponents.emplace(entity);
 	health.max_health = PLAYER_MAX_HEALTH;
 	health.curr_health = curr_health;
-	health.curr_health = 20;
 
 	registry.inventory.emplace(entity);
 	registry.modifiers.emplace(entity);
