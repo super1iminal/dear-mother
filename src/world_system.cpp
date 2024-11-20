@@ -201,8 +201,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	else {
 		if (registry.players.get(player).combat_state != COMBAT_STATE::NO_COMBAT) {
-			registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
-			update_music();
+			if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_TWO_COMBAT) {
+				handle_boss_two();
+			}
+			else {
+				registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
+				update_music();
+			}
 		}
 	}
 
@@ -243,9 +248,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_TWO_COMBAT) {
+	/*if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_TWO_COMBAT) {
 		handle_boss_two();
-	}
+	}*/
 
 	// reduce window brightness if the salmon is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
@@ -807,10 +812,12 @@ void WorldSystem::change_rooms(ivec2 new_room) {
 	if (roomMap[{current_room.x, current_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE
 		&& !registry.players.get(player).boss_one_beat) {
 		registry.players.get(registry.players.entities[0]).combat_state = COMBAT_STATE::BOSS_ONE_COMBAT;
+		update_music();
 	}
 	else if (roomMap[{current_room.x, current_room.y}] == ROOM_TYPE::BOSS_ROOM_TWO
 		&& !registry.players.get(player).boss_two_beat) {
 		registry.players.get(registry.players.entities[0]).combat_state = COMBAT_STATE::BOSS_TWO_COMBAT;
+		update_music();
 	}
 	registry.activeComponents.clear();
 	for (Entity entity : registry.gameSceneComponents.entities) {
@@ -969,6 +976,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
+		update_music();
 		std::cout << "YAYYYY :3" << std::endl;
 	}
 }
@@ -1070,6 +1078,7 @@ void WorldSystem::handle_boss_two() {
 		registry.players.get(player).boss_two_beat = true;
 		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
 		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+		update_music();
 	}
 }
 
