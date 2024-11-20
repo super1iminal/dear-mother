@@ -40,7 +40,8 @@ class RenderSystem {
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SALMON, mesh_path("salmon.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_FRIENDLY, mesh_path("bullet-friendly-mesh.obj")),
 		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::BULLET_ENEMY, mesh_path("bullet-enemy-mesh.obj")),
-		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj"))
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::SQUARE, mesh_path("square.obj")),
+		  std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::GUY, mesh_path("Guy.obj"))
 		  // specify meshes of other assets here
 	};
 
@@ -73,12 +74,16 @@ class RenderSystem {
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
 			textures_path("/buttons/start_button.png"),
+
+		textures_path("/buttons/run_button.png"),
+		textures_path("/buttons/continue_button.png"),
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
 			textures_path("/buttons/back_button.png"),
 			textures_path("/buttons/resume_button.png"),
 			textures_path("/buttons/main_menu_button.png"),
+			textures_path("/buttons/save_button.png"),
 			textures_path("/buttons/item_slot_button.png"),
 			textures_path("/buttons/damage_upgrade_button.png"),
 			textures_path("/buttons/health_upgrade_button.png"),
@@ -89,6 +94,8 @@ class RenderSystem {
 			textures_path("/anims/attack/enemy_robot_attack.png"),
 			textures_path("/anims/walk/enemy_robot_2_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack_2.png"),
+			textures_path("/anims/walk/heavy_enemy_walk.png"),
+			textures_path("/anims/attack/heavy_enemy_attack.png"),
 			textures_path("/anims/idle/final_boss_anim.png"),
 			textures_path("/anims/idle/boss_1-sheet.png"),
 			textures_path("floor_final_boss.png"),
@@ -165,7 +172,7 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	std::vector<float> RenderSystem::getCharacterWidths(const std::string& text, const float scale) const;
+	std::vector<float> getCharacterWidths(const std::string& text, const float scale) const;
 
 	float get_line_height() { return lineHeight; };
 

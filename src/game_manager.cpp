@@ -253,7 +253,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// one if statement shouldn't affect performance too much
 		// this should change once saving has been implemented but i dont know how
 		// this is the only location where has_just_changed is used and can be removed safely
-		if (scene_manager.has_just_changed()) {
+		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			if (scene_manager.get_previous_scene() == SCENE_TYPE::MENU) {
 				world.restart_game();
 			} if (scene_manager.get_previous_scene() != SCENE_TYPE::DIALOGUE) {
@@ -272,7 +272,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::MENU:
 	{
 		// Update the menu screen
-		if (scene_manager.has_just_changed()) {
+		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			printf("updating menu music\n");
 			menu.update_music();
 		}
@@ -286,7 +286,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::PAUSE:
 	{
 		// Update the pause screen
-		if (scene_manager.has_just_changed()) {
+		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			pause.update_music();
 		}
 		break;
@@ -303,7 +303,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	}
 	case SCENE_TYPE::DIALOGUE:
 	{
-		if (scene_manager.has_just_changed()) {
+		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			if (!dialogue.load_dialogue()) {
 				scene_manager.set_scene(SCENE_TYPE::GAME);
 			}
@@ -321,7 +321,6 @@ bool GameManager::step(float elapsed_ms, double fps)
 	}
 	renderer.draw(elapsed_ms);
 	cleanup(); // remove dead entities and entities we want to remove
-	scene_manager.set_just_changed(false);
 	return true;
 }
 

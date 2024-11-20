@@ -127,7 +127,8 @@ Entity createPlayer(
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::GUY);
+	registry.meshFlags.emplace(entity);
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Setting initial motion value
@@ -140,7 +141,7 @@ Entity createPlayer(
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.angle = 0.f;
-	worldobject.scale = vec2(mesh.original_size.x * PLAYER_SIZE, mesh.original_size.y * PLAYER_SIZE * 1.3);
+	worldobject.scale = vec2(mesh.original_size.x * 4.f * PLAYER_SIZE, mesh.original_size.y * 4.f * PLAYER_SIZE);
 
 	// create an empty Player component for our character
 	registry.players.emplace(entity);
@@ -159,13 +160,22 @@ Entity createPlayer(
 	player_animation.current_frame = 0;
 	player_animation.time_since_last_frame = 0;
 
+	
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER_WALK,
 			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_ORDER::PLAYER });
-
+	
+	/* MESH
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::SALMON,
+			GEOMETRY_BUFFER_ID::GUY,
+			RENDER_ORDER::PLAYER });
+	*/
 	return entity;
 }
 
@@ -190,6 +200,8 @@ Entity createEnemy(
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.max_speed = speed;
+	if (type == 4)
+		motion.max_speed = ENEMY_SPEED * .6;
 	motion.velocity = { 0.f, 0.f };
 	motion.acceleration = { 0.f, 0.f };
 
@@ -208,7 +220,7 @@ Entity createEnemy(
 		shooter.fire_rate = std::numeric_limits<int>::max();
 	}
   	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = DEADLY_MAX_HEALTH;
+	health.max_health = curr_health;
 	health.curr_health = curr_health;
 
 	// setting position, scale, orientation
@@ -216,6 +228,9 @@ Entity createEnemy(
 	worldobject.position = position;
 	worldobject.angle = 0.f;
 	worldobject.scale = vec2({ -ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+	if (type == 4)
+		worldobject.scale = vec2({ -4.5 / 2.f * ENEMY_BB_WIDTH, 1.5 * ENEMY_BB_HEIGHT });
+
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
 	enemy_animation.cols = 4;
@@ -230,7 +245,15 @@ Entity createEnemy(
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE,
 				RENDER_ORDER::ENEMY });
-	} else {
+	} else if (registry.deadlys.get(entity).type == HEAVY_TYPE) {
+		registry.renderRequests.insert_sorted(
+			entity,
+			{ TEXTURE_ASSET_ID::HEAVY_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY });
+	}
+	else {
 		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_2_WALK,
@@ -490,14 +513,7 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
-Entity createItem(RenderSystem* renderer, 
-	vec2 position, 
-	vec2 size, 
-	ITEM_TYPE spec_type, 
-	std::uniform_real_distribution<float> uniform_dist, 
-	std::default_random_engine& rng, 
-	ivec2 room_coord, ItemStat* loaded_item
-) {
+Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type, ItemStat* loaded_item) {
 
 	// create an interactable entity
 	Entity entity = Entity();
@@ -603,7 +619,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 	registry.activeComponents.emplace(entity);
 
 	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SALMON);
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::BULLET_ENEMY);
 	registry.meshFlags.emplace(entity);
 	registry.meshPtrs.emplace(entity, &mesh);
 
@@ -816,21 +832,12 @@ bool notSafe(vec2 pos) {
 
 	return false;
 }
-void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+void createEnemyRoom(RenderSystem* renderer, ivec2 coord, ROOM_TYPE type) {
 	
 	// create a floor entity
 	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
 
 	//createInteractable(renderer, { window_width_px / 2, window_height_px - 200 }, { 75.f, 75.f }, bound_interactable_fn, 1, { 0, 0 });
-
-	//// top wall
-	//createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-	//// bottom wall
-	//createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-	//// left wall
-	//createWall(renderer, { 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
-	//// right wall
-	//createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + 60.f }, { WALL_WIDTH, window_height_px - 120.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
 
 	// left wall
 	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
@@ -840,66 +847,6 @@ void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_dist
 	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
-
-	if (!(coord.x == 0 && coord.y == 0)) { // no enemies in base room
-		float scalingFactor = sqrt(coord.x * coord.x + coord.y + coord.y); // gets harder as you move further from spawn
-		int numEnemies = ((int)rand() % 2) + 1;
-		if (scalingFactor > 4)
-			numEnemies += 1;
-		else if (scalingFactor > 2)
-			numEnemies += 2;
-
-		if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-			for (int i = 0; i < numEnemies; i++) { // create a variable number of enemies of random type
-				createEnemy(renderer, vec2((uniform_dist(rng) * (window_width_px - (2 * WALL_WIDTH))) + WALL_WIDTH, ((uniform_dist(rng) * (window_height_px - (2 * WALL_WIDTH) - BASE_UI_HEIGHT))) + WALL_WIDTH + BASE_UI_HEIGHT), ENEMY_SPEED, coord);
-			}
-		}
-
-	}
-	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		// create numFloorItems floor items (functionally a wall)
-	// need to be cautious of spawn location, not near doors (euclidean distance) or player/enemies (overlap) or on top of each other (overlap)
-		int numFloorItems = (int)rand() % 3;
-
-		float minX = WALL_WIDTH + FLOOR_ITEM_SIZE / 2;
-		float minY = WALL_WIDTH + BASE_UI_HEIGHT + FLOOR_ITEM_SIZE / 2;
-
-
-		float xRange = window_width_px - (WALL_WIDTH * 2) - FLOOR_ITEM_SIZE;
-		float yRange = window_height_px - (WALL_WIDTH * 2) - BASE_UI_HEIGHT - FLOOR_ITEM_SIZE;
-
-		float xPos;
-		float yPos;
-		while (numFloorItems > 0) {
-			do {
-				xPos = minX + rand() % (int)xRange;
-				yPos = minY + rand() % (int)yRange;
-			} while (notSafe({ xPos, yPos }));
-
-			TEXTURE_ASSET_ID floortexture;
-			int seed = rand() % 7;
-			switch (seed) {
-			case 0:
-				floortexture = TEXTURE_ASSET_ID::FURNACE;
-			case 1:
-				floortexture = TEXTURE_ASSET_ID::BROKEN_GENERATOR;
-			case 2:
-				floortexture = TEXTURE_ASSET_ID::DEAD_ROBOT;
-			case 3:
-				floortexture = TEXTURE_ASSET_ID::BROKEN_CONTROL_PANEL;
-			case 4:
-				floortexture = TEXTURE_ASSET_ID::FLOOR_HOLE;
-			case 5:
-				floortexture = TEXTURE_ASSET_ID::RUSTY_PIPES;
-			default:
-				floortexture = TEXTURE_ASSET_ID::SLAG_PIT;
-			}
-
-			createWall(renderer, { xPos, yPos }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, floortexture, coord);
-			numFloorItems--;
-		}
-	}
-
 
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
@@ -916,6 +863,211 @@ void createEnemyRoom(RenderSystem* renderer, ivec2 coord, std::uniform_real_dist
 			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
 			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 		}
+	}
+
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		// Generate enemies
+		enemyRoomGenerateEnemies(renderer, coord, type);
+		// Generate floor items
+		enemyRoomGenerateFloorItems(renderer, coord, type);
+	}
+}
+
+void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE type)
+{
+	// simplify enemy positioning
+	float middleY = ((window_height_px - BASE_UI_HEIGHT - (2.f * WALL_WIDTH)) / 2.f) + BASE_UI_HEIGHT + WALL_WIDTH;
+	float topY = window_height_px - WALL_WIDTH - ENEMY_BB_HEIGHT / 2.f;
+	float bottomY = BASE_UI_HEIGHT + WALL_WIDTH + ENEMY_BB_HEIGHT / 2.f;
+
+	// enemy generation by room type
+	switch (type) {
+	case ROOM_TYPE::TWO_SIMPLE:
+		createEnemy(renderer, vec2(window_width_px / 3.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 3.f, middleY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::MIDLINE_PROJ:
+		createEnemy(renderer, vec2(window_width_px / 3.f, middleY - (ENEMY_BB_HEIGHT + FLOOR_ITEM_SIZE) / 2.f), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 3.f, middleY + (ENEMY_BB_HEIGHT + FLOOR_ITEM_SIZE) / 2.f), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::CORNER_MIX:
+		createEnemy(renderer, vec2(WALL_WIDTH + ENEMY_BB_WIDTH / 2.f, topY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(WALL_WIDTH + ENEMY_BB_WIDTH / 2.f, bottomY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px - (WALL_WIDTH + ENEMY_BB_WIDTH / 2.f), topY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px - (WALL_WIDTH + ENEMY_BB_WIDTH / 2.f), bottomY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::LAPS:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY - ENEMY_BB_HEIGHT), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY + ENEMY_BB_HEIGHT), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_HEIGHT, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f + ENEMY_BB_HEIGHT, middleY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::CHECKERBOARD:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f - 3.5f * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f + 3.5f * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::BIG_X:
+		createEnemy(renderer, vec2(window_width_px / 2.f - 1.5 * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f + 1.5 * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY - 0.5 * (ENEMY_BB_HEIGHT + FLOOR_ITEM_SIZE)), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY + 0.5 * (ENEMY_BB_HEIGHT + FLOOR_ITEM_SIZE)), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::TUNNELS:
+		createEnemy(renderer, vec2(window_width_px * 23.f / 36.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 13.f / 36.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 9.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 7.f / 9.f, middleY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::SCATTER:
+		createEnemy(renderer, vec2(window_width_px / 2.f + ENEMY_BB_WIDTH * 3.7, topY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_WIDTH * 2.1, bottomY + ENEMY_BB_HEIGHT * 0.7), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_WIDTH * 4.2, topY - FLOOR_ITEM_SIZE * 0.7), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::ONE_HEAVY:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		break;
+	case ROOM_TYPE::TWO_HEAVY:
+		createEnemy(renderer, vec2(window_width_px / 3.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 3.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		break;
+	case ROOM_TYPE::ENEMY_SOCIAL:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 2.f - ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 3.f + ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
+		break;
+	}
+}
+
+TEXTURE_ASSET_ID randomFloorItem()
+{
+	int seed = rand() % 7;
+	switch (seed) {
+	case 0:
+		return TEXTURE_ASSET_ID::FURNACE;
+	case 1:
+		return TEXTURE_ASSET_ID::BROKEN_GENERATOR;
+	case 2:
+		return TEXTURE_ASSET_ID::DEAD_ROBOT;
+	case 3:
+		return TEXTURE_ASSET_ID::BROKEN_CONTROL_PANEL;
+	case 4:
+		return TEXTURE_ASSET_ID::FLOOR_HOLE;
+	case 5:
+		return TEXTURE_ASSET_ID::RUSTY_PIPES;
+	default:
+		return TEXTURE_ASSET_ID::SLAG_PIT;
+	}
+}
+
+void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE type)
+{
+	// SIMPLIFY positioning
+	const float middleY = ((window_height_px - BASE_UI_HEIGHT - (2.f * WALL_WIDTH)) / 2.f) + BASE_UI_HEIGHT + WALL_WIDTH;
+	const float topY = window_height_px - WALL_WIDTH - FLOOR_ITEM_SIZE / 2.f;
+	const float bottomY = BASE_UI_HEIGHT + WALL_WIDTH + FLOOR_ITEM_SIZE / 2.f;
+	const vec2 scale = { FLOOR_ITEM_SIZE , FLOOR_ITEM_SIZE };
+
+	switch (type) {
+	case ROOM_TYPE::MIDLINE_PROJ:
+		createWall(renderer, { window_width_px / 2.f, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - FLOOR_ITEM_SIZE - FLOOR_ITEM_BUFFER, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - (FLOOR_ITEM_SIZE * 2.f) - (FLOOR_ITEM_BUFFER * 2.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - (FLOOR_ITEM_SIZE * 3.f) - (FLOOR_ITEM_BUFFER * 3.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - (FLOOR_ITEM_SIZE * 4.f) - (FLOOR_ITEM_BUFFER * 4.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 2.f) + (FLOOR_ITEM_BUFFER * 2.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 3.f) + (FLOOR_ITEM_BUFFER * 3.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 4.f) + (FLOOR_ITEM_BUFFER * 4.f), middleY }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::CORNER_MIX:
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::LAPS:
+		createWall(renderer, { window_width_px / 4.f, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 4.f, middleY - FLOOR_ITEM_SIZE - FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px * 3.f / 4.f, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px * 3.f / 4.f, middleY - FLOOR_ITEM_SIZE - FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px * 3.f / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::CHECKERBOARD:
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { window_width_px / 2.f, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::BIG_X:
+		createWall(renderer, { window_width_px / 2.f, middleY, }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { window_width_px / 2.f - (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY - (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY + (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY - (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY + (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { window_width_px / 2.f - 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY - 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f - 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY + 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY - 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f + 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY + 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::TUNNELS:
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY - (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY - 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY - 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 10.f / 13.f + WALL_WIDTH / 2.f, bottomY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 10.f / 13.f + WALL_WIDTH / 2.f, bottomY + (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 10.f / 13.f + WALL_WIDTH / 2.f, bottomY + 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 10.f / 13.f + WALL_WIDTH / 2.f, bottomY + 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 12.f / 13.f + WALL_WIDTH / 2.f, topY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 12.f / 13.f + WALL_WIDTH / 2.f, topY - (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 12.f / 13.f + WALL_WIDTH / 2.f, topY - 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 12.f / 13.f + WALL_WIDTH / 2.f, topY - 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 2.f / 13.f + WALL_WIDTH / 3.f, bottomY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 2.f / 13.f + WALL_WIDTH / 3.f, bottomY + (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 2.f / 13.f + WALL_WIDTH / 3.f, bottomY + 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 2.f / 13.f + WALL_WIDTH / 3.f, bottomY + 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 4.f / 13.f + WALL_WIDTH / 3.f, topY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 4.f / 13.f + WALL_WIDTH / 3.f, topY - (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 4.f / 13.f + WALL_WIDTH / 3.f, topY - 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 4.f / 13.f + WALL_WIDTH / 3.f, topY - 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 6.f / 13.f + WALL_WIDTH / 3.f, bottomY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 6.f / 13.f + WALL_WIDTH / 3.f, bottomY + (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 6.f / 13.f + WALL_WIDTH / 3.f, bottomY + 2.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 6.f / 13.f + WALL_WIDTH / 3.f, bottomY + 3.f * (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::SCATTER:
+		createWall(renderer, { window_width_px / 2.f - 37.f, middleY + 61.f }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH * 4.f, topY - FLOOR_ITEM_SIZE * 2.7f }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - FLOOR_ITEM_SIZE * 3.8, middleY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - .5 * FLOOR_ITEM_SIZE, topY }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 5.5 * FLOOR_ITEM_SIZE, bottomY }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::TWO_HEAVY:
+		createWall(renderer, { window_width_px / 2.f, middleY }, scale, 0.f, randomFloorItem(), coord);
+		break;
+	case ROOM_TYPE::ENEMY_SOCIAL:
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		break;
 	}
 }
 
@@ -966,28 +1118,29 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
-	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+	if (roomMap.find({coord.x - 1, coord.y}) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
-	/*if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+	/*if (roomMap.find({coord.x, coord.y + 1}) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}*/
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
+	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+		createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_LEFT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_RIGHT, coord);
 
-	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_LEFT, coord);
-	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 75 + 50 }, BOSS_ONE_POS::TOP_RIGHT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_LEFT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_RIGHT, coord);
 
-	createBossOne(renderer, { WALL_WIDTH + 500, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_LEFT, coord);
-	createBossOne(renderer, { WALL_WIDTH + 700, WALL_WIDTH + BASE_UI_HEIGHT + 375 + 30 }, BOSS_ONE_POS::BOT_RIGHT, coord);
-
-	createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
+		createBossOne(renderer, { CENTER_X, 225 }, BOSS_ONE_POS::MOTHER, coord);
+	}
 
 	// Decoration
-	createWall(renderer, { WALL_WIDTH + 300, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
-	createWall(renderer, { WALL_WIDTH + 200, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
-	createWall(renderer, { WALL_WIDTH + 100, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH - 30, ENEMY_BB_HEIGHT - 30 }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+	createWall(renderer, { WALL_WIDTH + 300, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+	createWall(renderer, { WALL_WIDTH + 200, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
+	createWall(renderer, { WALL_WIDTH + 100, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT }, 0.f, TEXTURE_ASSET_ID::ENEMY_ROBOT_OFF, coord);
 
 	createWall(renderer, { WALL_WIDTH + 800, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, coord);
 	createWall(renderer, { WALL_WIDTH + 900, WALL_WIDTH + BASE_UI_HEIGHT - 20 }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, coord);
@@ -1038,30 +1191,96 @@ void generate_map() {
 	auto entity = Entity();
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
-	roomMap[{0, 0}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{1, 0}] = ROOM_TYPE::OLD_ROBOT_ROOM;
-	roomMap[{1, 1}] = ROOM_TYPE::SCARECROW_ROOM;
-	//roomMap[{1, 0}] = ROOM_TYPE::ENEMY_ROOM;
-	//roomMap[{0, 1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, 1}] = ROOM_TYPE::EMPTY;
-	//roomMap[{1, 1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{1, 2}] = ROOM_TYPE::EMPTY;
-	roomMap[{1, 3}] = ROOM_TYPE::EMPTY;
-	//roomMap[{0, 2}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, 2}] = ROOM_TYPE::EMPTY;
-	//roomMap[{0, 3}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{0, -1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{1, -1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{2, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
-	roomMap[{2, 2}] = ROOM_TYPE::BOSS_ROOM_TWO;
-	roomMap[{2, 1}] = ROOM_TYPE::EMPTY;
-	roomMap[{2, 3}] = ROOM_TYPE::EMPTY;
-	roomMap[{-1, -1}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{-1, -2}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{-1, 3}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{-2, 3}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{-2, 2}] = ROOM_TYPE::ENEMY_ROOM;
-	roomMap[{-2, 4}] = ROOM_TYPE::ENEMY_ROOM;
+	// Test room
+	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+
+	// FLOOR ONE
+	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
+	roomMap[{ 1,  0 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 0, -3 }] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{-1, -3 }] = ROOM_TYPE::BIG_X;
+	roomMap[{-1, -4 }] = ROOM_TYPE::TUNNELS;
+	roomMap[{-1, -5 }] = ROOM_TYPE::SCATTER;
+	roomMap[{-2, -3 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{-3, -3 }] = ROOM_TYPE::OLD_ROBOT_ROOM;
+	roomMap[{ 1,  1 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 1,  2 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 2,  2 }] = ROOM_TYPE::BIG_X;
+	roomMap[{ 2,  3 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 2,  5 }] = ROOM_TYPE::TUNNELS;
+	roomMap[{ 3, -1 }] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{ 3,  0 }] = ROOM_TYPE::SCATTER;
+	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
+	roomMap[{ 3,  3 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 3,  5 }] = ROOM_TYPE::TUNNELS;
+	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 4,  2 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4,  1 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
+
+	// BOSS ONE (6, -1)
+	roomMap[{ 6, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
+
+	// FLOOR TWO MAP
+	roomMap[{7, -1}] = ROOM_TYPE::ONE_HEAVY;
+	roomMap[{7, -2}] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{7, -3}] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{6, -3}] = ROOM_TYPE::ENEMY_SOCIAL;
+	roomMap[{8, -3}] = ROOM_TYPE::SCATTER;
+	roomMap[{8, -4}] = ROOM_TYPE::TUNNELS;
+	roomMap[{8, -5}] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{8, -6}] = ROOM_TYPE::BIG_X;
+	roomMap[{9, -5}] = ROOM_TYPE::SCARECROW_ROOM;
+	roomMap[{8, -1}] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{8, 0}] = ROOM_TYPE::LAPS;
+	roomMap[{9, -1}] = ROOM_TYPE::TWO_HEAVY;
+	roomMap[{9, 0}] = ROOM_TYPE::TUNNELS;
+	roomMap[{10, 0}] = ROOM_TYPE::BIG_X;
+	roomMap[{10, 1}] = ROOM_TYPE::ONE_HEAVY;
+	roomMap[{10, 2}] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{9, 2}] = ROOM_TYPE::ENEMY_SOCIAL;
+	roomMap[{11, 2}] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{9, 3}] = ROOM_TYPE::TWO_HEAVY;
+	roomMap[{8, 3}] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{8, 4}] = ROOM_TYPE::MIDLINE_PROJ;
+
+	// BOSS TWO
+	roomMap[{8, 5}] = ROOM_TYPE::BOSS_ROOM_TWO;
+
+}
+
+void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& room, RenderSystem* renderer)
+{
+	const ivec2 coord = { room.first.first, room.first.second };
+	ROOM_TYPE type = room.second;
+
+	switch (type) {
+	case ROOM_TYPE::EMPTY:
+		createEmptyRoom(renderer, coord);
+		break;
+	case ROOM_TYPE::BOSS_ROOM_ONE:
+		createBossRoomOne(renderer, coord);
+		break;
+	case ROOM_TYPE::BOSS_ROOM_TWO:
+		createBossRoomTwo(renderer, coord);
+		break;
+	case ROOM_TYPE::OLD_ROBOT_ROOM:
+		createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
+		break;
+	case ROOM_TYPE::SCARECROW_ROOM:
+		createNPCRoom(renderer, coord, NPC_TYPE::SCARECROW_NPC);
+		break;
+	default: // ALL ENEMY ROOMS
+		createEnemyRoom(renderer, coord, type);
+		break;
+	}
 }
 
 void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
@@ -1072,30 +1291,7 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 	// Iterating using structured bindings
 	auto roomMap = registry.map.components[0].roomMap;
 	for (const auto& room : roomMap) {
-		const ivec2 coord = { room.first.first, room.first.second };
-		printf("creating room at %d, %d\n", coord.x, coord.y);
-		ROOM_TYPE type = room.second;
-
-		switch (type) {
-		case ROOM_TYPE::ENEMY_ROOM:
-			createEnemyRoom(renderer, coord, uniform_dist, rng);
-			break;
-		case ROOM_TYPE::EMPTY:
-			createEmptyRoom(renderer, coord);
-			break;
-		case ROOM_TYPE::BOSS_ROOM_ONE:
-			createBossRoomOne(renderer, coord);
-			break;
-		case ROOM_TYPE::BOSS_ROOM_TWO:
-			createBossRoomTwo(renderer, coord);
-			break;
-		case ROOM_TYPE::OLD_ROBOT_ROOM:
-			createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
-			break;
-		case ROOM_TYPE::SCARECROW_ROOM:
-			createNPCRoom(renderer, coord, NPC_TYPE::SCARECROW_NPC);
-			break;
-		}
+		createRoomByType(room, renderer);
 	}
 
 	// need to only have the current entities as active.
@@ -1154,60 +1350,4 @@ void buildItemSet() {
 	battery_pack.heal_size = 1;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
-}
-
-
-void createLoadedGame(RenderSystem *renderer) {
-	auto entity = registry.players.entities[0];
-	registry.gameSceneComponents.emplace(entity);
-		registry.activeComponents.emplace(entity);
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 500.0f;
-	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = PLAYER_MAX_HEALTH;
-	health.curr_health = PLAYER_MAX_HEALTH; // TODO: why doesn't this load the player's health?
-	registry.inventory.emplace(entity);
-	registry.modifiers.emplace(entity);
-		Animation& player_animation = registry.animations.emplace(entity);
-		player_animation.cols = 4;
-		player_animation.rows = 1;
-		player_animation.frames = 1;
-		player_animation.current_frame = 0;
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::PLAYER_WALK,
-			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_ORDER::PLAYER });
-
-	for (Entity entity : registry.deadlys.entities) {
-		registry.gameSceneComponents.emplace(entity);
-		registry.activeComponents.emplace(entity);
-		Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-		registry.meshPtrs.emplace(entity, &mesh);
-		auto& deadly = registry.deadlys.emplace(entity);
-		deadly.t = std::chrono::high_resolution_clock::now();
-		deadly.t_patrol = std::chrono::high_resolution_clock::now();
-		auto& shooter = registry.shooters.emplace(entity);
-		shooter.fire_rate = std::numeric_limits<int>::max();
-		auto& health = registry.healthComponents.emplace(entity);
-		health.max_health = DEADLY_MAX_HEALTH;
-		health.curr_health = DEADLY_MAX_HEALTH;
-		Animation& enemy_animation = registry.animations.emplace(entity);
-		enemy_animation.cols = 4;
-		enemy_animation.rows = 1;
-		enemy_animation.frames = 1;
-		enemy_animation.current_frame = 0;
-		registry.renderRequests.insert(
-			entity,
-			{
-				TEXTURE_ASSET_ID::ENEMY,
-				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE,
-				RENDER_ORDER::ENEMY
-			});
-	}
 }
