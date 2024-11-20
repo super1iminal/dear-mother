@@ -288,6 +288,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// Update the pause screen
 		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			pause.update_music();
+			world.set_player_velocity({ 0.f, 0.f });
 		}
 		break;
 	}
@@ -304,6 +305,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::DIALOGUE:
 	{
 		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
+			world.set_player_velocity({ 0.f, 0.f });
 			if (!dialogue.load_dialogue()) {
 				scene_manager.set_scene(SCENE_TYPE::GAME);
 			}

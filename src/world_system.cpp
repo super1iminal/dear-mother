@@ -927,6 +927,13 @@ void remove_item(Entity item) {
 	item_lifetime.time_remaining_ms = 1000;
 }
 
+// used in game manager for pause and dialogue systems - bugfix TODO: make better
+void WorldSystem::set_player_velocity(vec2 velocity) {
+	registry.motions.get(registry.players.entities[0]).target_velocity = velocity;
+	registry.motions.get(registry.players.entities[0]).velocity = velocity;
+	updatePlayerAnimation();
+}
+
 
 
 // ==================== HANDLE FUNCTIONS ====================

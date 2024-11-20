@@ -36,6 +36,9 @@ public:
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
+	// ==================== ACTION FUNCTIONS ==================== 
+	void set_player_velocity(vec2 velocity);
+
 
 	// ==================== HANDLING FUNCTIONS ====================
 	// ran once per step. public ones are called from game_manager.cpp
