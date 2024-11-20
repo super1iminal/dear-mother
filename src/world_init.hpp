@@ -55,7 +55,7 @@ const float FLOOR_ITEM_SIZE = 75.f;
 const float FLOOR_ITEM_BUFFER = 10.f;
 
 // Item drop chance
-const float DROP_CHANCE = 15;
+const float DROP_CHANCE = 25;
 
 // ==================== CREATE FUNCTIONS ====================
 

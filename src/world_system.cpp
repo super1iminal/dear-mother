@@ -332,10 +332,10 @@ void WorldSystem::handle_deaths() {
 			}
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity)) {
-					// if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-					// 	createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
-					// }
+					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+					}
+						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
 					handle_boss_one_death(entity);
