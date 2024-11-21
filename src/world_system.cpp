@@ -1217,29 +1217,37 @@ void WorldSystem::handlePlayerBossOne(Entity player, Entity boss) {
 		if (!registry.invincibleTimers.has(entity) && !registry.deathTimers.has(player)) {
 			registry.invincibleTimers.emplace(entity);
 			if (registry.players.has(entity)) {
-				registry.healthComponents.get(entity).curr_health -= registry.deadlys.get(boss).melee_damge;
-
-				if (registry.bossOnes.has(boss)) {
-					if ((registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_L
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_R
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_L
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_R)
-						&& registry.bossOnes.get(boss).boss_pos != BOSS_ONE_POS::MOTHER) {
-						registry.healthComponents.get(boss).curr_health = 0;
-					}
+				Modifier& player_modifier = registry.modifiers.get(player);
+				if (uniform_dist(rng) * 100 > (100 - player_modifier.dodge_chance)) {
+					// successful dodge; do not remove health
+					playPlayerDodgeEffect(player);
+					// TODO: a special sound effect would be nice
 				}
+				else {
+					registry.healthComponents.get(entity).curr_health -= registry.deadlys.get(boss).melee_damge;
+
+					if (registry.bossOnes.has(boss)) {
+						if ((registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_L
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_R
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_L
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_R)
+							&& registry.bossOnes.get(boss).boss_pos != BOSS_ONE_POS::MOTHER) {
+							registry.healthComponents.get(boss).curr_health = 0;
+						}
+					}
+
+					createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+					Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
+				}
+				
 			}
 			else if (!registry.deadlys.get(entity).immune) {
 				registry.healthComponents.get(entity).curr_health -= 1;
 			}
-			updateGameUI();
-			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
-				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
-			}
 			else {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 			}
+			updateGameUI();
 
 		}
 	}
@@ -1353,13 +1361,20 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	if (!registry.invincibleTimers.has(player) && !registry.deathTimers.has(player)) {
-		registry.invincibleTimers.emplace(player);
-		registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-		playPlayerDamagedEffect(player);
-		createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+		Modifier& player_modifier = registry.modifiers.get(player);
+		if (uniform_dist(rng) * 100 > (100 - player_modifier.dodge_chance)) {
+			playPlayerDodgeEffect(player);
+			// TODO: a special sound effect would be nice
+		}
+		else {
+			registry.invincibleTimers.emplace(player);
+			registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+			playPlayerDamagedEffect(player);
+			createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
-		updateGameUI();
-		Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+			updateGameUI();
+			Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+		}
 	}
 
 	// Remove projectile
