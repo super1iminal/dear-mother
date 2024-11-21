@@ -57,8 +57,6 @@ private:
 	Entity dodge_upgrade_level;
 	Entity current_scrap_display;
 
-	int current_scrap;
-
 	void initButtons();
 
 	int getUpgradeLevel(UPGRADE_TYPE upgrade_type);

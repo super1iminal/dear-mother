@@ -127,8 +127,6 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		SCENE_TYPE::SHOP
 	);
 
-	current_scrap = getScrapLevel();
-
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
 
 	updateUpgrade(UPGRADE_TYPE::ITEM_SLOT);
@@ -395,7 +393,6 @@ int ShopSystem::getScrapLevel() {
 	}
 }
 
-
 void ShopSystem::updateScrapLevel(int updated_value) {
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	std::vector<std::pair<std::string, int>> data;
@@ -408,7 +405,6 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 			if (std::getline(ss, tag, ',') && ss >> value) {
 				if (tag == "scrap") {
 					data.emplace_back(tag, updated_value);
-					std::cout << updated_value << std::endl;
 				}
 				else {
 					data.emplace_back(tag, value);
@@ -438,7 +434,6 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 		std::cerr << "Unable to open file for writing.\n";
 	}
 }
-
 
 void ShopSystem::buyUpgrade() {
 	std::string upgrade = "";
@@ -477,7 +472,7 @@ void ShopSystem::buyUpgrade() {
 			std::string tag;
 			int value;
 			if (std::getline(ss, tag, ',') && ss >> value) {
-				if (tag == upgrade && (current_scrap - upgrade_cost) < 0) {
+				if (tag == upgrade && (getScrapLevel() - upgrade_cost) < 0) {
 					// we do not have enough scrap for this upgrade
 					// TODO make the scrap value flash red
 
@@ -489,8 +484,7 @@ void ShopSystem::buyUpgrade() {
 					purchased = true;
 				}
 				else if (tag == "scrap" && purchased) {
-					current_scrap = current_scrap - upgrade_cost;
-					data.emplace_back(tag, current_scrap);
+					data.emplace_back(tag, value - upgrade_cost);
 				}
 				else {
 					data.emplace_back(tag, value);
