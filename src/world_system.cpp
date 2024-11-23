@@ -1081,7 +1081,7 @@ void WorldSystem::handle_boss_two() {
 		bossTwo.curr_wave = BOSS_TWO_WAVE::WAVE_FOUR;
 	}
 	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_FOUR && alive == 0 && !registry.players.get(player).boss_two_beat) {
-		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
+		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // Don't move or delete this line. It is needed for the boss to function, in particular to return to the non-combat state.
 		registry.players.get(player).boss_two_beat = true;
 		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
 		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
