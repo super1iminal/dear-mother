@@ -26,8 +26,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 280.f),
-		vec2(162.f, 42.f),
+		vec2(window_width_px / 2, 428.f),
+		vec2(243.f, 39.f),
 		[&]() {
 
 			scene_manager.set_scene(SCENE_TYPE::GAME);
@@ -36,10 +36,11 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		TEXTURE_ASSET_ID::RUN_BUTTON,
 		SCENE_TYPE::MENU
 	);
+
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 325.f),
-		vec2(162.f, 42.f),
+		vec2(window_width_px / 2, 486.f),
+		vec2(243.f, 47.f),
 		[&]() {
 			std::cout << "Loading game" << std::endl;
 		if (registry.gameLoadingHelper.size() > 0) {
@@ -59,8 +60,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 3.f, 365.f),
-		vec2(90.f, 44.f),
+		vec2(window_width_px / 2, 543.f),
+		vec2(135.f, 66.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::HELP);
@@ -72,8 +73,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, 408.f),
-		vec2(165.f, 44.f),
+		vec2(window_width_px / 2, 606.f),
+		vec2(248.f, 66.f),
 		[&]() {
 			std::cout << "Upgrades button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::SHOP);
@@ -85,8 +86,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 7.f, 450.f),
-		vec2(90.f, 44.f),
+		vec2(window_width_px / 2, 666.f),
+		vec2(135.f, 66.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;
 			glfwSetWindowShouldClose(window, GLFW_TRUE);

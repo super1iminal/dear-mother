@@ -38,8 +38,8 @@ inline std::string dialogue_path(const std::string& name) {
 inline std::string npc_path(const std::string& name) {
 	return textures_path("npcs/") + std::string(name);
 };
-const int window_width_px = 1280;
-const int window_height_px = 720;
+const int window_width_px = 1920;
+const int window_height_px = 1080;
 bool on_screen(vec2 position);
 
 
@@ -70,7 +70,7 @@ struct Transform {
 
 // constants
 const float CROSSHAIR_SIZE = 75.f;
-const float BASE_UI_HEIGHT = 120.f;
+const float BASE_UI_HEIGHT = window_height_px / 6;
 const int MAX_INVENTORY_SIZE = 8;
 const int MAX_UPGRADE_LEVEL = 6;
 const int MIN_INVENTORY_SIZE = 2;
