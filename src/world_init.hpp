@@ -5,19 +5,19 @@
 #include "render_system.hpp"
 #include <random>
 // ==================== CONSTANTS ==================== 
-const float ENEMY_BB_WIDTH = 65.f;
-const float ENEMY_BB_HEIGHT = 87.f;
-const float ENEMY_SPEED = 100.f;
-const float PLAYER_MAX_SPEED = 300.f;
-const float PLAYER_SIZE = 60.f;
+const float ENEMY_BB_WIDTH = 98.f;
+const float ENEMY_BB_HEIGHT = 131.f;
+const float ENEMY_SPEED = 150.f;
+const float PLAYER_MAX_SPEED = 450.f;
+const float PLAYER_SIZE = 90.f;
 const int PLAYER_MAX_HEALTH = 5;
 const int DEADLY_MAX_HEALTH = 5;
 const int PLAYER_BASE_INV_SIZE = 2;
-const float OLD_ROBOT_WIDTH = 296.f;
-const float OLD_ROBOT_HEIGHT = 176.f;
+const float OLD_ROBOT_WIDTH = 444.f;
+const float OLD_ROBOT_HEIGHT = 264.f;
 
-const float SCARECROW_WIDTH = 131.2f;
-const float SCARECROW_HEIGHT = 107.2;
+const float SCARECROW_WIDTH = 197.f;
+const float SCARECROW_HEIGHT = 161.2;
 
 const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
 const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
@@ -29,11 +29,11 @@ const float HEAVY_TYPE = 4;
 const float MAX_NUM_PARTICLES = 4;
 const int   NUM_PARTICLES_OFFSET = 1;
 const float MAX_PARTICLE_LIFETIME = 1000.f;
-const float MAX_PARTICLE_SIZE = 20.f;
-const float PARTICLE_SIZE_OFFSET = 10.f;
-const float MAX_PARTICLE_SPEED = 1500.f;
-const float PARTICLE_SPEED_OFFSET = 500.0f;
-const float MAX_PARTICLE_ACCELERATION = -50.f; // unused for now
+const float MAX_PARTICLE_SIZE = 35.f;
+const float PARTICLE_SIZE_OFFSET = 15.f;
+const float MAX_PARTICLE_SPEED = 2250.f;
+const float PARTICLE_SPEED_OFFSET = 750.0f;
+const float MAX_PARTICLE_ACCELERATION = -75.f; // unused for now
 const float MAX_PARTICLE_MASS = 10.f; // in kg
 const float PARTICLE_DRAG_COEF = 0.47f; // drag coefficient for particles. intermediate reynolds number
 const float VELOCITY_THRESHOLD = 0.1f; // if a particle is slower than this, it will be removed, sort of. calculated and set as lifetime
@@ -42,17 +42,20 @@ const float VELOCITY_THRESHOLD = 0.1f; // if a particle is slower than this, it 
 const int PROJECTILE_LIFESPAN = 2000; // in milliseconds
 
 // wall stuff
-const float WALL_WIDTH = 60.f;
+const float WALL_WIDTH = 90.f;
 
 // center x pos
-const float CENTER_X = (102.5 + 1177.5) / 2;
+const float CENTER_X = window_width_px / 2;
 
 // center y pos
-const float CENTER_Y = (234.5 + 605.5) / 2;
+const float CENTER_Y = window_height_px - (window_height_px - BASE_UI_HEIGHT) / 2;
+
+// item stuff
+const float ITEM_SIZE = 113.f;
 
 // floor item stuff
-const float FLOOR_ITEM_SIZE = 75.f;
-const float FLOOR_ITEM_BUFFER = 10.f;
+const float FLOOR_ITEM_SIZE = 113.f;
+const float FLOOR_ITEM_BUFFER = 23.f;
 
 // Item drop chance
 const float DROP_CHANCE = 25;

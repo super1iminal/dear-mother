@@ -29,8 +29,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	description_line_one = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 190.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 285.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_1",
 		"Add another item slot, ",
 		vec3(0.35, 0.76, 0.32),
@@ -39,28 +39,28 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	description_line_two = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 220.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 330.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_2",
-		"so that you can hold more",
+		"so that you can hold",
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	description_line_three = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 250.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 375.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_3",
-		"items during a run.",
+		"more items during a run.",
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	item_slot_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 292.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 438.f),
+		vec2(60.f, 3.f),
 		"item_slot_level",
 		std::to_string(getUpgradeLevel(UPGRADE_TYPE::ITEM_SLOT)),
 		vec3(0.35, 0.76, 0.32),
@@ -69,8 +69,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	dmg_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 326.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 489.f),
+		vec2(60.f, 3.f),
 		"dmg_upgrade_level",
 		std::to_string(getUpgradeLevel(UPGRADE_TYPE::DMG_UPGRADE)),
 		vec3(0.35, 0.76, 0.32),
@@ -79,8 +79,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	health_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 364.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 546.f),
+		vec2(60.f, 3.f),
 		"health_upgrade_level",
 		std::to_string(getUpgradeLevel(UPGRADE_TYPE::HEALTH_UPGRADE)),
 		vec3(0.35, 0.76, 0.32),
@@ -89,8 +89,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	crit_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 404.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 606.f),
+		vec2(60.f, 3.f),
 		"crit_upgrade_level",
 		std::to_string(getUpgradeLevel(UPGRADE_TYPE::CRIT_UPGRADE)),
 		vec3(0.35, 0.76, 0.32),
@@ -99,8 +99,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	dodge_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 442.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 663.f),
+		vec2(60.f, 3.f),
 		"dodge_upgrade_level",
 		std::to_string(getUpgradeLevel(UPGRADE_TYPE::DODGE_UPGRADE)),
 		vec3(0.35, 0.76, 0.32),
@@ -109,8 +109,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	viewed_upgrade_cost = UISystem::createTextUIElement(
 		renderer,
-		vec2(944.f, 406.f),
-		vec2(8.f, 4.f),
+		vec2(1416.f, 609.f),
+		vec2(12.f, 6.f),
 		"viewed_upgrade_cost",
 		"10",
 		vec3(0.35, 0.76, 0.32),
@@ -119,8 +119,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	current_scrap_display = UISystem::createTextUIElement(
 		renderer,
-		vec2(772.f, 460.f),
-		vec2(8.f, 3.f),
+		vec2(1158.f, 690.f),
+		vec2(12.f, 5.f),
 		"current_scrap_display",
 		std::to_string(getScrapLevel()),
 		vec3(0.35, 0.76, 0.32),
@@ -135,8 +135,8 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 void ShopSystem::initButtons() {
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - 338.f, window_height_px - 270.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px - 507.f, window_height_px - 405.f),
+		vec2(351.f, 90.f),
 		[&]() {
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
@@ -147,8 +147,8 @@ void ShopSystem::initButtons() {
 
 	buy_button = UISystem::createTextButton(
 		renderer,
-		vec2(592.f, 405.f),
-		vec2(8.f, 4.f),
+		vec2(888.f, 608.f),
+		vec2(12.f, 6.f),
 		[&]() {
 			buyUpgrade();
 		},
@@ -160,8 +160,8 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(360.f, 284.f),
-		vec2(146.f, 26.f),
+		vec2(540.f, 426.f),
+		vec2(219.f, 39.f),
 		[&]() {
 			updateUpgrade(UPGRADE_TYPE::ITEM_SLOT);
 		},
@@ -172,8 +172,8 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(380.f, 320.f),
-		vec2(192.f, 38.f),
+		vec2(570.f, 480.f),
+		vec2(288.f, 57.f),
 		[&]() {
 			updateUpgrade(UPGRADE_TYPE::DMG_UPGRADE);
 		},
@@ -184,8 +184,8 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(370.f, 360.f),
-		vec2(172.f, 34.f),
+		vec2(555.f, 540.f),
+		vec2(258.f, 51.f),
 		[&]() {
 			updateUpgrade(UPGRADE_TYPE::HEALTH_UPGRADE);
 		},
@@ -196,8 +196,8 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(380.f, 396.f),
-		vec2(200.f, 30.f),
+		vec2(570.f, 594.f),
+		vec2(300.f, 45.f),
 		[&]() {
 			updateUpgrade(UPGRADE_TYPE::CRIT_UPGRADE);
 		},
@@ -208,8 +208,8 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(352.f, 438.f),
-		vec2(152.f, 36.f),
+		vec2(528.f, 657.f),
+		vec2(228.f, 54.f),
 		[&]() {
 			updateUpgrade(UPGRADE_TYPE::DODGE_UPGRADE);
 		},
@@ -299,12 +299,12 @@ void ShopSystem::updateUpgradeDescription() {
 	switch (viewed_upgrade) {
 		case UPGRADE_TYPE::ITEM_SLOT:
 			description_one.value = "Add another item slot, ";
-			description_two.value = "so that you can hold more";
-			description_three.value = "items during a run.";
+			description_two.value = "so that you can hold";
+			description_three.value = "more items in a run.";
 			break;
 		case UPGRADE_TYPE::DMG_UPGRADE:
 			description_one.value = "Increase the amount of";
-			description_two.value = "damage you deal by 15%.";
+			description_two.value = "damage you deal by 15%";
 			description_three.value = "";
 			break;
 		case UPGRADE_TYPE::HEALTH_UPGRADE:
@@ -314,13 +314,13 @@ void ShopSystem::updateUpgradeDescription() {
 			break;
 		case UPGRADE_TYPE::CRIT_UPGRADE:
 			description_one.value = "Increase the chance of";
-			description_two.value = "a critical hit (x2 damage)";
-			description_three.value = "by 3%.";
+			description_two.value = "a critical hit (dealing ";
+			description_three.value = "x2 damage) by 3%";
 			break;
 		case UPGRADE_TYPE::DODGE_UPGRADE:
 			description_one.value = "Increase the chance of";
 			description_two.value = "dodging an enemy hit";
-			description_three.value = "(avoiding damage) by 2%.";
+			description_three.value = "(no damage) by 2%.";
 			break;
 	}
 }

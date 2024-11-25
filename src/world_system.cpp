@@ -333,9 +333,8 @@ void WorldSystem::handle_deaths() {
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity)) {
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
-						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
 					handle_boss_one_death(entity);
@@ -979,8 +978,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		&& !boss_part.bot_left_alive && !boss_part.bot_right_alive
 		&& !boss_part.mother) {
 		// DROP ITEMS HERE FOR KILLING BOSS
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
@@ -1136,7 +1135,7 @@ void WorldSystem::handle_item_drop(int item_key) {
 	}
 	ItemStat dropped_item = player_inventory.items[item_key];
 	// create a new item entity
-	Entity new_item = createItem(renderer, registry.worldObjects.get(player).position, vec2(75, 75), uniform_dist, rng, current_room, dropped_item.type, &dropped_item);
+	Entity new_item = createItem(renderer, registry.worldObjects.get(player).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, dropped_item.type, &dropped_item);
 	// remove the item from the player's inventory
 	player_inventory.items.erase(item_key);
 	for (Entity entity : registry.uiElements.entities) {

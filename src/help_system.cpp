@@ -24,8 +24,8 @@ void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - 338.f, window_height_px - 268.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px - 507.f, window_height_px - 402.f),
+		vec2(351.f, 90.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::MENU);
