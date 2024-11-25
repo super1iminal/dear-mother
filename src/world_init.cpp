@@ -1177,7 +1177,7 @@ void generate_map() {
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
-	roomMap[{ 1,  0 }] = ROOM_TYPE::BOSS_ROOM_TWO;	// TODO change back to TWO_SIMPLE
+	roomMap[{ 1,  0 }] = ROOM_TYPE::TWO_SIMPLE;
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
