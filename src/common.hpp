@@ -79,7 +79,7 @@ const int MIN_HEALTH = 2;
 // constants for UI
 const float INITIAL_ITEM_UI_OFFSET_X = (window_width_px / 22);
 const float INITIAL_ITEM_UI_OFFSET_Y = window_height_px / 12;
-const float ITEM_UI_OFFSET_X = 103.f;
+const float ITEM_UI_OFFSET_X = window_width_px * 0.081;
 
 bool gl_has_errors();
 

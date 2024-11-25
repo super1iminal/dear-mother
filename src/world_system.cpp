@@ -438,11 +438,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	// if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
-	// 	ReloadabilitySystem::saveGame();
-	// }
-
-	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9 };
+	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8 };
 	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end()) {
 		handle_item_drop(key - GLFW_KEY_1);
 	}
@@ -451,10 +447,6 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// nothing yet
 }
-
-
-
-
 
 // ==================== PRIVATE ====================
 // ==================== INIT FUNCTIONS ====================
@@ -530,8 +522,8 @@ void WorldSystem::initGameUI() {
 	// create health_ui entity
 	health_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(120.f, 75.f),
-		vec2(8.f, 3.f),
+		vec2(180.f, 113.f),
+		vec2(12.f, 5.f),
 		"health_ui",
 		std::to_string(player_health),
 		vec3(1.0, 1.0, 1.0),
@@ -540,8 +532,8 @@ void WorldSystem::initGameUI() {
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(360.f, 45.f),
-		vec2(8.f, 3.f),
+		vec2(540.f, 68.f),
+		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
 		vec3(1.0, 1.0, 1.0),
@@ -550,43 +542,29 @@ void WorldSystem::initGameUI() {
 	// create level_ui entity
 	level_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(368.f, 84.f),
-		vec2(8.f, 3.f),
+		vec2(552.f, 126.f),
+		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
 		vec3(1.0, 1.0, 1.0),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
-	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
-	for (auto item : player_inventory.items) {
-		UISystem::createTexturedUIElement(
-			renderer,
-			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(item.first),
-			getItemTexture(player_inventory.items[item.first]),
-			SCENE_TYPE::GAME);
-	}
+	drawItemInventory();
 
 	// cover the locked slots
 	for (uint i = 0; i < MAX_INVENTORY_SIZE - player_inventory.size; i++) {
-		int opposite_offset = MAX_INVENTORY_SIZE - i - 1;
 		UISystem::createSquareUIElement(
 			renderer,
-			vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X) - 5, INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(100.f, 100.f),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X) - 5, INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(150.f, 150.f),
 			"locked_slot_ui" + std::to_string(i),
 			SCENE_TYPE::GAME
 		);
 	}
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
-
-	// the following was a test. you can safely delete it. i may have forgotten to.
-	//UISystem::createTextBox(renderer, vec2(window_width_px / 2, window_height_px / 2), vec2(DIALOGUE_BOX_WIDTH, DIALOGUE_BOX_HEIGHT), vec3(1.f, 1.f, 1.f), SCENE_TYPE::GAME, 
-	//	"Hello. My name is Asher. \nThis is a test for dialogue boxes. The line needs a line break at some point. Let's see! Bah be boo be bahh be boo be bahh be boo be");
 }
 
 
@@ -1393,14 +1371,17 @@ void WorldSystem::updateGameUI() {
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
 
 	// re render the items
-	// TODO pull this into a helper method later
+	drawItemInventory();
+}
+
+void WorldSystem::drawItemInventory() {
 	Inventory& player_inventory = registry.inventory.get(player);
-	cout << player_inventory.items.size() << endl;
-	for (auto item : player_inventory.items) {
+	for (auto& item : player_inventory.items) {
+		int opposite_offset = MAX_INVENTORY_SIZE - item.first - 1;
 		UISystem::createTexturedUIElement(
 			renderer,
-			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(75.f, 75.f),
+			vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(ITEM_SIZE, ITEM_SIZE),
 			"item_ui_" + std::to_string(item.first),
 			getItemTexture(player_inventory.items[item.first]),
 			SCENE_TYPE::GAME);

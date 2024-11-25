@@ -158,6 +158,7 @@ private:
 	// ran once per step. private ones are called from inside world_system.cpp
 	// update HUD
 	void updateGameUI();
+	void drawItemInventory(); // helper for initializing and updating the inventory UI
 
 	// animation updates
 	void updatePlayerAnimation();
