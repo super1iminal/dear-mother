@@ -17,7 +17,6 @@
 #include <iomanip>
 
 
-
 // ==================== PUBLIC ====================
 // ==================== BASIC FUNCTIONS ====================
 // create the  world
@@ -516,18 +515,35 @@ void WorldSystem::initGameUI() {
 		TEXTURE_ASSET_ID::UI
 	);
 
-	// grab player health
-	int player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
-
-	// create health_ui entity
-	health_ui = UISystem::createTextUIElement(
+	// create the health UI (base)
+	health_ui = UISystem::createTexturedUIElement(
 		renderer,
-		vec2(180.f, 113.f),
-		vec2(12.f, 5.f),
-		"health_ui",
-		std::to_string(player_health),
-		vec3(1.0, 1.0, 1.0),
-		SCENE_TYPE::GAME);
+		vec2(195.f, (BASE_UI_HEIGHT / 2) - 3),
+		vec2(HEALTH_UI_LENGTH, HEALTH_UI_HEIGHT),
+		"health_ui_base",
+		TEXTURE_ASSET_ID::HEALTH_UI_BASE,
+		SCENE_TYPE::GAME
+	);
+
+	Health player_health_component = registry.healthComponents.get(player);
+	int max_health = player_health_component.max_health;
+	// determine how large each segment should be based on the max health
+	// each segment has a 5px gap between it and the next segment
+	health_segment_length = ((HEALTH_UI_LENGTH * 0.87) - ((max_health - 1) * 5)) / max_health;
+
+	health_segments_ui.clear();
+	health_segments_ui.reserve(player_health_component.max_health);
+	// create segments for each hitpoint
+	for (int i = 0; i < player_health_component.max_health; i++) {
+		Entity health_segment = UISystem::createTexturedUIElement(
+			renderer,
+			vec2(76.f + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
+			vec2(health_segment_length, HEALTH_UI_HEIGHT * 0.65),
+			"health_ui_seg_" + std::to_string(i),
+			TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT,
+			SCENE_TYPE::GAME);
+		health_segments_ui.push_back(health_segment);
+	}
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
@@ -1364,8 +1380,21 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 // ==================== UPDATE FUNCTIONS ====================
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
-	UIElement& health_elt = registry.uiElements.get(health_ui);
-	health_elt.value = std::to_string(registry.healthComponents.get(player).curr_health);
+
+
+	// make the segments visible or transparent based on how many hitpoints are left
+	Health player_health_component = registry.healthComponents.get(player);
+	for (int i = 0; i < player_health_component.max_health; i++ ) {
+		std::cout << i << std::endl;
+		Entity health_segment = health_segments_ui[i];
+		RenderRequest& health_render_request = registry.renderRequests.get(health_segment);
+		if (i + 1 > player_health_component.curr_health) {
+			health_render_request.used_texture = TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT_HIDDEN;
+		}
+		else {
+			health_render_request.used_texture = TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT;
+		}
+	}
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);

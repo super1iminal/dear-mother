@@ -80,6 +80,8 @@ const int MIN_HEALTH = 2;
 const float INITIAL_ITEM_UI_OFFSET_X = (window_width_px / 22);
 const float INITIAL_ITEM_UI_OFFSET_Y = window_height_px / 12;
 const float ITEM_UI_OFFSET_X = window_width_px * 0.081;
+const float HEALTH_UI_LENGTH = 330.f;
+const float HEALTH_UI_HEIGHT = 122.f;
 
 bool gl_has_errors();
 

@@ -115,7 +115,8 @@ private:
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
-	std::vector<Entity> items_ui;
+	std::vector<Entity> health_segments_ui;
+	int health_segment_length;
 	
 
 	// ==================== ACTION FUNCTIONS ====================
