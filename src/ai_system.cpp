@@ -315,17 +315,15 @@ void check_state_one(BossOne& currBoss) {
 }
 
 void AISystem::boss_one_ai() {
-	int LEFT_OUTER_X_BOUND = 136;
-	int LEFT_INNER_X_BOUND = 628;
-	int RIGHT_OUTER_X_BOUND = 1136;
-	int RIGHT_INNER_X_BOUND = 714;
+	int LEFT_OUTER_X_BOUND = window_width_px / 9;
+	int LEFT_INNER_X_BOUND = window_width_px * 0.48;
+	int RIGHT_OUTER_X_BOUND = window_width_px - (window_width_px / 9);
+	int RIGHT_INNER_X_BOUND = window_width_px * 0.53;
 
-	int TOP_OUTER_Y_BOUND = 270 + 50;
-	//int TOP_INNER_Y_BOUND = 350;
-	int BOT_OUTER_Y_BOUND = 550;
-	//int BOT_INNER_Y_BOUND = 500;
+	int TOP_OUTER_Y_BOUND = window_height_px * 0.4;
+	int BOT_OUTER_Y_BOUND = window_height_px * 0.76;
 
-	int CENTER_X = 638;
+	int CENTER_X = window_width_px / 2;
 
 	auto& bossOneRegistry = registry.bossOnes;
 	for (Entity& boss : bossOneRegistry.entities) {
