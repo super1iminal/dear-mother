@@ -24,6 +24,7 @@ const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
 
 const float HEAVY_HEALTH = 10;
 const float HEAVY_TYPE = 4;
+const float FLY_TYPE = 5;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;

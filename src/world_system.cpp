@@ -888,6 +888,11 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 7;
 		enemy_animation.frames = 7;
 	}
+	else if (deadly.type == 5) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_FLY_ATTACK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
 	deadly.attacking = false;
 }
 
@@ -1266,6 +1271,8 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 }
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	if (registry.deadlys.has(actor) && registry.deadlys.get(actor).type == FLY_TYPE)
+		return;
 	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
@@ -1401,23 +1408,15 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	Deadly& deadly = registry.deadlys.get(enemy);
 
 	// reset to walking texture
-	if (deadly.type == 0) 		// select robot 1
+	enemy_animation.cols = 4;
+	enemy_animation.frames = 4;
+	if (deadly.type == 0 || deadly.type  == 2) 		// select robot 1
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
 	}
 	else if (deadly.type == 1)						// select robot 2
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
-	}
-	else if (deadly.type == 2) // Boss one bodygaurd
-	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
 	}
 	else if (deadly.type == 3) // Boss one mother 
 	{
@@ -1425,11 +1424,13 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
-	else if (deadly.type == 4)
+	else if (deadly.type == HEAVY_TYPE)
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
+	}
+	else if (deadly.type == FLY_TYPE)
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_FLY_WALK;
 	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
@@ -1439,8 +1440,11 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	else if (deadly.type == 3) {
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
+	else if (deadly.type == FLY_TYPE) {
+		enemy_animation.frames = 4;
+	}
 	else {
-		// enemy is still; use only 1 frame
+		// enemy is still; use only 1 frame unless flying
 		enemy_animation.frames = 1;
 	}
 }
