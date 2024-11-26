@@ -16,8 +16,6 @@
 #include <fstream>
 #include <iomanip>
 
-
-
 // ==================== PUBLIC ====================
 // ==================== BASIC FUNCTIONS ====================
 // create the  world
@@ -875,11 +873,6 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 7;
 		enemy_animation.frames = 7;
 	}
-	else if (deadly.type == 1) {
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
-		enemy_animation.cols = 7;
-		enemy_animation.frames = 7;
-	}
 	else if (deadly.type == 2) { // Final mother bodygaurds
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
 		enemy_animation.cols = 7;
@@ -1259,7 +1252,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 					playPlayerDodgeEffect(player);
 					// TODO: a special sound effect would be nice
 				}
-				else {
+				else if (registry.deadlys.get(deadly).type != 1) {
 					registry.healthComponents.get(entity).curr_health -= 1;
 					updateGameUI();
 					playPlayerDamagedEffect(player);
@@ -1267,11 +1260,6 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 					Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
 				}
 			}
-			else if (!registry.deadlys.get(entity).immune) {
-				registry.healthComponents.get(entity).curr_health -= 1;
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
-			}
-
 		}
 	}
 	return;
