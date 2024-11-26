@@ -69,8 +69,8 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("shattered_quartz.png"),
 			textures_path("creaky_wheel.png"),
-			textures_path("heatsink.png"), 
-			textures_path("repeater.png"), 
+			textures_path("heatsink.png"),
+			textures_path("repeater.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
@@ -119,7 +119,8 @@ class RenderSystem {
 			textures_path("textbox.png"),
 			npc_path("old_man.png"),
 			npc_path("scarecrow.png"),
-
+			textures_path("/anims/walk/enemy_fly_walk.png"),
+			textures_path("/anims/attack/enemy_fly_attack.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
