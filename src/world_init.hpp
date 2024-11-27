@@ -109,6 +109,7 @@ Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float spe
 
 // items
 Entity createItem(RenderSystem* renderer, vec2 position, vec2 size,  std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type = ITEM_TYPE::RANDOM, ItemStat* loaded_item = nullptr);
+Entity createSparkles(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord);
 
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);

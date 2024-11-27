@@ -321,9 +321,8 @@ void WorldSystem::handle_deaths() {
 		Health& health = registry.healthComponents.get(entity);
 		if (health.curr_health <= 0)
 		{
-			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
-				updateGameUI();//todo
+				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					ReloadabilitySystem::recordPlayerDeathRoom();
 					registry.deathTimers.emplace(entity);
@@ -537,7 +536,7 @@ void WorldSystem::initGameUI() {
 	for (int i = 0; i < player_health_component.max_health; i++) {
 		Entity health_segment = UISystem::createTexturedUIElement(
 			renderer,
-			vec2(76.f + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
+			vec2(50.f + (health_segment_length / 2) + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
 			vec2(health_segment_length, HEALTH_UI_HEIGHT * 0.65),
 			"health_ui_seg_" + std::to_string(i),
 			TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT,
@@ -906,6 +905,10 @@ void playPlayerDamagedEffect(Entity entity) {
 }
 
 void remove_item(Entity item) {
+	// remove the sparkling animation
+	ItemStat item_stat = registry.itemStats.get(item);
+	registry.pendingRemoves.emplace(item_stat.particles);
+
 	// give this item a flashing effect
 	FlashingColor& flashing_color = registry.flashingColors.emplace(item);
 	flashing_color.color = vec3(0.2, 0.2, 1.0);

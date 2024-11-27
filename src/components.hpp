@@ -92,7 +92,7 @@ struct Collision
 };
 
 // Player component
-struct Player // TODO: why are these variables here im crying
+struct Player
 {
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
@@ -399,7 +399,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	REPEATER = HEATSINK + 1,
 	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	START_MENU = HIT_PARTICLE_PLAYER + 1,
+	ITEM_SPARKLES = HIT_PARTICLE_PLAYER + 1,
+	START_MENU = ITEM_SPARKLES + 1,
 	HELP_SCREEN = START_MENU + 1,
 	SHOP_SCREEN = HELP_SCREEN + 1,
 	START_BUTTON = SHOP_SCREEN + 1,
@@ -510,6 +511,8 @@ struct ItemStat {
 	int heal_size = 0;
 
 	int scrap_amt = 50;
+
+	Entity particles;	// the particles anim associated with this item; stored here for easy removal when the item is picked up
 };
 
 

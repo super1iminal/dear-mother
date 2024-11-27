@@ -513,6 +513,40 @@ Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std:
 	return interactable_entity;
 }
 
+
+
+Entity createSparkles(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord) {
+	Entity entity = Entity();
+
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	WorldObject& sparkle_world_object = registry.worldObjects.emplace(entity);
+	sparkle_world_object.position = position;
+	sparkle_world_object.angle = 0.f;
+	sparkle_world_object.scale = size;
+
+	Animation& sparkle_animation = registry.animations.emplace(entity);
+	sparkle_animation.cols = 4;
+	sparkle_animation.rows = 1;
+	sparkle_animation.frames = 4;
+	sparkle_animation.current_frame = 0;
+	sparkle_animation.time_since_last_frame = 0;
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::ITEM_SPARKLES,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_ORDER::PARTICLE });
+
+	return entity;
+}
+
 Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type, ItemStat* loaded_item) {
 
 	// create an interactable entity
@@ -525,7 +559,6 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	registry.meshPtrs.emplace(entity, &mesh);
 
 	ItemStat& item = registry.itemStats.emplace(entity);
-
 
 	if (loaded_item == nullptr) {
 		int roll_type = uniform_dist(rng) * 100;
@@ -607,6 +640,8 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_ORDER::ITEM });
+
+	item.particles = createSparkles(renderer, position, size, room_coord);
 
 	return entity;
 }

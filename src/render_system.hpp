@@ -73,6 +73,7 @@ class RenderSystem {
 			textures_path("repeater.png"), 
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("/anims/idle/sparkles_anim.png"),
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
