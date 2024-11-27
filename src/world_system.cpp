@@ -228,9 +228,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
-			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-			scene_manager.set_scene(SCENE_TYPE::MENU);
+			//registry.deathTimers.remove(entity);
+			//screen.darken_screen_factor = 0;
+			//scene_manager.set_scene(SCENE_TYPE::MENU);
+			//registry.players.get(entity).dead = true;
 			return true;
 		}
 	}
@@ -324,17 +325,57 @@ void WorldSystem::handle_deaths() {
 		{
 			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
-				updateGameUI();//todo
+
 				if (!registry.deathTimers.has(entity)) {
+					updateGameUI();//todo
 					ReloadabilitySystem::recordPlayerDeathRoom();
+
+					Motion& player_motion = registry.motions.get(player);
+					player_motion.target_velocity = { 0,0 };
+
+					registry.players.get(entity).dead = true;
+					Player p = registry.players.get(player);
+					std::ostringstream death_screen;
+					std::ostringstream collected_items;
+					Inventory player_inventory = registry.inventory.get(player);
+					if (player_inventory.items.size() > 0) {
+						map<int, ItemStat>::iterator item;
+						map<int, ItemStat>::iterator finalItem;
+						finalItem = player_inventory.items.end();
+						--finalItem;
+
+						for (item = player_inventory.items.begin(); item != player_inventory.items.end(); item++) {
+							if (item != finalItem) {
+								collected_items << itemNameToString.find(item->second.name)->second << ", ";
+							}
+							else {
+								collected_items << itemNameToString.find(item->second.name)->second;
+							}
+						}
+					}
+					death_screen << "\t\t\t\t\t\t\t I'll Be Back\n\n";
+					death_screen << "Total Kills: " << p.kills << "\n\n";
+					death_screen << "Scrap Collected: " << p.scrap << "\n\n";
+					death_screen << "Level Reached: " << level << "\n\n"; // Could be wrong variable
+					if (player_inventory.items.size() <= 0) {
+						death_screen << "Items Collected: None";
+					}
+					else {
+						death_screen << "Items Collected: ";
+					}
+					death_screen << collected_items.str() << "\n\n";
+					death_screen << "\n\n\n\n\n\n\t\tPress Space To Return To Main Menu";
+					UISystem::createTextBox(renderer, { window_width_px / 2, window_height_px / 2 }, { 500,500 }, { 83/255.f, 209/255.f, 97/255.f }, SCENE_TYPE::GAME, 
+						death_screen.str(), TEXT_BOX_TYPE::DEATH_SCREEN);
 					registry.deathTimers.emplace(entity);
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
-				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity)) {
+				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity)) {
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
+					registry.players.get(player).kills++;
 						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
@@ -342,6 +383,9 @@ void WorldSystem::handle_deaths() {
 				}
 				else if (registry.bossTwos.has(entity)) {
 					///handle_boss_two_death(entity); TODO: implement this
+				}
+				else if (registry.bossThrees.has(entity)) {
+					handle_boss_three_death(entity);
 				}
 				registry.pendingRemoves.emplace_with_duplicates(entity);
 			}
@@ -388,10 +432,11 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	}
 
 	Entity& player = registry.players.entities[0];
+	Player& player_component = registry.players.get(player);
 	Motion& player_motion = registry.motions.get(player);
 
 	// Handle movement keys
-	if (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) {
+	if ((key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) && !player_component.dead) {
 		bool up = glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE;
 		bool left = glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE;
 		bool down = glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE;
@@ -414,17 +459,25 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE && !player_component.dead) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
 		//registry.players.get(player).in_combat = false;
 	}
 
 	// Interaction
-	if (action == GLFW_PRESS && key == GLFW_KEY_E) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_E && !player_component.dead) {
 		handle_interactions(&WorldSystem::handle_item_pickup);
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead) {
 		handle_interactions(&WorldSystem::handle_scrapping);
+	}
+
+	// Resart game after death
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.dead) {
+		ScreenState& screen = registry.screenStates.components[0];
+		registry.deathTimers.remove(player);
+		screen.darken_screen_factor = 0;
+		scene_manager.set_scene(SCENE_TYPE::MENU);
 	}
 
 	// Adjust current speed with `<` and `>`
@@ -444,7 +497,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	// }
 
 	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9 };
-	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end()) {
+	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end() && !player_component.dead) {
 		handle_item_drop(key - GLFW_KEY_1);
 	}
 }
@@ -505,6 +558,9 @@ void WorldSystem::initUpgrades() {
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
 	player_modifier.dodge_chance = (dodge_upgrade * 2);
+
+	shop_crit_upgrade = player_modifier.crit_chance;
+	shop_dodge_upgrade = player_modifier.dodge_chance;
 
 	std::cout << "Item slots upgrade: " << item_slots << std::endl;
 	std::cout << "Damage upgrade: " << damage_upgrade << std::endl;
@@ -636,6 +692,9 @@ void WorldSystem::shoot(Entity& entity) {
 			if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_ONE_COMBAT) {
 				boss_one_shoot(entity, entity_object);
 			}
+			else if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_THREE_COMBAT) {
+				boss_three_shoot(entity, entity_object);
+			}
 			else {
 				vec2 coor_player = registry.worldObjects.get(registry.players.entities[0]).position;
 				int dx = entity_object.position.x - coor_player.x;
@@ -649,6 +708,34 @@ void WorldSystem::shoot(Entity& entity) {
 			}
 		}
 	}
+}
+
+void WorldSystem::boss_three_shoot(Entity& entity, WorldObject& entity_object) {
+	BossThree& boss_three = registry.bossThrees.get(entity);
+	Motion& boss_motion = registry.motions.get(entity);
+	if (boss_three.boss_phase == BOSS_THREE_PHASE::PHASE_ONE) {
+		Entity obstacle;
+		if (boss_motion.velocity.x >= 0) {
+			obstacle = createWall(renderer, { entity_object.position.x - 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		else if (boss_motion.velocity.x < 0) {
+			obstacle = createWall(renderer, { entity_object.position.x + 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		Lifetime& lifetime = registry.lifetimes.emplace(obstacle);
+		lifetime.time_remaining_ms = 10000;
+
+		vec2 coor_player = registry.worldObjects.get(registry.players.entities[0]).position;
+		int dx = entity_object.position.x - coor_player.x;
+		int dy = entity_object.position.y - coor_player.y;
+		float angle = atan2(dy, dx) - M_PI;
+		if (angle < 0)
+			angle += 2 * M_PI;
+		createProjectile(renderer, entity_object.position, angle - radians(15.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, angle + radians(15.f), 350.0f, false, current_room);
+		Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
+	}
+	set_last_shot_time(entity);
 }
 
 void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
@@ -817,6 +904,11 @@ void WorldSystem::change_rooms(ivec2 new_room) {
 	else if (roomMap[{current_room.x, current_room.y}] == ROOM_TYPE::BOSS_ROOM_TWO
 		&& !registry.players.get(player).boss_two_beat) {
 		registry.players.get(registry.players.entities[0]).combat_state = COMBAT_STATE::BOSS_TWO_COMBAT;
+		update_music();
+	}
+	else if (roomMap[{current_room.x, current_room.y}] == ROOM_TYPE::BOSS_ROOM_THREE
+		&& !registry.players.get(player).boss_three_beat) {
+		registry.players.get(registry.players.entities[0]).combat_state = COMBAT_STATE::BOSS_THREE_COMBAT;
 		update_music();
 	}
 	registry.activeComponents.clear();
@@ -1089,6 +1181,16 @@ void WorldSystem::handle_boss_two() {
 	}
 }
 
+void WorldSystem::handle_boss_three_death(Entity& entity) {
+	printf("%d\n", registry.players.get(player).combat_state);
+	registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT;
+	registry.players.get(player).boss_three_beat = true;
+	createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+	update_music();
+	std::cout << "YAYYYY :3" << std::endl;
+}
+
 void WorldSystem::handle_item_pickup(Entity item) {
 	// Pick up item and apply effects to the player
 	Inventory& player_inventory = registry.inventory.get(player);
@@ -1278,6 +1380,10 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 }
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	if (registry.bossThrees.has(actor) || registry.bossThrees.has(blocker)) {
+		return;
+	}
+
 	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
@@ -1443,12 +1549,18 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_animation.cols = 4;
 		enemy_animation.frames = 4;
 	}
+	else if (deadly.type == 5) // Boss three mother
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_TWO_WALK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
+	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
 		// enemy is moving; play walking animation (4 frames)
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
-	else if (deadly.type == 3) {
+	else if (deadly.type == 3 || deadly.type == 5) {
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
 	else {
@@ -1472,7 +1584,11 @@ void WorldSystem::update_player_modifier() const {
 
 	float new_accuracy = 0;
 
-	for (auto object : registry.inventory.get(player).items) {
+	int new_crit_chance = shop_crit_upgrade;
+
+	int new_dodge_chance = shop_dodge_upgrade;
+
+	for (auto& object : registry.inventory.get(player).items) {
 		auto item = object.second;
 		new_damage_flat += item.flat_damage_mod;
 
@@ -1484,6 +1600,10 @@ void WorldSystem::update_player_modifier() const {
 
 		new_range_flat += item.flat_range;
 		new_range_percent += item.percent_range;
+
+		new_crit_chance += item.crit_chance;
+
+		new_dodge_chance += item.dodge_chance;
 
 		new_accuracy += item.accuracy;
 	}
@@ -1506,4 +1626,20 @@ void WorldSystem::update_player_modifier() const {
 	else {
 		player_modifier.accuracy_modifier = 0;
 	}
+
+	if (new_crit_chance >= 0) {
+		player_modifier.crit_chance = new_crit_chance;
+	}
+	else {
+		player_modifier.crit_chance = 0;
+	}
+
+	if (new_dodge_chance >= 0) {
+		player_modifier.dodge_chance = new_dodge_chance;
+	}
+	else {
+		player_modifier.dodge_chance = 0;
+	}
+
+	std::cout << player_modifier.dodge_chance << std::endl;
 }

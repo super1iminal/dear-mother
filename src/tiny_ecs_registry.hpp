@@ -60,6 +60,7 @@ public:
 	ComponentContainer<FloorText> floorTexts;
 	ComponentContainer<BossOne> bossOnes;
 	ComponentContainer<BossTwo> bossTwos;
+	ComponentContainer<BossThree> bossThrees;
 	ComponentContainer<DialogueScene> dialogueSceneComponents;
 	ComponentContainer<NPC> NPCs;
 	ComponentContainer<TextBox> textBoxes; // note that this will contain 2 other entities
@@ -169,6 +170,7 @@ public:
 		registry_list.push_back(&floorTexts);
 		registry_list.push_back(&bossOnes);
 		registry_list.push_back(&bossTwos);
+		registry_list.push_back(&bossThrees);
 		registry_list.push_back(&dialogueSceneComponents);
 		registry_list.push_back(&NPCs);
 		registry_list.push_back(&textBoxes);

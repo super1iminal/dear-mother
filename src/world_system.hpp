@@ -117,6 +117,21 @@ private:
 	Entity level_ui;
 	std::vector<Entity> items_ui;
 	
+	// Item stuff
+	int shop_crit_upgrade = 0;
+	int shop_dodge_upgrade = 0;
+
+	// Const for ITEM_NAME to string conversion
+	const std::map<ITEM_NAME, std::string> itemNameToString = { { ITEM_NAME::BATTERY_PACK, "Battery Pack" }, 
+																{ ITEM_NAME::HEATSINK, "Heatsink" }, 
+																{ ITEM_NAME::CREAKY_WHEEL, "Creaky Wheel" },
+																{ ITEM_NAME::REPEATER, "Repeater" },
+																{ ITEM_NAME::SHATTERED_QUARTZ, "Shattered Quartz"},
+																{ ITEM_NAME::SUPERCHARGED_BATTERY_PACK, "Supercharged Battery Pack"},
+																{ ITEM_NAME::WD4000, "WD-4000"},
+																{ ITEM_NAME::VOLITILE_BLASTER, "Volitile Blaster"},
+																{ ITEM_NAME::HOT_DIESEL, "Hot Diesel"},
+																{ ITEM_NAME::OPTICAL_SENSOR, "Optical Sensor"}, };
 
 	// ==================== ACTION FUNCTIONS ====================
 	// functions that set/get/act things directly
@@ -124,6 +139,8 @@ private:
 	void increaseScrap(int amt);
 	// Boss One Stuff
 	void boss_one_shoot(Entity& entity, WorldObject& entity_object);
+	// Boss Three Stuff
+	void boss_three_shoot(Entity& entity, WorldObject& entity_object);
 	// room stuff
 	void change_rooms(ivec2 new_room);
 	void set_last_shot_time(Entity& entity);
@@ -138,6 +155,7 @@ private:
 	// ran once per step. private ones are called from inside world_system.cpp
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
+	void handle_boss_three_death(Entity& entity);
 	void handle_item_pickup(Entity item);
 	void handle_scrapping(Entity item);
 	void handle_item_drop(int item_key);

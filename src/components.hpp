@@ -97,7 +97,10 @@ struct Player // TODO: why are these variables here im crying
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
 	bool boss_two_beat = false;
+	bool boss_three_beat = false;
+	int kills = 0;
 	int scrap = 0;
+	bool dead = false;
 };
 
 struct Shooter
@@ -118,8 +121,8 @@ struct Modifier {
 	int damage_modifier_flat = 0;
 	float damage_modifier_percentage = 1.0f;
 
-	int crit_chance = 1;
-	int dodge_chance = 0;
+	int crit_chance = 1;	// Start with 1% crit chance
+	int dodge_chance = 0;	// Start with 0% dodge change
 
 	float speed_modifier_flat = 0;
 	float speed_modifier_percent = 0;
@@ -177,6 +180,11 @@ struct BossTwo
 	int wave_3 = 8;
 
 	int wave_4 = 10;
+};
+
+struct BossThree
+{
+	BOSS_THREE_PHASE boss_phase = BOSS_THREE_PHASE::PHASE_ONE;
 };
 
 // anything that the player can interact with
@@ -394,7 +402,12 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
 	HEATSINK = CREAKY_WHEEL + 1,
 	REPEATER = HEATSINK + 1,
-	HIT_PARTICLE = REPEATER + 1,
+	WD4000 = REPEATER + 1,
+	SUPERCHARGED_BATTERY_PACK = WD4000 + 1,
+	VOLITILE_BLASTER = SUPERCHARGED_BATTERY_PACK + 1,
+	HOT_DIESEL = VOLITILE_BLASTER + 1,
+	OPTICAL_SENSOR = HOT_DIESEL + 1,
+	HIT_PARTICLE = OPTICAL_SENSOR + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -426,9 +439,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	BOSS_ONE_FLOOR = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_HORZ_WALL = BOSS_ONE_FLOOR + 1,
 	BOSS_ONE_VERT_WALL = BOSS_ONE_HORZ_WALL + 1,
+	BOSS_TWO_WALK = BOSS_ONE_VERT_WALL + 1,
 
 	// floor items must be kept together ====================================================================
-	BROKEN_GENERATOR = BOSS_ONE_VERT_WALL + 1,
+	BROKEN_GENERATOR = BOSS_TWO_WALK + 1,
 	BROKEN_CONTROL_PANEL = BROKEN_GENERATOR + 1,
 	DEAD_ROBOT = BROKEN_CONTROL_PANEL + 1,
 	FLOOR_HOLE = DEAD_ROBOT + 1,
@@ -454,7 +468,8 @@ enum class EFFECT_ASSET_ID {
 	UI_ELEMENT = EGG + 1,
 	FONT = UI_ELEMENT + 1,
 	FLOOR_TEXT = FONT + 1,
-	SALMON = FLOOR_TEXT + 1,
+	DEATH_TEXT = FLOOR_TEXT + 1,
+	SALMON = DEATH_TEXT + 1,
 	TEXTURED = SALMON + 1,
 	ANIM = TEXTURED + 1,
 	WATER = ANIM + 1,
@@ -503,6 +518,10 @@ struct ItemStat {
 	float percent_range = 0;
 
 	float accuracy = 0;
+
+	int crit_chance = 0;
+
+	float dodge_chance = 0;
 
 	int heal_size = 0;
 

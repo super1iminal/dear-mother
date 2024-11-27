@@ -392,6 +392,58 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	return entity;
 }
 
+Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
+	auto entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, room_coord);
+	registry.activeComponents.emplace(entity);
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.angle = 0;
+	worldobject.scale = { 175 + 25, 119  + 25};
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.max_speed = 100.f; // Slow it down maybe
+	motion.velocity = { 0.f, 0.f };
+	motion.acceleration = { 0.f, 0.f };
+
+	registry.bossThrees.emplace(entity).boss_phase = BOSS_THREE_PHASE::PHASE_ONE;
+
+	auto& health = registry.healthComponents.emplace(entity);
+	health.max_health = 30;
+	health.curr_health = 30;
+
+	auto& deadly = registry.deadlys.emplace(entity);
+	deadly.t = std::chrono::high_resolution_clock::now();
+	deadly.t_patrol = std::chrono::high_resolution_clock::now();
+	deadly.type = 5;
+	deadly.immune = false;
+
+	auto& shooter = registry.shooters.emplace(entity);
+	shooter.fire_rate = 1000;
+
+	Animation& enemy_animation = registry.animations.emplace(entity);
+	enemy_animation.cols = 4;
+	enemy_animation.rows = 1;
+	enemy_animation.frames = 4;
+	enemy_animation.current_frame = 0;
+
+	// don't be fooled, type is type
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS_TWO_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type) {
 	// create an entity in order to render the floor background
 	auto floor = Entity();
@@ -1184,6 +1236,40 @@ void createBossRoomTwo(RenderSystem* renderer, ivec2 coord) {
 
 }
 
+void createBossRoomThree(RenderSystem* renderer, ivec2 coord) {
+
+	// create a floor entity
+	createFloor(renderer, { window_width_px / 2, (window_height_px + 120.f) / 2 }, { window_width_px , window_height_px - 120.f }, coord);
+
+	// left wall
+	createWall(renderer, { 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, 0.f, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// right wall
+	createWall(renderer, { window_width_px - 25.f, (window_height_px / 2) + WALL_WIDTH }, { WALL_WIDTH, 590.f }, M_PI, TEXTURE_ASSET_ID::VERT_WALL, coord);
+	// top wall
+	createWall(renderer, { window_width_px / 2, 25.f + 120.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+	// bottom wall
+	createWall(renderer, { window_width_px / 2, window_height_px - 25.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
+
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
+	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
+	}
+	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	}
+	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
+		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
+	}
+	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
+		if (roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_ONE
+			&& roomMap[{ coord.x, coord.y - 1 }] != ROOM_TYPE::BOSS_ROOM_TWO) {
+			createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
+		}
+	}
+
+	createBossThree(renderer, {500,500}, coord);
+}
+
 void generate_map() {
 	if (registry.map.components.size() > 0) {
 		registry.remove_all_components_of(registry.map.entities[0]);
@@ -1196,7 +1282,8 @@ void generate_map() {
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
-	roomMap[{ 1,  0 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 1, 0 }] = ROOM_TYPE::TWO_SIMPLE;
+	//roomMap[{ 1,  0 }] = ROOM_TYPE::BOSS_ROOM_THREE;
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
@@ -1270,6 +1357,9 @@ void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& roo
 		break;
 	case ROOM_TYPE::BOSS_ROOM_TWO:
 		createBossRoomTwo(renderer, coord);
+		break;
+	case ROOM_TYPE::BOSS_ROOM_THREE:
+		createBossRoomThree(renderer, coord);
 		break;
 	case ROOM_TYPE::OLD_ROBOT_ROOM:
 		createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
@@ -1350,4 +1440,42 @@ void buildItemSet() {
 	battery_pack.heal_size = 1;
 	registry.all_items.push_back(battery_pack);
 	registry.healing_items.push_back(battery_pack);
+
+	ItemStat wd_4000;
+	wd_4000.name = ITEM_NAME::WD4000;
+	wd_4000.type = ITEM_TYPE::FIRE_RATE;
+	wd_4000.percent_fire_rate = 0.1;
+	wd_4000.accuracy = 0.1;
+	registry.all_items.push_back(wd_4000);
+	registry.fire_rate_items.push_back(wd_4000);
+
+	ItemStat super_battery_pack;
+	super_battery_pack.name = ITEM_NAME::SUPERCHARGED_BATTERY_PACK;
+	super_battery_pack.type = ITEM_TYPE::HEALTH_PACK;
+	super_battery_pack.heal_size = 2;
+	registry.all_items.push_back(super_battery_pack);
+	registry.healing_items.push_back(super_battery_pack);
+
+	ItemStat volitile_blaster;
+	volitile_blaster.name = ITEM_NAME::VOLITILE_BLASTER;
+	volitile_blaster.type = ITEM_TYPE::DAMAGE;
+	volitile_blaster.crit_chance = 3;
+	registry.all_items.push_back(volitile_blaster);
+	registry.damage_items.push_back(volitile_blaster);
+
+	ItemStat hot_diesel;
+	hot_diesel.name = ITEM_NAME::HOT_DIESEL;
+	hot_diesel.type = ITEM_TYPE::SPEED;
+	hot_diesel.percent_speed_mod = 0.1;
+	hot_diesel.dodge_chance = 2;
+	registry.all_items.push_back(hot_diesel);
+	registry.speed_items.push_back(hot_diesel);
+
+	ItemStat optical_sensor;
+	optical_sensor.name = ITEM_NAME::OPTICAL_SENSOR;
+	optical_sensor.type = ITEM_TYPE::RANGE;
+	optical_sensor.flat_range = 75;
+	optical_sensor.dodge_chance = 1;
+	registry.all_items.push_back(optical_sensor);
+	registry.range_items.push_back(optical_sensor);
 }

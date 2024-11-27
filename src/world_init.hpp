@@ -87,11 +87,14 @@ Entity createEnemy(
 // put text on the floor
 Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
 
-// boss one
+// boss one (should be 3rd boss)
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
 
-// boss two
+// boss two (should be 1st boss)
 Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
+
+// boss three (should be 2nd boss)
+Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
 
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type = FLOOR_TYPE::DEFAULT);
@@ -136,6 +139,8 @@ void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE typ
 void createBossRoomOne(RenderSystem* renderer, ivec2 coord);
 
 void createBossRoomTwo(RenderSystem* renderer, ivec2 coord);
+
+void createBossRoomThree(RenderSystem* renderer, ivec2 coord);
 
 void generate_map();
 

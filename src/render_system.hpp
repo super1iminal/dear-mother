@@ -68,6 +68,11 @@ class RenderSystem {
 			textures_path("creaky_wheel.png"),
 			textures_path("heatsink.png"), 
 			textures_path("repeater.png"), 
+			textures_path("battery.png"),	// Should be WD-4000
+			textures_path("battery.png"),	// Should be Supercharged Battery
+			textures_path("battery.png"),	// Should be Volatile Blaster
+			textures_path("battery.png"),	// Should be Hot Diesel
+			textures_path("battery.png"),	// Should be Optical Sensor
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),
@@ -101,6 +106,7 @@ class RenderSystem {
 			textures_path("floor_final_boss.png"),
 			textures_path("horz_wall_final_boss.png"),
 			textures_path("vert_wall_final_boss.png"),
+			textures_path("/anims/walk/boss_2.png"),
 
 			// floor items must be kept together ====================================================================
 			textures_path("BrokenGenerator.png"),
@@ -126,6 +132,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
+		shader_path("font"),
 		shader_path("font"),
 		shader_path("font"),
 		shader_path("salmon"),
@@ -212,9 +219,14 @@ private:
 	// floor text entities to render
 	std::vector<Entity> floor_text_to_render;
 
+	// death screen text entities to render
+	std::vector<Entity> death_text_to_render;
+
 	void drawText();
 
 	void drawFloorText();
+
+	void RenderSystem::drawDeathScreenText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

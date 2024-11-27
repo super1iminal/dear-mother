@@ -737,6 +737,33 @@ void AISystem::boss_one_ai() {
 	}
 }
 
+void AISystem::boss_three_ai() {
+	Entity& boss_entity = registry.bossThrees.entities[0];
+	BossThree& boss_three = registry.bossThrees.get(boss_entity);
+	Motion& boss_motion = registry.motions.get(boss_entity);
+	Health& boss_health = registry.healthComponents.get(boss_entity);
+	switch (boss_three.boss_phase)
+	{
+	case BOSS_THREE_PHASE::PHASE_ONE:
+		pathfinding(boss_entity);
+		registry.shooters.get(boss_entity).fire_rate = 1000;
+		if (boss_health.curr_health <= 20) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_TWO;
+		}
+		else if (boss_health.curr_health <= 10) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_THREE;
+		}
+		break;
+	case BOSS_THREE_PHASE::PHASE_TWO:
+		if (boss_health.curr_health <= 10) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_THREE;
+		}
+		break;
+	case BOSS_THREE_PHASE::PHASE_THREE:
+		break;
+	}
+}
+
 void AISystem::step(float elapsed_ms) {
 	auto& worldObjectRegistry = registry.worldObjects;
 	auto& playerRegistry = registry.players;
@@ -746,7 +773,11 @@ void AISystem::step(float elapsed_ms) {
 
 	if (playerRegistry.get(player).combat_state == COMBAT_STATE::BOSS_ONE_COMBAT) {
 		boss_one_ai();
-	} else {
+	}
+	else if (playerRegistry.get(player).combat_state == COMBAT_STATE::BOSS_THREE_COMBAT) {
+		boss_three_ai();
+	}
+	else {
 		for (int i = 0; i < deadlyRegistry.entities.size(); i++) {
 			Entity& enemy = deadlyRegistry.entities[i];
 			if (!registry.bossOnes.has(enemy)) {
