@@ -491,6 +491,7 @@ void WorldSystem::initUpgrades() {
 	player_inventory.size = PLAYER_BASE_INV_SIZE + item_slots;
 	player_modifier.damage_modifier_percentage = 1.0f + (damage_upgrade * DAMAGE_UPGRADE_MODIFIER);
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
+	player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
 	player_modifier.dodge_chance = (dodge_upgrade * 2);
 
@@ -543,10 +544,13 @@ void WorldSystem::initGameUI() {
 		health_segments_ui.push_back(health_segment);
 	}
 
+	std::cout << "Max health: " << max_health << std::endl;
+	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
+
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(540.f, 68.f),
+		vec2(476.f, 68.f),
 		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
@@ -556,7 +560,7 @@ void WorldSystem::initGameUI() {
 	// create level_ui entity
 	level_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(552.f, 126.f),
+		vec2(488.f, 134.f),
 		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
@@ -1380,7 +1384,6 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
 
-
 	// make the segments visible or transparent based on how many hitpoints are left
 	Health player_health_component = registry.healthComponents.get(player);
 	for (int i = 0; i < player_health_component.max_health; i++ ) {
@@ -1394,6 +1397,9 @@ void WorldSystem::updateGameUI() {
 			health_render_request.used_texture = TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT;
 		}
 	}
+
+	std::cout << "Max health: " << player_health_component.max_health << std::endl;
+	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
