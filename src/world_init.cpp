@@ -200,7 +200,7 @@ Entity createEnemy(
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.max_speed = speed;
-	if (type == 4)
+	if (type == HEAVY_TYPE || type == FLY_TYPE)
 		motion.max_speed = ENEMY_SPEED * .6;
 	motion.velocity = { 0.f, 0.f };
 	motion.acceleration = { 0.f, 0.f };
@@ -212,7 +212,7 @@ Entity createEnemy(
   
 	deadly.immune = false;
 
-	deadly.type = type;  // 0 for grey melee, 1 for slower yellow projectile
+	deadly.type = type;  // 0 for grey melee, 1 for slower yellow projectile, 4 for heavy, 5 for flying
 
 	if (registry.deadlys.get(entity).type == 1) {
 		registry.motions.get(entity).max_speed = 0.7 * speed;
@@ -245,13 +245,22 @@ Entity createEnemy(
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE,
 				RENDER_ORDER::ENEMY });
-	} else if (registry.deadlys.get(entity).type == HEAVY_TYPE) {
+	}
+	else if (registry.deadlys.get(entity).type == HEAVY_TYPE) {
 		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::HEAVY_WALK,
 				EFFECT_ASSET_ID::ANIM,
 				GEOMETRY_BUFFER_ID::SPRITE,
 				RENDER_ORDER::ENEMY });
+	}
+	else if (registry.deadlys.get(entity).type == FLY_TYPE) {
+		registry.renderRequests.insert_sorted(
+			entity,
+			{ TEXTURE_ASSET_ID::ENEMY_FLY_WALK,
+			EFFECT_ASSET_ID::ANIM,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_ORDER::ENEMY });
 	}
 	else {
 		registry.renderRequests.insert_sorted(
@@ -938,7 +947,7 @@ void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE typ
 		createEnemy(renderer, vec2(window_width_px / 2.f + ENEMY_BB_HEIGHT, middleY), ENEMY_SPEED, coord);
 		break;
 	case ROOM_TYPE::CHECKERBOARD:
-		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, 5, FLY_TYPE);
 		createEnemy(renderer, vec2(window_width_px / 2.f - 3.5f * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
 		createEnemy(renderer, vec2(window_width_px / 2.f + 3.5f * ENEMY_BB_WIDTH, middleY), ENEMY_SPEED, coord);
 		break;
@@ -967,9 +976,22 @@ void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE typ
 		createEnemy(renderer, vec2(window_width_px * 2.f / 3.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
 		break;
 	case ROOM_TYPE::ENEMY_SOCIAL:
-		createEnemy(renderer, vec2(window_width_px / 2.f, middleY), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
-		createEnemy(renderer, vec2(window_width_px / 5.f * 2.f - ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
-		createEnemy(renderer, vec2(window_width_px / 5.f * 3.f + ENEMY_BB_WIDTH * 0.5, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 2.f - ENEMY_BB_WIDTH, middleY - ENEMY_BB_HEIGHT), ENEMY_SPEED, coord, HEAVY_HEALTH, HEAVY_TYPE);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 2.f - ENEMY_BB_WIDTH * 0.5, middleY + ENEMY_BB_HEIGHT), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 3.f + ENEMY_BB_WIDTH * 0.5, middleY - ENEMY_BB_HEIGHT), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 5.f * 3.f + ENEMY_BB_WIDTH * 0.5, middleY + ENEMY_BB_HEIGHT), ENEMY_SPEED, coord, 5, FLY_TYPE);
+		break;
+	case ROOM_TYPE::FLY_TUNNELS:
+		createEnemy(renderer, vec2(window_width_px * 23.f / 36.f, middleY), ENEMY_SPEED, coord, 5, FLY_TYPE);
+		createEnemy(renderer, vec2(window_width_px * 13.f / 36.f, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px * 2.f / 9.f, middleY), ENEMY_SPEED, coord, 5, FLY_TYPE);
+		createEnemy(renderer, vec2(window_width_px * 7.f / 9.f, middleY), ENEMY_SPEED, coord);
+		break;
+	case ROOM_TYPE::FLY_LAPS:
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY - ENEMY_BB_HEIGHT), ENEMY_SPEED, coord, 5, FLY_TYPE);
+		createEnemy(renderer, vec2(window_width_px / 2.f, middleY + ENEMY_BB_HEIGHT), ENEMY_SPEED, coord, 5, FLY_TYPE);
+		createEnemy(renderer, vec2(window_width_px / 2.f - ENEMY_BB_HEIGHT, middleY), ENEMY_SPEED, coord);
+		createEnemy(renderer, vec2(window_width_px / 2.f + ENEMY_BB_HEIGHT, middleY), ENEMY_SPEED, coord);
 		break;
 	}
 }
@@ -1021,6 +1043,7 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
+	case ROOM_TYPE::FLY_LAPS:
 	case ROOM_TYPE::LAPS:
 		createWall(renderer, { window_width_px / 4.f, middleY }, scale, 0.f, randomFloorItem(), coord);
 		createWall(renderer, { window_width_px / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
@@ -1056,6 +1079,7 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px / 2.f + 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY - 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
 		createWall(renderer, { window_width_px / 2.f + 2.f * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER), middleY + 1.2 * (FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER) }, scale, 0.f, randomFloorItem(), coord);
 		break;
+	case ROOM_TYPE::FLY_TUNNELS:
 	case ROOM_TYPE::TUNNELS:
 		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY }, scale, 0.f, randomFloorItem(), coord);
 		createWall(renderer, { (window_width_px - 2 * WALL_WIDTH) * 8.f / 13.f + WALL_WIDTH / 2.f, topY - (FLOOR_ITEM_BUFFER + FLOOR_ITEM_SIZE) }, scale, 0.f, randomFloorItem(), coord);
@@ -1230,9 +1254,9 @@ void generate_map() {
 	roomMap[{ 3, -1 }] = ROOM_TYPE::CHECKERBOARD;
 	roomMap[{ 3,  0 }] = ROOM_TYPE::SCATTER;
 	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
-	roomMap[{ 3,  3 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 3,  3 }] = ROOM_TYPE::FLY_LAPS;
 	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 3,  5 }] = ROOM_TYPE::TUNNELS;
+	roomMap[{ 3,  5 }] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
 	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
@@ -1255,9 +1279,10 @@ void generate_map() {
 	roomMap[{8, -6}] = ROOM_TYPE::BIG_X;
 	roomMap[{9, -5}] = ROOM_TYPE::SCARECROW_ROOM;
 	roomMap[{8, -1}] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{8, -2}] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{8, 0}] = ROOM_TYPE::LAPS;
 	roomMap[{9, -1}] = ROOM_TYPE::TWO_HEAVY;
-	roomMap[{9, 0}] = ROOM_TYPE::TUNNELS;
+	roomMap[{9, 0}] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{10, 0}] = ROOM_TYPE::BIG_X;
 	roomMap[{10, 1}] = ROOM_TYPE::ONE_HEAVY;
 	roomMap[{10, 2}] = ROOM_TYPE::TWO_SIMPLE;

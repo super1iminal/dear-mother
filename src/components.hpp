@@ -444,7 +444,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	TEXT_BOX = ENEMY_ROBOT_OFF + 1,
 	OLD_MAN = TEXT_BOX + 1,
 	SCARECROW = OLD_MAN + 1,
-	TEXTURE_COUNT = SCARECROW + 1,
+	ENEMY_FLY_WALK = SCARECROW + 1,
+	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
+	TEXTURE_COUNT = ENEMY_FLY_ATTACK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
