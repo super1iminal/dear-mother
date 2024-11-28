@@ -1003,10 +1003,10 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 4.f) + (FLOOR_ITEM_BUFFER * 4.f), middleY }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CORNER_MIX:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::FLY_LAPS:
 	case ROOM_TYPE::LAPS:
@@ -1018,18 +1018,18 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px * 3.f / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CHECKERBOARD:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { window_width_px / 2.f, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px / 2.f, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::BIG_X:
 		createWall(renderer, { window_width_px / 2.f, middleY, }, scale, 0.f, randomFloorItem(), coord);
@@ -1197,7 +1197,7 @@ void generate_map() {
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	// Test room
-	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+	 roomMap[{-1, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
@@ -1221,13 +1221,13 @@ void generate_map() {
 	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
 	roomMap[{ 3,  3 }] = ROOM_TYPE::FLY_LAPS;
 	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 3,  5 }] = ROOM_TYPE::FLY_TUNNELS;
+	roomMap[{ 3,  5 }] = ROOM_TYPE::LAPS;
 	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
 	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 4,  2 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 4,  1 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 4, -1 }] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
