@@ -746,8 +746,8 @@ void AISystem::boss_three_ai() {
 	{
 	case BOSS_THREE_PHASE::PHASE_ONE:
 		pathfinding(boss_entity);
-		registry.shooters.get(boss_entity).fire_rate = 1000;
-		if (boss_health.curr_health <= 20) {
+		registry.shooters.get(boss_entity).fire_rate = 2000;
+		if (boss_health.curr_health <= 40) {
 			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_TWO;
 		}
 		else if (boss_health.curr_health <= 10) {
@@ -755,11 +755,17 @@ void AISystem::boss_three_ai() {
 		}
 		break;
 	case BOSS_THREE_PHASE::PHASE_TWO:
+		pathfinding(boss_entity);
+		registry.shooters.get(boss_entity).fire_rate = 1000;
+		boss_motion.max_speed = 120;
 		if (boss_health.curr_health <= 10) {
 			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_THREE;
 		}
 		break;
 	case BOSS_THREE_PHASE::PHASE_THREE:
+		pathfinding(boss_entity);
+		boss_motion.max_speed = 140; // Maybe this is too much?
+		//registry.shooters.get(boss_entity).fire_rate = 750;
 		break;
 	}
 }

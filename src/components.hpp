@@ -185,6 +185,8 @@ struct BossTwo
 struct BossThree
 {
 	BOSS_THREE_PHASE boss_phase = BOSS_THREE_PHASE::PHASE_ONE;
+	int reflect_shots = 0;
+	int items_to_disable = 3;
 };
 
 // anything that the player can interact with
@@ -407,7 +409,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	VOLITILE_BLASTER = SUPERCHARGED_BATTERY_PACK + 1,
 	HOT_DIESEL = VOLITILE_BLASTER + 1,
 	OPTICAL_SENSOR = HOT_DIESEL + 1,
-	HIT_PARTICLE = OPTICAL_SENSOR + 1,
+	CROSS = OPTICAL_SENSOR + 1,
+	HIT_PARTICLE = CROSS + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	START_MENU = HIT_PARTICLE_PLAYER + 1,
 	HELP_SCREEN = START_MENU + 1,
@@ -526,6 +529,8 @@ struct ItemStat {
 	int heal_size = 0;
 
 	int scrap_amt = 50;
+
+	bool disabled = false;
 };
 
 

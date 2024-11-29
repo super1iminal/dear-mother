@@ -198,6 +198,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.players.get(player).combat_state = COMBAT_STATE::NORMAL_COMBAT;
 			update_music();
 		}
+		else if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_THREE_COMBAT) {
+			// Should only ever be one boss three at any given time
+			if (registry.bossThrees.components[0].boss_phase == BOSS_THREE_PHASE::PHASE_THREE) {
+				boss_disable_items();
+			}
+		}
 	}
 	else {
 		if (registry.players.get(player).combat_state != COMBAT_STATE::NO_COMBAT) {
@@ -337,7 +343,7 @@ void WorldSystem::handle_deaths() {
 					Player p = registry.players.get(player);
 					std::ostringstream death_screen;
 					std::ostringstream collected_items;
-					Inventory player_inventory = registry.inventory.get(player);
+					Inventory& player_inventory = registry.inventory.get(player);
 					if (player_inventory.items.size() > 0) {
 						map<int, ItemStat>::iterator item;
 						map<int, ItemStat>::iterator finalItem;
@@ -470,7 +476,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	}
 	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead) {
 		handle_interactions(&WorldSystem::handle_scrapping);
-	}
+	} 
 
 	// Resart game after death
 	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.dead) {
@@ -735,7 +741,97 @@ void WorldSystem::boss_three_shoot(Entity& entity, WorldObject& entity_object) {
 		createProjectile(renderer, entity_object.position, angle + radians(15.f), 350.0f, false, current_room);
 		Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 	}
+	else if (boss_three.boss_phase == BOSS_THREE_PHASE::PHASE_TWO) {
+		Entity obstacle;
+		if (boss_motion.velocity.x >= 0) {
+			obstacle = createWall(renderer, { entity_object.position.x - 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		else if (boss_motion.velocity.x < 0) {
+			obstacle = createWall(renderer, { entity_object.position.x + 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		Lifetime& lifetime = registry.lifetimes.emplace(obstacle);
+		lifetime.time_remaining_ms = 10000;
+
+		vec2 coor_player = registry.worldObjects.get(registry.players.entities[0]).position;
+		int dx = entity_object.position.x - coor_player.x;
+		int dy = entity_object.position.y - coor_player.y;
+		float angle = atan2(dy, dx) - M_PI;
+		if (angle < 0)
+			angle += 2 * M_PI;
+		if (boss_three.reflect_shots > 0) {
+			createProjectile(renderer, entity_object.position, angle - radians(30.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, angle - radians(15.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, angle + radians(15.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, angle + radians(30.f), 350.0f, false, current_room);
+			boss_three.reflect_shots--;
+		}
+	}
+	else if (boss_three.boss_phase == BOSS_THREE_PHASE::PHASE_THREE) {
+		Entity obstacle;
+		if (boss_motion.velocity.x >= 0) {
+			obstacle = createWall(renderer, { entity_object.position.x - 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		else if (boss_motion.velocity.x < 0) {
+			obstacle = createWall(renderer, { entity_object.position.x + 160,  entity_object.position.y }, { FLOOR_ITEM_SIZE, FLOOR_ITEM_SIZE }, 0.f, TEXTURE_ASSET_ID::DEAD_ROBOT, current_room);
+		}
+		Lifetime& lifetime = registry.lifetimes.emplace(obstacle);
+		lifetime.time_remaining_ms = 10000;
+
+		createProjectile(renderer, entity_object.position, 0, 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(30.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(60.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(120.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(150.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(210.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(240.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(300.f), 350.0f, false, current_room);
+		createProjectile(renderer, entity_object.position, radians(330.f), 350.0f, false, current_room);
+	}
 	set_last_shot_time(entity);
+}
+
+void WorldSystem::boss_disable_items() {
+	// Strange stuff with droping, prevent droping or readd to 'items_to_disable'
+	// Diable some of the players items here
+	Inventory& player_inventory = registry.inventory.get(player);
+	BossThree& boss_three = registry.bossThrees.components[0]; // Assuming there is only ever one boss three
+	if (player_inventory.items.size() > 0) {
+		if (player_inventory.items.size() < boss_three.items_to_disable) {
+			// Make sure not to keep trying if there aren't 'items_to_disable' items
+			boss_three.items_to_disable = player_inventory.items.size();
+		}
+		if (boss_three.items_to_disable > 0) {
+			map<int, ItemStat>::iterator item = player_inventory.items.begin();
+			std::advance(item, rand() % player_inventory.items.size());
+			if (!item->second.disabled) {
+				item->second.disabled = true;
+				std::cout << "Disabled: " << itemNameToString.at(item->second.name) << std::endl;
+				boss_three.items_to_disable--;
+				update_player_modifier();
+				updateGameUI();
+			}
+		}
+	}
+}
+
+void WorldSystem::enable_all_items() {
+	Inventory& player_inventory = registry.inventory.get(player);
+	map<int, ItemStat>::iterator item;
+	for (item = player_inventory.items.begin(); item != player_inventory.items.end(); item++) {
+		item->second.disabled = false;
+		// Revist maybe not great stuff
+		for (Entity entity : registry.uiElements.entities) {
+			if (registry.uiElements.get(entity).name == "item_ui_disable_" + std::to_string(item->first)) {
+				registry.pendingRemoves.emplace(entity);
+			}
+		}
+	}
+	update_player_modifier();
+	updateGameUI();
 }
 
 void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
@@ -940,6 +1036,21 @@ TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
 		break;
 	case ITEM_NAME::HEATSINK:
 		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	case ITEM_NAME::WD4000:
+		item_texture = TEXTURE_ASSET_ID::WD4000;
+		break;
+	case ITEM_NAME::VOLITILE_BLASTER:
+		item_texture = TEXTURE_ASSET_ID::VOLITILE_BLASTER;
+		break;
+	case ITEM_NAME::OPTICAL_SENSOR:
+		item_texture = TEXTURE_ASSET_ID::OPTICAL_SENSOR;
+		break;
+	case ITEM_NAME::HOT_DIESEL:
+		item_texture = TEXTURE_ASSET_ID::HOT_DIESEL;
+		break;
+	case ITEM_NAME::SUPERCHARGED_BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::SUPERCHARGED_BATTERY_PACK;
 		break;
 	}
 	return item_texture;
@@ -1187,6 +1298,7 @@ void WorldSystem::handle_boss_three_death(Entity& entity) {
 	registry.players.get(player).boss_three_beat = true;
 	createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
 	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+	enable_all_items();
 	update_music();
 	std::cout << "YAYYYY :3" << std::endl;
 }
@@ -1242,7 +1354,8 @@ void WorldSystem::handle_item_drop(int item_key) {
 	// remove the item from the player's inventory
 	player_inventory.items.erase(item_key);
 	for (Entity entity : registry.uiElements.entities) {
-		if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item_key)) {
+		if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item_key)
+			|| registry.uiElements.get(entity).name == "item_ui_disable_" + std::to_string(item_key)) {
 			registry.pendingRemoves.emplace(entity);
 		}
 	}
@@ -1451,6 +1564,14 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 		createParticles(renderer, registry.worldObjects.get(deadly).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 	}
 
+	if (registry.bossThrees.has(deadly)) {
+		// Player shots to be reflected
+		BossThree& boss_three = registry.bossThrees.get(deadly);
+		if (boss_three.boss_phase == BOSS_THREE_PHASE::PHASE_TWO) {
+			boss_three.reflect_shots++;
+		}
+	}
+
 	// Remove projectile
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
@@ -1496,6 +1617,17 @@ void WorldSystem::updateGameUI() {
 			"item_ui_" + std::to_string(item.first),
 			getItemTexture(player_inventory.items[item.first]),
 			SCENE_TYPE::GAME);
+		// ADD DISABLE STUFF HERE
+		// Add cross on top if diabled
+		if (item.second.disabled) {
+			UISystem::createTexturedUIElement(
+				renderer,
+				vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+				vec2(75.f, 75.f),
+				"item_ui_disable_" + std::to_string(item.first),
+				TEXTURE_ASSET_ID::CROSS,
+				SCENE_TYPE::GAME);
+		}
 	}
 }
 
@@ -1590,22 +1722,28 @@ void WorldSystem::update_player_modifier() const {
 
 	for (auto& object : registry.inventory.get(player).items) {
 		auto item = object.second;
-		new_damage_flat += item.flat_damage_mod;
+		// Only apply modifier if item isn't disabled
+		if (!item.disabled) {
+			new_damage_flat += item.flat_damage_mod;
 
-		new_speed_flat += item.flat_speed_mod;
-		new_speed_percent += item.percent_speed_mod;
+			new_speed_flat += item.flat_speed_mod;
+			new_speed_percent += item.percent_speed_mod;
 
-		new_fire_rate_flat += item.flat_fire_rate;
-		new_fire_rate_percent += item.percent_fire_rate;
+			new_fire_rate_flat += item.flat_fire_rate;
+			new_fire_rate_percent += item.percent_fire_rate;
 
-		new_range_flat += item.flat_range;
-		new_range_percent += item.percent_range;
+			new_range_flat += item.flat_range;
+			new_range_percent += item.percent_range;
 
-		new_crit_chance += item.crit_chance;
+			new_crit_chance += item.crit_chance;
 
-		new_dodge_chance += item.dodge_chance;
+			new_dodge_chance += item.dodge_chance;
 
-		new_accuracy += item.accuracy;
+			new_accuracy += item.accuracy;
+		}
+		else {
+			std::cout << itemNameToString.at(item.name) << " is disabled" << std::endl;
+		}
 	}
 	Modifier& player_modifier = registry.modifiers.get(player);
 
@@ -1641,5 +1779,14 @@ void WorldSystem::update_player_modifier() const {
 		player_modifier.dodge_chance = 0;
 	}
 
-	std::cout << player_modifier.dodge_chance << std::endl;
+	std::cout << "DF" << player_modifier.damage_modifier_flat << std::endl;
+	std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
+	std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
+	std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;
+	std::cout << "RP" << player_modifier.range_modifier_percent << std::endl;
+	std::cout << "FRF" << player_modifier.fire_rate_modifier_flat << std::endl;
+	std::cout << "FRP" << player_modifier.fire_rate_modifier_percent << std::endl;
+	std::cout << "AM" << player_modifier.accuracy_modifier << std::endl;
+	std::cout << "CC" << player_modifier.crit_chance << std::endl;
+	std::cout << "DC" << player_modifier.dodge_chance << std::endl;
 }

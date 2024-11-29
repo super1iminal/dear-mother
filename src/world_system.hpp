@@ -156,6 +156,8 @@ private:
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
 	void handle_boss_three_death(Entity& entity);
+	void boss_disable_items();
+	void enable_all_items();
 	void handle_item_pickup(Entity item);
 	void handle_scrapping(Entity item);
 	void handle_item_drop(int item_key);

@@ -68,11 +68,12 @@ class RenderSystem {
 			textures_path("creaky_wheel.png"),
 			textures_path("heatsink.png"), 
 			textures_path("repeater.png"), 
-			textures_path("battery.png"),	// Should be WD-4000
-			textures_path("battery.png"),	// Should be Supercharged Battery
-			textures_path("battery.png"),	// Should be Volatile Blaster
-			textures_path("battery.png"),	// Should be Hot Diesel
-			textures_path("battery.png"),	// Should be Optical Sensor
+			textures_path("wd-4000.png"),	
+			textures_path("supercharged_battery.png"),	
+			textures_path("volatile_blaster.png"),	
+			textures_path("hot_diesel.png"),	
+			textures_path("optical_sensor.png"),	
+			textures_path("cross.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
 			textures_path("start_screen_bg.png"),

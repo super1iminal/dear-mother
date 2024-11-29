@@ -416,8 +416,8 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	registry.bossThrees.emplace(entity).boss_phase = BOSS_THREE_PHASE::PHASE_ONE;
 
 	auto& health = registry.healthComponents.emplace(entity);
-	health.max_health = 30;
-	health.curr_health = 30;
+	health.max_health = 60;
+	health.curr_health = 60;
 
 	auto& deadly = registry.deadlys.emplace(entity);
 	deadly.t = std::chrono::high_resolution_clock::now();
@@ -650,6 +650,21 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 		break;
 	case ITEM_NAME::HEATSINK:
 		item_texture = TEXTURE_ASSET_ID::HEATSINK;
+		break;
+	case ITEM_NAME::WD4000:
+		item_texture = TEXTURE_ASSET_ID::WD4000;
+		break;
+	case ITEM_NAME::VOLITILE_BLASTER:
+		item_texture = TEXTURE_ASSET_ID::VOLITILE_BLASTER;
+		break;
+	case ITEM_NAME::OPTICAL_SENSOR:
+		item_texture = TEXTURE_ASSET_ID::OPTICAL_SENSOR;
+		break;
+	case ITEM_NAME::HOT_DIESEL:
+		item_texture = TEXTURE_ASSET_ID::HOT_DIESEL;
+		break;
+	case ITEM_NAME::SUPERCHARGED_BATTERY_PACK:
+		item_texture = TEXTURE_ASSET_ID::SUPERCHARGED_BATTERY_PACK;
 		break;
 	}
 
@@ -1283,7 +1298,7 @@ void generate_map() {
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
 	roomMap[{ 1, 0 }] = ROOM_TYPE::TWO_SIMPLE;
-	//roomMap[{ 1,  0 }] = ROOM_TYPE::BOSS_ROOM_THREE;
+	roomMap[{ -1,  0 }] = ROOM_TYPE::BOSS_ROOM_THREE; // Boss Three Temp location
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
