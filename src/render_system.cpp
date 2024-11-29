@@ -213,9 +213,30 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
 		// let render_text() handle this
-		text_to_render.push_back(entity);
+		// text_to_render.push_back(entity);
+
+		UIElement ui_elt = registry.uiElements.get(entity);
+		WorldObject world_object = registry.worldObjects.get(entity);
+
+		vec3 color = vec3(1.0f, 1.0f, 1.0f);
+
+		if (registry.colors.has(entity)) {
+			color = registry.colors.get(entity);
+		}
+
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
+		render_text(
+			ui_elt.value,
+			world_object.position.x,
+			window_height_px - world_object.position.y,
+			world_object.scale.y,
+			color,
+			trans
+		);
 		
 		glBindVertexArray(0);
+		glUseProgram(program);
 		return;
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FLOOR_TEXT) {
@@ -383,7 +404,7 @@ void RenderSystem::draw(float elapsed_ms)
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			// note that activeComponents are ONLY USED for game entities
-			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
 				continue;
 			if (registry.roomCoords.has(entity)) {
 				if (!registry.activeComponents.has(entity))
@@ -401,7 +422,7 @@ void RenderSystem::draw(float elapsed_ms)
 
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.menuSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -411,7 +432,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw help screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.helpSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -421,7 +442,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw pause screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.pauseSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -431,7 +452,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// draw shop screen
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.shopSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -442,7 +463,7 @@ void RenderSystem::draw(float elapsed_ms)
 		for (Entity entity : registry.renderRequests.entities)
 		{
 			// note that activeComponents are ONLY USED for game entities
-			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.gameSceneComponents.has(entity))
 				continue;
 			if (registry.roomCoords.has(entity)) {
 				if (!registry.activeComponents.has(entity))
@@ -457,7 +478,7 @@ void RenderSystem::draw(float elapsed_ms)
 		// then draw dialogue on top of everything. simple, yipeeeeee!:
 		for (Entity entity : registry.renderRequests.entities)
 		{
-			if (!registry.worldObjects.has(entity) || !registry.dialogueSceneComponents.has(entity) || registry.crosshairs.has(entity))
+			if (!registry.worldObjects.has(entity) || !registry.dialogueSceneComponents.has(entity))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
 		}
@@ -472,13 +493,13 @@ void RenderSystem::draw(float elapsed_ms)
 	drawToScreen();
 
 	// render all text
-	drawText();
+	// drawText();
 
-	if (registry.crosshairs.size() > 0) {
-		Entity crosshair = registry.crosshairs.entities[0];
-		drawTexturedMesh(crosshair, projection_2D, elapsed_ms); // TODO: drawing it twice. doesn't matter rn since nothinhg happens in drawtoscreen, but 
-																// might need to add a check above
-	}
+	//if (registry.crosshairs.size() > 0) {
+	//	Entity crosshair = registry.crosshairs.entities[0];
+	//	drawTexturedMesh(crosshair, projection_2D, elapsed_ms); // TODO: drawing it twice. doesn't matter rn since nothinhg happens in drawtoscreen, but 
+	//															// might need to add a check above
+	//}
 	
 
 	// flicker-free display with a double buffer

@@ -127,7 +127,7 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		SCENE_TYPE::SHOP
 	);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
 
 	updateUpgrade(UPGRADE_TYPE::ITEM_SLOT);
 }
@@ -543,12 +543,12 @@ bool ShopSystem::is_mouse_within_button(WorldObject buttonObject)
 bool ShopSystem::is_mouse_within_text_button(WorldObject buttonObject)
 {
 	float scale_x = buttonObject.scale.x * 20;
-	float scale_y = buttonObject.scale.y * 20;
+	float scale_y = buttonObject.scale.y * 7;
 	
 	bool passesX = (cursor_position.x > buttonObject.position.x
 		&& cursor_position.x < buttonObject.position.x + (scale_x));
-	bool passesY = (cursor_position.y > buttonObject.position.y - (scale_y)
-		&& cursor_position.y < buttonObject.position.y + (scale_y));
+	bool passesY = (cursor_position.y > buttonObject.position.y - (1.5 * scale_y)
+		&& cursor_position.y < buttonObject.position.y + (0.5 * scale_y));
 	return passesX && passesY;
 }
 
@@ -556,5 +556,22 @@ void ShopSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+
+	auto& uiButtonsRegistry = registry.shopSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton button = registry.uiButtons.get(buttonEntity);
+		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
+		bool within_button = (registry.uiElements.has(buttonEntity) && is_mouse_within_text_button(buttonObject)) || is_mouse_within_button(buttonObject);
+		if (within_button) {
+			// change cursor to be hover
+			std::cout << "hover" << std::endl;
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
+			break;
+		}
+		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
+			std::cout << "not hover" << std::endl;
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		}
+	}
 }

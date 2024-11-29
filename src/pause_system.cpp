@@ -62,7 +62,7 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		SCENE_TYPE::PAUSE
 	);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::PAUSE);
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::PAUSE);
 
 	// pause music
 	pause_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 01 Demons from the Dark-compressed.wav").c_str());
@@ -112,5 +112,20 @@ void PauseSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+	
+	auto& uiButtonsRegistry = registry.pauseSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton button = registry.uiButtons.get(buttonEntity);
+		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
+		bool within_button = is_mouse_within_button(buttonObject);
+		if (within_button) {
+			// change cursor to be hover
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
+			break;
+		}
+		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		}
+	}
 }
