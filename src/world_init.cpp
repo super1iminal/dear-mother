@@ -315,21 +315,25 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 		deadly.immune = true;
 		health.curr_health = 20;
 		worldobject.scale = vec2({ 450, 300 });
-		registry.renderRequests.insert(
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY
+			});
 	}
 	else {
 		deadly.type = 2;
 		deadly.immune = false;
 		worldobject.scale = vec2({ 105, 150 });
-		registry.renderRequests.insert(
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_WALK,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY
+			});
 	}
 
 	return entity;
@@ -363,11 +367,13 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 
 	registry.blockers.emplace(entity);
 	// don't be fooled, type is type
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::BOSS_ONE_IDLE,
 			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_ORDER::ENEMY
+		});
 
 	return entity;
 }
