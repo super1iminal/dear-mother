@@ -26,8 +26,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 280.f),
-		vec2(162.f, 42.f),
+		vec2(window_width_px / 2, 428.f),
+		vec2(243.f, 39.f),
 		[&]() {
 
 			scene_manager.set_scene(SCENE_TYPE::GAME);
@@ -36,10 +36,11 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		TEXTURE_ASSET_ID::RUN_BUTTON,
 		SCENE_TYPE::MENU
 	);
+
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 - 1.f, 325.f),
-		vec2(162.f, 42.f),
+		vec2(window_width_px / 2, 486.f),
+		vec2(243.f, 47.f),
 		[&]() {
 			std::cout << "Loading game" << std::endl;
 		if (registry.gameLoadingHelper.size() > 0) {
@@ -59,8 +60,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 3.f, 365.f),
-		vec2(90.f, 44.f),
+		vec2(window_width_px / 2, 543.f),
+		vec2(135.f, 66.f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::HELP);
@@ -72,8 +73,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, 408.f),
-		vec2(165.f, 44.f),
+		vec2(window_width_px / 2, 606.f),
+		vec2(248.f, 66.f),
 		[&]() {
 			std::cout << "Upgrades button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::SHOP);
@@ -85,8 +86,8 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2 + 7.f, 450.f),
-		vec2(90.f, 44.f),
+		vec2(window_width_px / 2, 666.f),
+		vec2(135.f, 66.f),
 		[&]() {
 			std::cout << "Quit button pressed!" << std::endl;
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -96,7 +97,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		SCENE_TYPE::MENU
 	);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::MENU);
 
 	// menu music
 	menu_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 14 Vereor Nox-compressed.wav").c_str());
@@ -140,7 +141,22 @@ void MenuSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+	
+	auto& uiButtonsRegistry = registry.menuSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton button = registry.uiButtons.get(buttonEntity);
+		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
+		bool within_button = is_mouse_within_button(buttonObject);
+		if (within_button) {
+			// change cursor to be hover
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
+			break;
+		}
+		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		}
+	}
 }
 
 //tempory for load game testing

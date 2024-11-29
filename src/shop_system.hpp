@@ -40,6 +40,8 @@ private:
 		DODGE_UPGRADE = CRIT_UPGRADE + 1
 	};
 
+	Entity crosshair;
+
 	UPGRADE_TYPE viewed_upgrade;
 
 	Entity viewed_upgrade_cost;
@@ -56,8 +58,6 @@ private:
 	Entity crit_upgrade_level;
 	Entity dodge_upgrade_level;
 	Entity current_scrap_display;
-
-	int current_scrap;
 
 	void initButtons();
 

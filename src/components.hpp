@@ -92,7 +92,7 @@ struct Collision
 };
 
 // Player component
-struct Player // TODO: why are these variables here im crying
+struct Player
 {
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
@@ -393,7 +393,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	MENU_CROSSHAIR = GAME_CROSSHAIR + 1,
 	MENU_HOVER_CROSSHAIR = MENU_CROSSHAIR + 1,
 	UI = MENU_HOVER_CROSSHAIR + 1,
-	ENEMY = UI + 1,
+	HEALTH_UI_BASE = UI + 1,
+	HEALTH_UI_SEGMENT = HEALTH_UI_BASE + 1,
+	HEALTH_UI_SEGMENT_HIDDEN = HEALTH_UI_SEGMENT + 1,
+	ENEMY = HEALTH_UI_SEGMENT_HIDDEN + 1,
 	ENEMY_2 = ENEMY + 1,
 	HORZ_WALL = ENEMY_2 + 1,
 	VERT_WALL = HORZ_WALL + 1,
@@ -412,7 +415,8 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	CROSS = OPTICAL_SENSOR + 1,
 	HIT_PARTICLE = CROSS + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	START_MENU = HIT_PARTICLE_PLAYER + 1,
+	ITEM_SPARKLES = HIT_PARTICLE_PLAYER + 1,
+	START_MENU = ITEM_SPARKLES + 1,
 	HELP_SCREEN = START_MENU + 1,
 	SHOP_SCREEN = HELP_SCREEN + 1,
 	START_BUTTON = SHOP_SCREEN + 1,
@@ -457,7 +461,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	TEXT_BOX = ENEMY_ROBOT_OFF + 1,
 	OLD_MAN = TEXT_BOX + 1,
 	SCARECROW = OLD_MAN + 1,
-	TEXTURE_COUNT = SCARECROW + 1,
+	ENEMY_FLY_WALK = SCARECROW + 1,
+	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
+	TEXTURE_COUNT = ENEMY_FLY_ATTACK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -530,7 +536,10 @@ struct ItemStat {
 
 	int scrap_amt = 50;
 
+
 	bool disabled = false;
+
+	Entity particles;	// the particles anim associated with this item; stored here for easy removal when the item is picked up
 };
 
 

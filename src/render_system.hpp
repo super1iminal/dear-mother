@@ -57,6 +57,9 @@ class RenderSystem {
 			textures_path("/crosshairs/crosshair193.png"),
 			textures_path("/crosshairs/crosshair070.png"),
 			textures_path("base_UI.png"),
+			textures_path("base_health_bar.png"),
+			textures_path("health_segment.png"),
+			textures_path("health_segment_inactive.png"),
 			textures_path("enemy_robot.png"),
 			textures_path("enemy_robot_2.png"),
 			textures_path("horz_wall_new.png"),
@@ -76,13 +79,13 @@ class RenderSystem {
 			textures_path("cross.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("/anims/idle/sparkles_anim.png"),
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
 			textures_path("/buttons/start_button.png"),
-
-		textures_path("/buttons/run_button.png"),
-		textures_path("/buttons/continue_button.png"),
+			textures_path("/buttons/run_button.png"),
+			textures_path("/buttons/continue_button.png"),
 			textures_path("/buttons/help_button.png"),
 			textures_path("/buttons/upgrade_button.png"),
 			textures_path("/buttons/quit_button.png"),
@@ -124,7 +127,8 @@ class RenderSystem {
 			textures_path("textbox.png"),
 			npc_path("old_man.png"),
 			npc_path("scarecrow.png"),
-
+			textures_path("/anims/walk/enemy_fly_walk.png"),
+			textures_path("/anims/attack/enemy_fly_attack.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
