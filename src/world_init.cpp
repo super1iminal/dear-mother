@@ -274,35 +274,6 @@ Entity createEnemy(
 	return entity;
 }
 
-Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord) {
-	// Store a reference to the potentially re-used mesh object
-	Entity entity = Entity();
-	registry.gameSceneComponents.emplace(entity);
-	registry.activeComponents.emplace(entity);
-	registry.roomCoords.emplace(entity, room_coord);
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = pos;
-	worldobject.scale = scale;
-
-	vec3& text_color = registry.colors.emplace(entity);
-	text_color = vec3(1.f, 0.f, 0.f);
-
-	registry.floorTexts.emplace(entity).text = text;
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::FLOOR_TEXT,
-			GEOMETRY_BUFFER_ID::SQUARE });
-
-	return entity;
-}
-
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -1236,7 +1207,7 @@ void generate_map() {
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
-	roomMap[{ 1,  0 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 1,  0 }] = ROOM_TYPE::BOSS_ROOM_ONE;	// TODO replace w/ TWO_SIMPLE
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
@@ -1348,9 +1319,34 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 	}
 }
 
-// useless lol
-Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room) {
-	return createFloorText(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 350, window_height_px / 2 - 100 }, { 6, 2 }, current_room);
+Entity create_self_destruct_text(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 current_room) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, current_room);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	vec3& text_color = registry.colors.emplace(entity);
+	text_color = vec3(1.f, 0.f, 0.f);
+
+	registry.uiElements.emplace(entity).value = text;
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::FONT,
+			GEOMETRY_BUFFER_ID::SQUARE,
+			RENDER_ORDER::PARTICLE
+		});
+	return entity;
 } 
 
 

@@ -88,8 +88,7 @@ Entity createEnemy(
 	int type = (int)rand() % 2
 );
 
-// put text on the floor
-Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
+Entity createText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
 
 // boss one
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
@@ -115,7 +114,7 @@ Entity createSparkles(RenderSystem* renderer, vec2 position, vec2 size, ivec2 ro
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
-Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
+Entity create_self_destruct_text(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 current_room);
 
 Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, NPC_TYPE npc_type);
 

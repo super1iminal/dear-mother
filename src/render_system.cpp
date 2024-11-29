@@ -213,7 +213,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
 		// let render_text() handle this
-		// text_to_render.push_back(entity);
 
 		UIElement ui_elt = registry.uiElements.get(entity);
 		WorldObject world_object = registry.worldObjects.get(entity);
@@ -237,12 +236,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		
 		glBindVertexArray(0);
 		glUseProgram(program);
-		return;
-	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::FLOOR_TEXT) {
-		floor_text_to_render.push_back(entity);
-
-		glBindVertexArray(0);
 		return;
 	}
 	else
@@ -413,7 +406,6 @@ void RenderSystem::draw(float elapsed_ms)
 			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
-			drawFloorText();
 		}
 		break;
 	}
@@ -472,7 +464,6 @@ void RenderSystem::draw(float elapsed_ms)
 			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
-			drawFloorText();
 		}
 
 		// then draw dialogue on top of everything. simple, yipeeeeee!:
@@ -491,66 +482,11 @@ void RenderSystem::draw(float elapsed_ms)
 
 	// Truely render to the screen
 	drawToScreen();
-
-	// render all text
-	// drawText();
-
-	//if (registry.crosshairs.size() > 0) {
-	//	Entity crosshair = registry.crosshairs.entities[0];
-	//	drawTexturedMesh(crosshair, projection_2D, elapsed_ms); // TODO: drawing it twice. doesn't matter rn since nothinhg happens in drawtoscreen, but 
-	//															// might need to add a check above
-	//}
 	
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
-}
-
-void RenderSystem::drawFloorText() {
-	for (Entity text : floor_text_to_render) {
-		WorldObject world_object = registry.worldObjects.get(text);
-		FloorText floor_text = registry.floorTexts.get(text);
-
-		glm::mat4 trans = glm::mat4(1.0f);
-		/*trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
-		trans = glm::translate(trans, glm::vec3(world_object.position, 0.0f));*/
-		render_text(
-			floor_text.text,
-			world_object.position.x,
-			world_object.position.y,
-			world_object.scale.x,
-			//vec3(1.0f, 1.0f, 1.0f),
-			registry.colors.get(text),
-			trans
-		);
-	}
-	floor_text_to_render.clear();
-}
-
-void RenderSystem::drawText() {
-	for (uint i = 0; i < text_to_render.size(); i++) {
-		UIElement ui_elt = registry.uiElements.get(text_to_render[i]);
-		WorldObject world_object = registry.worldObjects.get(text_to_render[i]);
-
-		vec3 color = vec3(1.0f, 1.0f, 1.0f);
-
-		if (registry.colors.has(text_to_render[i])) {
-			color = registry.colors.get(text_to_render[i]);
-		}
-
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::rotate(trans, world_object.angle, glm::vec3(0.0, 0.0, 1.0));
-		render_text(
-			ui_elt.value, 
-			world_object.position.x, 
-			window_height_px - world_object.position.y,
-			world_object.scale.y,
-			color,
-			trans
-		);
-	}
-	text_to_render.clear();
 }
 
 void RenderSystem::render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
