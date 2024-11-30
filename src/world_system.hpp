@@ -53,6 +53,7 @@ public:
 	// update animations
 	void update_animations();
 	void update_music();
+	void update_crosshair_cooldown();
 
 	// ==================== CALLBACK FUNCTIONS ====================
 	// Input callback functions
@@ -117,6 +118,10 @@ private:
 	Entity level_ui;
 	std::vector<Entity> health_segments_ui;
 	int health_segment_length;
+
+	// In Game Crosshair
+	Entity game_crosshair;
+	bool cooldown_in_progress = false;
 	
 	// Item stuff
 	int shop_crit_upgrade = 0;
@@ -150,6 +155,7 @@ private:
 	std::chrono::steady_clock::time_point get_curr_time();
 	// animation playing
 	void playEnemyAttack(Entity enemy);
+	void display_death_screen();
 
 
 	// ==================== HANDLING FUNCTIONS ====================

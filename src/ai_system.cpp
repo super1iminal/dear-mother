@@ -698,28 +698,28 @@ void AISystem::boss_one_ai() {
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_T_L:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_T_R:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_B_L:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_B_R:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
