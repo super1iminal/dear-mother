@@ -56,6 +56,16 @@ class RenderSystem {
 			textures_path("/crosshairs/crosshair003.png"),
 			textures_path("/crosshairs/crosshair193.png"),
 			textures_path("/crosshairs/crosshair070.png"),
+			textures_path("/crosshairs/cooldown_crosshair_0_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_1_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_2_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_3_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_4_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_5_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_6_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_7_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_8_10.png"),
+			textures_path("/crosshairs/cooldown_crosshair_9_10.png"),
 			textures_path("base_UI.png"),
 			textures_path("base_health_bar.png"),
 			textures_path("health_segment.png"),
@@ -69,10 +79,17 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("shattered_quartz.png"),
 			textures_path("creaky_wheel.png"),
-			textures_path("heatsink.png"),
-			textures_path("repeater.png"),
+			textures_path("heatsink.png"), 
+			textures_path("repeater.png"), 
+			textures_path("wd-4000.png"),	
+			textures_path("supercharged_battery.png"),	
+			textures_path("volatile_blaster.png"),	
+			textures_path("hot_diesel.png"),	
+			textures_path("optical_sensor.png"),	
+			textures_path("cross.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("/anims/idle/sparkles_anim.png"),
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
@@ -103,6 +120,7 @@ class RenderSystem {
 			textures_path("floor_final_boss.png"),
 			textures_path("horz_wall_final_boss.png"),
 			textures_path("vert_wall_final_boss.png"),
+			textures_path("/anims/walk/boss_2.png"),
 
 			// floor items must be kept together ====================================================================
 			textures_path("BrokenGenerator.png"),
@@ -129,6 +147,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
+		shader_path("font"),
 		shader_path("font"),
 		shader_path("font"),
 		shader_path("salmon"),
@@ -215,9 +234,14 @@ private:
 	// floor text entities to render
 	std::vector<Entity> floor_text_to_render;
 
+	// death screen text entities to render
+	std::vector<Entity> death_text_to_render;
+
 	void drawText();
 
 	void drawFloorText();
+
+	void RenderSystem::drawDeathScreenText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

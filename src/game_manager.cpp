@@ -267,6 +267,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 		world.update_animations();
 		world.handle_collisions();
 		world.handle_deaths();
+		world.update_crosshair_cooldown();
 		break;
 	}
 	case SCENE_TYPE::MENU:

@@ -40,6 +40,8 @@ private:
 		DODGE_UPGRADE = CRIT_UPGRADE + 1
 	};
 
+	Entity crosshair;
+
 	UPGRADE_TYPE viewed_upgrade;
 
 	Entity viewed_upgrade_cost;

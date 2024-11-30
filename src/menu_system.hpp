@@ -34,5 +34,7 @@ private:
 
 	Mix_Music* menu_music;
 
+	Entity crosshair;
+
 	bool is_mouse_within_button(WorldObject buttonObject);
 };
