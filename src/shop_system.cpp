@@ -136,13 +136,14 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 void ShopSystem::initButtons() {
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - 507.f, window_height_px - 405.f),
+		vec2(window_width_px - 506.f, window_height_px - 405.f),
 		vec2(351.f, 90.f),
 		[&]() {
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::BACK_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
@@ -168,6 +169,7 @@ void ShopSystem::initButtons() {
 		},
 		"item_slot_upgrade_button",
 		TEXTURE_ASSET_ID::ITEM_SLOT_BUTTON,
+		TEXTURE_ASSET_ID::ITEM_SLOT_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
@@ -180,6 +182,7 @@ void ShopSystem::initButtons() {
 		},
 		"damage_upgrade_button",
 		TEXTURE_ASSET_ID::DMG_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::DMG_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
@@ -192,6 +195,7 @@ void ShopSystem::initButtons() {
 		},
 		"health_upgrade_button",
 		TEXTURE_ASSET_ID::HEALTH_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::HEALTH_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
@@ -204,6 +208,7 @@ void ShopSystem::initButtons() {
 		},
 		"crit_upgrade_button",
 		TEXTURE_ASSET_ID::CRIT_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::CRIT_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
@@ -216,6 +221,7 @@ void ShopSystem::initButtons() {
 		},
 		"dodge_upgrade_button",
 		TEXTURE_ASSET_ID::DODGE_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::DODGE_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 }
@@ -524,19 +530,40 @@ void ShopSystem::on_mouse_move(vec2 mouse_position) {
 
 	auto& uiButtonsRegistry = registry.shopSceneButtons.entities;
 	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	bool is_any_button_hovered = false;
 	for (Entity buttonEntity : uiButtonsRegistry) {
-		UIButton button = registry.uiButtons.get(buttonEntity);
-		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
-		bool within_button = (registry.uiElements.has(buttonEntity) && is_mouse_within_text_button(buttonObject)) || is_mouse_within_button(buttonObject);
-		if (within_button) {
-			// change cursor to be hover
-			std::cout << "hover" << std::endl;
-			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
-			break;
+		UIButton& button = registry.uiButtons.get(buttonEntity);
+		WorldObject& buttonObject = registry.worldObjects.get(buttonEntity);
+		RenderRequest& button_render_request = registry.renderRequests.get(buttonEntity);
+		bool mouse_within_button = (registry.uiElements.has(buttonEntity) && is_mouse_within_text_button(buttonObject)) || is_mouse_within_button(buttonObject);
+		if (mouse_within_button) {
+			is_any_button_hovered = true;
+
+			if (!button.is_hovered) {
+				button.is_hovered = true;
+				if (registry.uiElements.has(buttonEntity)) {	// if this is a text button, change the text color
+					registry.colors.remove(buttonEntity);
+					registry.colors.emplace(buttonEntity) = vec3(0.58, 0.83, 0.39);
+				}
+				else {
+					button_render_request.used_texture = button.hover_texture;	// change the texture
+				}
+			}
 		}
-		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
-			std::cout << "not hover" << std::endl;
-			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		else {
+			if (button.is_hovered) {
+				button.is_hovered = false;
+				if (registry.uiElements.has(buttonEntity)) {	// if this is a text button, change the text color
+					registry.colors.remove(buttonEntity);
+					registry.colors.emplace(buttonEntity) = vec3(0.35, 0.76, 0.32);
+				}
+				else {
+					button_render_request.used_texture = button.base_texture;	// change the texture
+				}
+			}
 		}
 	}
+
+	crosshair_render_request.used_texture = is_any_button_hovered ? TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR
+		: TEXTURE_ASSET_ID::MENU_CROSSHAIR;
 }

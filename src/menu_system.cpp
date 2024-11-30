@@ -34,13 +34,14 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"run_button",
 		TEXTURE_ASSET_ID::RUN_BUTTON,
+		TEXTURE_ASSET_ID::RUN_BUTTON_HOVER,
 		SCENE_TYPE::MENU
 	);
 
 	UISystem::createButton(
 		renderer,
 		vec2(window_width_px / 2, 486.f),
-		vec2(243.f, 47.f),
+		vec2(243.f, 59.f),
 		[&]() {
 			std::cout << "Loading game" << std::endl;
 		if (registry.gameLoadingHelper.size() > 0) {
@@ -54,6 +55,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"continue_button",
 		TEXTURE_ASSET_ID::CONTINUE_BUTTON,
+		TEXTURE_ASSET_ID::CONTINUE_BUTTON_HOVER,
 		SCENE_TYPE::MENU
 	);
 
@@ -68,6 +70,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"help_button",
 		TEXTURE_ASSET_ID::HELP_BUTTON,
+		TEXTURE_ASSET_ID::HELP_BUTTON_HOVER,
 		SCENE_TYPE::MENU
 	);
 
@@ -81,6 +84,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"shop_button",
 		TEXTURE_ASSET_ID::SHOP_BUTTON,
+		TEXTURE_ASSET_ID::SHOP_BUTTON_HOVER,
 		SCENE_TYPE::MENU
 	);
 
@@ -94,6 +98,7 @@ void MenuSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"quit_button",
 		TEXTURE_ASSET_ID::QUIT_BUTTON,
+		TEXTURE_ASSET_ID::QUIT_BUTTON_HOVER,
 		SCENE_TYPE::MENU
 	);
 
@@ -141,22 +146,37 @@ void MenuSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	
+
 	auto& uiButtonsRegistry = registry.menuSceneButtons.entities;
 	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	bool is_any_button_hovered = false;
 	for (Entity buttonEntity : uiButtonsRegistry) {
-		UIButton button = registry.uiButtons.get(buttonEntity);
-		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
-		bool within_button = is_mouse_within_button(buttonObject);
-		if (within_button) {
-			// change cursor to be hover
-			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
-			break;
+		UIButton& button = registry.uiButtons.get(buttonEntity);
+		WorldObject& buttonObject = registry.worldObjects.get(buttonEntity);
+		RenderRequest& button_render_request = registry.renderRequests.get(buttonEntity);
+		bool mouse_within_button = is_mouse_within_button(buttonObject);
+		if (mouse_within_button) {
+			is_any_button_hovered = true;
+
+			if (!button.is_hovered) {
+				button.is_hovered = true;
+				button_render_request.used_texture = button.hover_texture;	// change the texture
+				buttonObject.scale.x = buttonObject.scale.x * 1.16;
+				buttonObject.position.x = buttonObject.position.x - 10.f;
+			}
 		}
-		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
-			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		else {
+			if (button.is_hovered) {
+				button.is_hovered = false;
+				button_render_request.used_texture = button.base_texture;	// change the texture
+				buttonObject.scale.x = buttonObject.scale.x * 0.86;
+				buttonObject.position.x = buttonObject.position.x + 10.f;
+			}
 		}
 	}
+
+	crosshair_render_request.used_texture = is_any_button_hovered ? TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR
+		: TEXTURE_ASSET_ID::MENU_CROSSHAIR;
 }
 
 //tempory for load game testing

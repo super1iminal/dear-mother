@@ -32,6 +32,7 @@ void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
 		SCENE_TYPE::HELP
 	);
 

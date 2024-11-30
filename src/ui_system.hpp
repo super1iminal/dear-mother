@@ -53,13 +53,14 @@ public:
 		TEXTURE_ASSET_ID texture_id,
 		SCENE_TYPE scene_type);
 
-	static Entity createButton(
+	static Entity UISystem::createButton(
 		RenderSystem* renderer,
 		vec2 pos,
 		vec2 scale,
 		std::function<void()> action,
 		std::string button_name,
 		TEXTURE_ASSET_ID texture_id,
+		TEXTURE_ASSET_ID hover_texture_id,
 		SCENE_TYPE scene_type);
 
 	static Entity createTextButton(
