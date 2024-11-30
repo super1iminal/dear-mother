@@ -139,6 +139,12 @@ class RenderSystem {
 			npc_path("scarecrow.png"),
 			textures_path("/anims/walk/enemy_fly_walk.png"),
 			textures_path("/anims/attack/enemy_fly_attack.png"),
+
+			textures_path("/anims/death/player-death.png"),
+			textures_path("/anims/death/final-boss-death-anim.png"),
+			textures_path("/anims/death/final-boss-dead.png"),
+			textures_path("/anims/death/boss-1-dead.png"),
+			textures_path("/anims/death/boss_1_death.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

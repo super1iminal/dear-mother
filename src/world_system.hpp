@@ -192,5 +192,8 @@ private:
 	void updateEnemyAnimation(Entity enemy);
 
 	// Item stuff
-	void update_player_modifier() const;	
+	void update_player_modifier() const;
+
+	// ======================== DEATH ANIMS ==============================
+	void WorldSystem::show_player_death(Entity& entity);
 };

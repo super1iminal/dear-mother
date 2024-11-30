@@ -325,6 +325,16 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+void WorldSystem::show_player_death(Entity& entity) {
+	RenderRequest& rendReq = registry.renderRequests.get(entity);
+	Animation& anim = registry.animations.get(entity);
+	anim.cols = 107;
+	anim.frames = 107;
+	anim.current_frame = 0;
+	rendReq.used_texture = TEXTURE_ASSET_ID::PLAYER_DEATH;
+	registry.projectiles.clear();
+}
+
 void WorldSystem::handle_deaths() {
 	for (Entity entity : registry.healthComponents.entities)
 	{
@@ -340,8 +350,10 @@ void WorldSystem::handle_deaths() {
 					player_motion.target_velocity = { 0,0 };
 
 					registry.players.get(entity).dead = true;
+					show_player_death(entity);
 					display_death_screen();
 					registry.deathTimers.emplace(entity);
+					registry.deathTimers.get(entity).counter_ms = 10000;
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
@@ -372,7 +384,7 @@ void WorldSystem::handle_deaths() {
 
 
 // ==================== UPDATE FUNCTIONS ====================
-// ran once per step. called from game_manager.cpp
+// runs once per step. called from game_manager.cpp
 void WorldSystem::update_animations() {
 	updatePlayerAnimation();
 
@@ -653,7 +665,7 @@ void WorldSystem::initGameUI() {
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(540.f, 68.f),
+		vec2(476.f, 68.f),
 		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
@@ -663,7 +675,7 @@ void WorldSystem::initGameUI() {
 	// create level_ui entity
 	level_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(552.f, 126.f),
+		vec2(488.f, 134.f),
 		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
@@ -1771,6 +1783,8 @@ void WorldSystem::drawItemInventory() {
 }
 
 void WorldSystem::updatePlayerAnimation() {
+	if (registry.players.get(player).dead) // player is dead (for death animation)
+		return;
 	Animation& player_animation = registry.animations.get(player);
 	Motion player_motion = registry.motions.get(player);
 	if (player_motion.target_velocity.x != 0.f || player_motion.target_velocity.y != 0.f) {
