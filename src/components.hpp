@@ -115,8 +115,7 @@ struct Health
 
 struct Modifier {
 
-	int damage_modifier_flat = 0;
-	float damage_modifier_percentage = 1.0f;
+	int damage_modifier = 0;
 
 	int crit_chance = 1;
 	int dodge_chance = 0;

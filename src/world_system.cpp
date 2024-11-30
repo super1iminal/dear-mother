@@ -475,10 +475,19 @@ void WorldSystem::initUpgrades() {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
+			if (std::getline(ss, tag, ',')) {
+				std::string values_str;
+				std::vector<int> values;
+				if (std::getline(ss, values_str, ',')) {
+					try {
+						values.push_back(std::stoi(values_str)); // Convert to int and add to vector
+					}
+					catch (const std::invalid_argument&) {
+						std::cerr << "Error: Invalid number in CSV for tag: " << tag << std::endl;
+					}
+				}
 				if (tagMap.find(tag) != tagMap.end()) {
-					*tagMap[tag] = value;
+					*tagMap[tag] = values[0];
 				}
 			}
 		}
@@ -489,7 +498,7 @@ void WorldSystem::initUpgrades() {
 	}
 
 	player_inventory.size = PLAYER_BASE_INV_SIZE + item_slots;
-	player_modifier.damage_modifier_percentage = 1.0f + (damage_upgrade * DAMAGE_UPGRADE_MODIFIER);
+	player_modifier.damage_modifier = damage_upgrade;
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
@@ -612,7 +621,7 @@ void WorldSystem::shoot(Entity& entity) {
 				registry.lifetimes.get(projectile).time_remaining_ms += player_modifier.range_modifier_flat + (bullet_range * player_modifier.range_modifier_percent);
 				Modifier& player_modifier = registry.modifiers.get(player);
 
-				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier_flat) * player_modifier.damage_modifier_percentage;
+				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier);
 				// check if this hit could be a crit
 				if (uniform_dist(rng) * 100 > (100 - player_modifier.crit_chance)) {
 					projectile_damage *= 2;
@@ -1515,7 +1524,7 @@ void WorldSystem::update_player_modifier() const {
 	}
 	Modifier& player_modifier = registry.modifiers.get(player);
 
-	player_modifier.damage_modifier_flat = new_damage_flat;
+	player_modifier.damage_modifier = new_damage_flat;
 
 	player_modifier.speed_modifier_flat = new_speed_flat;
 	player_modifier.speed_modifier_percent = new_speed_percent;
