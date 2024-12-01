@@ -280,6 +280,9 @@ void CollisionSystem::add_collisions() {
     const auto& entities = registry.gameSceneActives.entities;
     size_t entityCount = entities.size();
 
+    // crosshair(s) can only collide with one ui element at a time
+    bool crosshair_has_collided = false;
+
     for (size_t i = 0; i < entityCount; ++i) {
         Entity entity_i = entities[i];
         if (!registry.activeComponents.has(entity_i)) { continue; } // Skip inactive entities
@@ -309,6 +312,10 @@ void CollisionSystem::add_collisions() {
                 bool isDoor_j = registry.doors.has(entity_j);
                 bool isBossOne_i = registry.bossOnes.has(entity_i);
                 bool isBossOne_j = registry.bossOnes.has(entity_j);
+				bool isTexturedUIElement_i = registry.uiElements.has(entity_i);
+				bool isTexturedUIElement_j = registry.uiElements.has(entity_j);
+				bool isCrosshair_i = registry.crosshairs.has(entity_i);
+				bool isCrosshair_j = registry.crosshairs.has(entity_j);
 
                 // Handle projectile collisions
                 if (isProjectile_i) {
@@ -395,6 +402,15 @@ void CollisionSystem::add_collisions() {
                 }
                 else if (isPlayer_j && isDoor_i) {
                     registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_DOOR);
+                }
+
+				if (!crosshair_has_collided && isCrosshair_i && isTexturedUIElement_i) {
+					crosshair_has_collided = true;
+					registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
+				}
+                else if (!crosshair_has_collided && isCrosshair_j && isTexturedUIElement_j) {
+                    crosshair_has_collided = true;
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
                 }
             }
         }

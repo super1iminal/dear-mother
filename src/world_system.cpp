@@ -310,6 +310,9 @@ void WorldSystem::handle_collisions() {
 			case COLLISION_TYPE::PLAYER_BOSS_ONE:
 				handlePlayerBossOne(entity, entity_other);
 				break;
+			case COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT:
+				// handleCrosshairTexturedUIElement(entity, entity_other);
+				break;
 			default:
 				printf("Unhandled collision\n");
 				break;
@@ -1387,7 +1390,6 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	registry.pendingRemoves.emplace_with_duplicates(projectile);
 	return;
 }
-
 
 
 // ==================== UPDATE FUNCTIONS ====================

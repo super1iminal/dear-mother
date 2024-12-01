@@ -158,6 +158,7 @@ private:
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
+	// void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
 
 
 	// ==================== UPDATE FUNCTIONS ====================
