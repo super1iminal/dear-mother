@@ -131,8 +131,8 @@ class RenderSystem {
 			// Also potential for an interactable floor item oil spill, which the player slides across without control
 			// floor items must be kept together ====================================================================
 			textures_path("textbox.png"),
-			npc_path("old_man.png"),
-			npc_path("scarecrow.png"),
+			textures_path("/anims/idle/npc_1_anim.png"),
+			textures_path("/anims/idle/npc_2_anim.png"),
 			textures_path("/anims/walk/enemy_fly_walk.png"),
 			textures_path("/anims/attack/enemy_fly_attack.png"),
 	};

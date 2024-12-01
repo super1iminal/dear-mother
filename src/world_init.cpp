@@ -736,16 +736,23 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 	worldobject.scale = size;
 
 	NPC& npc = registry.NPCs.emplace(entity, "", npc_type);
+	Animation& npc_anim = registry.animations.emplace(entity);
+	npc_anim.rows = 1;
+	npc_anim.current_frame = 0;
 
 	TEXTURE_ASSET_ID texture_id;
 	switch (npc_type) {
 		case (NPC_TYPE::OLD_ROBOT_NPC):
 			texture_id = TEXTURE_ASSET_ID::OLD_MAN;
 			npc.dialogue_path = dialogue_path("old_robot.json");
+			npc_anim.cols = 30;
+			npc_anim.frames = 30;
 			break;
 		case (NPC_TYPE::SCARECROW_NPC):
 			texture_id = TEXTURE_ASSET_ID::SCARECROW;
 			npc.dialogue_path = dialogue_path("scarecrow.json");
+			npc_anim.cols = 28;
+			npc_anim.frames = 28;
 			break;
 		default:
 			printf("NPC type not recognized\n");
@@ -779,7 +786,7 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ texture_id,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_ORDER::ENEMY });
 
