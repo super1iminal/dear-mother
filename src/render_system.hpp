@@ -117,6 +117,7 @@ class RenderSystem {
 			textures_path("/anims/attack/heavy_enemy_attack.png"),
 			textures_path("/anims/idle/final_boss_anim.png"),
 			textures_path("/anims/idle/boss_1-sheet.png"),
+			textures_path("boss_1_dead_v2.png"),
 			textures_path("floor_final_boss.png"),
 			textures_path("horz_wall_final_boss.png"),
 			textures_path("vert_wall_final_boss.png"),

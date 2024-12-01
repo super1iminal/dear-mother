@@ -86,7 +86,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 size, float angle, TEXT
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(entity, &mesh);
 	if (type == TEXTURE_ASSET_ID::VERT_WALL || type == TEXTURE_ASSET_ID::HORZ_WALL
-		|| type == TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL || type == TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL) {
+		|| type == TEXTURE_ASSET_ID::BOSS_FINAL_VERT_WALL || type == TEXTURE_ASSET_ID::BOSS_FINAL_HORZ_WALL) {
 		registry.walls.emplace(entity);
 	}
 	else {
@@ -394,7 +394,7 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	// don't be fooled, type is type
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS_ONE_IDLE,
+		{ TEXTURE_ASSET_ID::BOSS_TWO_IDLE,
 			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -446,7 +446,7 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	// don't be fooled, type is type
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS_TWO_WALK,
+		{ TEXTURE_ASSET_ID::BOSS_THREE_WALK,
 			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE });
 
@@ -482,7 +482,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 	else if (floor_type == FLOOR_TYPE::BOSS_ROOM_ONE) {
 		registry.renderRequests.insert_sorted(
 			floor,
-			{ TEXTURE_ASSET_ID::BOSS_ONE_FLOOR,
+			{ TEXTURE_ASSET_ID::BOSS_FINAL_FLOOR,
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::SPRITE,
 				RENDER_ORDER::FLOOR });
@@ -1226,13 +1226,13 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 	createFloor(renderer, { window_width_px / 2, (window_height_px + BASE_UI_HEIGHT) / 2 }, { (window_width_px - (2 * WALL_WIDTH)) * 1.05 , (window_height_px - (BASE_UI_HEIGHT + (2 * WALL_WIDTH))) * 1.4}, coord, FLOOR_TYPE::BOSS_ROOM_ONE);
 
 	// left wall
-	createWall(renderer, { 42.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
+	createWall(renderer, { 42.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, 0.f, TEXTURE_ASSET_ID::BOSS_FINAL_VERT_WALL, coord);
 	// right wall
-	createWall(renderer, { window_width_px - 42.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_VERT_WALL, coord);
+	createWall(renderer, { window_width_px - 42.f, (window_height_px / 2) + 30.f }, { WALL_WIDTH, window_height_px - 70.f }, M_PI, TEXTURE_ASSET_ID::BOSS_FINAL_VERT_WALL, coord);
 	// top wall
-	createWall(renderer, { window_width_px / 2, 90.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
+	createWall(renderer, { window_width_px / 2, 90.f }, { window_width_px, WALL_WIDTH }, 0.f, TEXTURE_ASSET_ID::BOSS_FINAL_HORZ_WALL, coord);
 	// bottom wall
-	createWall(renderer, { window_width_px / 2, window_height_px - 42.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::BOSS_ONE_HORZ_WALL, coord);
+	createWall(renderer, { window_width_px / 2, window_height_px - 42.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::BOSS_FINAL_HORZ_WALL, coord);
 
 	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {

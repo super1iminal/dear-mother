@@ -162,6 +162,7 @@ private:
 	// ran once per step. private ones are called from inside world_system.cpp
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
+	void handle_boss_two_death(Entity& entity);
 	void handle_boss_three_death(Entity& entity);
 	void boss_disable_items();
 	void enable_all_items();

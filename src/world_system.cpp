@@ -345,7 +345,7 @@ void WorldSystem::handle_deaths() {
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
-				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity)) {
+				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity) && registry.players.get(player).combat_state != COMBAT_STATE::BOSS_TWO_COMBAT) {
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
@@ -357,7 +357,7 @@ void WorldSystem::handle_deaths() {
 					registry.players.get(player).kills++;
 				}
 				else if (registry.bossTwos.has(entity)) {
-					///handle_boss_two_death(entity); TODO: implement this
+					//handle_boss_two_death(entity); // TODO: implement this
 				}
 				else if (registry.bossThrees.has(entity)) {
 					handle_boss_three_death(entity);
@@ -1395,12 +1395,21 @@ void WorldSystem::handle_boss_two() {
 		bossTwo.curr_wave = BOSS_TWO_WAVE::WAVE_FOUR;
 	}
 	else if (bossTwo.curr_wave == BOSS_TWO_WAVE::WAVE_FOUR && alive == 0 && !registry.players.get(player).boss_two_beat) {
-		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // Don't move or delete this line. It is needed for the boss to function, in particular to return to the non-combat state.
-		registry.players.get(player).boss_two_beat = true;
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
-		update_music();
+		handle_boss_two_death(registry.bossTwos.entities[0]);
 	}
+}
+
+void WorldSystem::handle_boss_two_death(Entity& boss) {
+	registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // Don't move or delete this line. It is needed for the boss to function, in particular to return to the non-combat state.
+	registry.players.get(player).boss_two_beat = true;
+	createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+
+	registry.animations.remove(boss);
+	WorldObject& boss_object = registry.worldObjects.get(boss);
+	boss_object.scale = { boss_object.scale.x - 57, boss_object.scale.y + 10 };
+	registry.renderRequests.get(boss).used_texture = TEXTURE_ASSET_ID::BOSS_TWO_DEAD;
+	update_music();
 }
 
 void WorldSystem::handle_boss_three_death(Entity& entity) {
@@ -1816,7 +1825,7 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	}
 	else if (deadly.type == BOSS_THREE) // Boss three mother
 	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_TWO_WALK;
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_THREE_WALK;
 		enemy_animation.cols = 4;
 		enemy_animation.frames = 4;
 	}
@@ -1825,7 +1834,7 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		// enemy is moving; play walking animation (4 frames)
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
-	else if (deadly.type == 3 || deadly.type == 5) {
+	else if (deadly.type == BOSS_ONE || deadly.type == BOSS_THREE) {
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
 	else if (deadly.type == FLY_TYPE) {
