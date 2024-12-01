@@ -45,7 +45,7 @@ public:
 		vec3 color,
 		SCENE_TYPE scene_type);
 
-	static Entity createTextDeathScreen(
+	static Entity createTextPopUp(
 		RenderSystem* renderer,
 		vec2 pos,
 		vec2 scale,

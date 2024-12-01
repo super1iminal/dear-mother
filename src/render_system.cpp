@@ -245,8 +245,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glBindVertexArray(0);
 		return;
 	}
-	else if (render_request.used_effect == EFFECT_ASSET_ID::DEATH_TEXT) {
-		death_text_to_render.push_back(entity);
+	else if (render_request.used_effect == EFFECT_ASSET_ID::POP_UP_TEXT) {
+		pop_up_text_to_render.push_back(entity);
 
 		glBindVertexArray(0);
 		return;
@@ -520,14 +520,14 @@ void RenderSystem::draw(float elapsed_ms)
 }
 
 void RenderSystem::drawDeathScreenText() {
-	for (uint i = 0; i < death_text_to_render.size(); i++) {
-		UIElement ui_elt = registry.uiElements.get(death_text_to_render[i]);
-		WorldObject world_object = registry.worldObjects.get(death_text_to_render[i]);
+	for (uint i = 0; i < pop_up_text_to_render.size(); i++) {
+		UIElement ui_elt = registry.uiElements.get(pop_up_text_to_render[i]);
+		WorldObject world_object = registry.worldObjects.get(pop_up_text_to_render[i]);
 
 		vec3 color = vec3(1.0f, 1.0f, 1.0f);
 
-		if (registry.colors.has(death_text_to_render[i])) {
-			color = registry.colors.get(death_text_to_render[i]);
+		if (registry.colors.has(pop_up_text_to_render[i])) {
+			color = registry.colors.get(pop_up_text_to_render[i]);
 		}
 
 		glm::mat4 trans = glm::mat4(1.0f);
@@ -541,7 +541,7 @@ void RenderSystem::drawDeathScreenText() {
 			trans
 		);
 	}
-	death_text_to_render.clear();
+	pop_up_text_to_render.clear();
 }
 
 void RenderSystem::drawFloorText() {

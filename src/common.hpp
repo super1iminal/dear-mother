@@ -255,5 +255,5 @@ enum class FLOOR_TYPE {
 
 enum class TEXT_BOX_TYPE {
 	DEFAULT = 0,
-	DEATH_SCREEN = DEFAULT + 1,
+	POP_UP = DEFAULT + 1,
 };

@@ -212,6 +212,11 @@ struct InvincibleTimer
 	float counter_ms = 3000;
 };
 
+struct WinTimer
+{
+	float counter_ms = 3000;
+};
+
 struct Friction {
 	float force;
 };
@@ -489,8 +494,8 @@ enum class EFFECT_ASSET_ID {
 	UI_ELEMENT = EGG + 1,
 	FONT = UI_ELEMENT + 1,
 	FLOOR_TEXT = FONT + 1,
-	DEATH_TEXT = FLOOR_TEXT + 1,
-	SALMON = DEATH_TEXT + 1,
+	POP_UP_TEXT = FLOOR_TEXT + 1,
+	SALMON = POP_UP_TEXT + 1,
 	TEXTURED = SALMON + 1,
 	ANIM = TEXTURED + 1,
 	WATER = ANIM + 1,

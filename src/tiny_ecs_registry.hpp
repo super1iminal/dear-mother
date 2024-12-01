@@ -65,6 +65,7 @@ public:
 	ComponentContainer<NPC> NPCs;
 	ComponentContainer<TextBox> textBoxes; // note that this will contain 2 other entities
 	ComponentContainer<DialogueState> dialogueStates; // should be only 1 of em (don't need to save)
+	ComponentContainer<WinTimer> winTimers;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -175,6 +176,7 @@ public:
 		registry_list.push_back(&NPCs);
 		registry_list.push_back(&textBoxes);
 		registry_list.push_back(&dialogueStates);
+		registry_list.push_back(&winTimers);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);

@@ -156,6 +156,7 @@ private:
 	// animation playing
 	void playEnemyAttack(Entity enemy);
 	void display_death_screen();
+	void display_victory_screen();
 
 
 	// ==================== HANDLING FUNCTIONS ====================

@@ -236,7 +236,7 @@ private:
 	std::vector<Entity> floor_text_to_render;
 
 	// death screen text entities to render
-	std::vector<Entity> death_text_to_render;
+	std::vector<Entity> pop_up_text_to_render;
 
 	void drawText();
 

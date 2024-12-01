@@ -233,16 +233,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (counter.counter_ms < min_counter_ms) {
 			min_counter_ms = counter.counter_ms;
 		}
+	}
 
-		// restart the game once the death timer expired
-		if (counter.counter_ms < 0) {
-			//registry.deathTimers.remove(entity);
-			//screen.darken_screen_factor = 0;
-			//scene_manager.set_scene(SCENE_TYPE::MENU);
-			//registry.players.get(entity).dead = true;
-			return true;
+	// Only happens for player
+	for (Entity entity : registry.winTimers.entities) {
+		// progress timer
+		WinTimer& counter = registry.winTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
 		}
 	}
+
 	auto& invincibleTimerRegistry = registry.invincibleTimers;
 	// iterate backwards
 	for (int i = invincibleTimerRegistry.entities.size() - 1; i >= 0; --i) {
@@ -332,7 +334,7 @@ void WorldSystem::handle_deaths() {
 		if (health.curr_health <= 0)
 		{
 			if (registry.players.has(entity)) {
-				if (!registry.deathTimers.has(entity)) {
+				if (!registry.deathTimers.has(entity) && !registry.players.get(entity).dead && !registry.players.get(entity).boss_one_beat) {
 					updateGameUI();
 					ReloadabilitySystem::recordPlayerDeathRoom();
 
@@ -353,8 +355,8 @@ void WorldSystem::handle_deaths() {
 						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
-					handle_boss_one_death(entity);
 					registry.players.get(player).kills++;
+					handle_boss_one_death(entity);
 				}
 				else if (registry.bossTwos.has(entity)) {
 					//handle_boss_two_death(entity); // TODO: implement this
@@ -464,7 +466,9 @@ void WorldSystem::update_crosshair_cooldown() {
 // Input callback functions
 void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
-	left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	if (!registry.players.get(player).dead && !registry.players.get(player).boss_one_beat) {
+		left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	}
 }
 
 // sc is scancode, we don't use it
@@ -479,7 +483,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player);
 
 	// Handle movement keys
-	if ((key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) && !player_component.dead) {
+	if ((key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) && !player_component.dead && !player_component.boss_one_beat) {
 		bool up = glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE;
 		bool left = glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE;
 		bool down = glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE;
@@ -502,16 +506,16 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE && !player_component.dead) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE && !player_component.dead && !player_component.boss_one_beat) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
 		//registry.players.get(player).in_combat = false;
 	}
 
 	// Interaction
-	if (action == GLFW_PRESS && key == GLFW_KEY_E && !player_component.dead) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_E && !player_component.dead && !player_component.boss_one_beat) {
 		handle_interactions(&WorldSystem::handle_item_pickup);
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead && !player_component.boss_one_beat) {
 		handle_interactions(&WorldSystem::handle_scrapping);
 	} 
 
@@ -519,6 +523,14 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.dead) {
 		ScreenState& screen = registry.screenStates.components[0];
 		registry.deathTimers.remove(player);
+		screen.darken_screen_factor = 0;
+		scene_manager.set_scene(SCENE_TYPE::MENU);
+	}
+
+	// Resart game after win
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.boss_one_beat) {
+		ScreenState& screen = registry.screenStates.components[0];
+		registry.winTimers.remove(player);
 		screen.darken_screen_factor = 0;
 		scene_manager.set_scene(SCENE_TYPE::MENU);
 	}
@@ -536,7 +548,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	}
 
 	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8 };
-	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end() && !player_component.dead) {
+	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end() && !player_component.dead && !player_component.boss_one_beat) {
 		handle_item_drop(key - GLFW_KEY_1);
 	}
 }
@@ -1211,6 +1223,41 @@ void WorldSystem::set_player_velocity(vec2 velocity) {
 	updatePlayerAnimation();
 }
 
+void WorldSystem::display_victory_screen() {
+	Player p = registry.players.get(player);
+	std::ostringstream victory_screen;
+	std::ostringstream collected_items;
+	Inventory& player_inventory = registry.inventory.get(player);
+	if (player_inventory.items.size() > 0) {
+		map<int, ItemStat>::iterator item;
+		map<int, ItemStat>::iterator finalItem;
+		finalItem = player_inventory.items.end();
+		--finalItem;
+
+		for (item = player_inventory.items.begin(); item != player_inventory.items.end(); item++) {
+			if (item != finalItem) {
+				collected_items << itemNameToString.find(item->second.name)->second << ", ";
+			}
+			else {
+				collected_items << itemNameToString.find(item->second.name)->second;
+			}
+		}
+	}
+	victory_screen << "\t\t\t\t\t\t\t You Win!\n\n";
+	victory_screen << "Total Kills: " << p.kills << "\n\n";
+	victory_screen << "Scrap Collected: " << p.scrap << "\n\n";
+	if (player_inventory.items.size() <= 0) {
+		victory_screen << "Items Collected: None";
+	}
+	else {
+		victory_screen << "Items Collected: ";
+	}
+	victory_screen << collected_items.str() << "\n\n";
+	victory_screen << "\n\n\n\n\n\n\t\tPress Space To Return To Main Menu";
+	UISystem::createTextBox(renderer, { window_width_px / 2, window_height_px / 2 }, { 500,500 }, { 83 / 255.f, 209 / 255.f, 97 / 255.f }, SCENE_TYPE::GAME,
+		victory_screen.str(), TEXT_BOX_TYPE::POP_UP);
+}
+
 void WorldSystem::display_death_screen() {
 	Player p = registry.players.get(player);
 	std::ostringstream death_screen;
@@ -1244,7 +1291,7 @@ void WorldSystem::display_death_screen() {
 	death_screen << collected_items.str() << "\n\n";
 	death_screen << "\n\n\n\n\n\n\t\tPress Space To Return To Main Menu";
 	UISystem::createTextBox(renderer, { window_width_px / 2, window_height_px / 2 }, { 500,500 }, { 83 / 255.f, 209 / 255.f, 97 / 255.f }, SCENE_TYPE::GAME,
-		death_screen.str(), TEXT_BOX_TYPE::DEATH_SCREEN);
+		death_screen.str(), TEXT_BOX_TYPE::POP_UP);
 }
 
 // ==================== HANDLE FUNCTIONS ====================
@@ -1295,6 +1342,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
+		registry.winTimers.emplace(player);
+		display_victory_screen();
 		std::cout << "YAYYYY :3" << std::endl;
 	}
 }

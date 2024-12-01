@@ -194,7 +194,7 @@ Entity UISystem::createTextUIElement(
 	return entity;
 }
 
-Entity UISystem::createTextDeathScreen(
+Entity UISystem::createTextPopUp(
 	RenderSystem* renderer,
 	vec2 pos,
 	vec2 scale,
@@ -226,7 +226,7 @@ Entity UISystem::createTextDeathScreen(
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::DEATH_TEXT,
+			EFFECT_ASSET_ID::POP_UP_TEXT,
 			GEOMETRY_BUFFER_ID::SQUARE,
 			RENDER_ORDER::UI_ELEMENT });
 
@@ -578,8 +578,8 @@ Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec
 		textbox.textbox_sprite = createTexturedUIElement(renderer, pos, size, "textbox", TEXTURE_ASSET_ID::TEXT_BOX, scene_type);
 		textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
 	}
-	else if (text_box_type == TEXT_BOX_TYPE::DEATH_SCREEN) {
-		textbox.textbox_text = createTextDeathScreen(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+	else if (text_box_type == TEXT_BOX_TYPE::POP_UP) {
+		textbox.textbox_text = createTextPopUp(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
 	}
 
 	return entity;
