@@ -458,7 +458,9 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// nothing yet
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	cursor_position = vec2(xpos, ypos);
 }
 
 
@@ -1149,6 +1151,7 @@ void WorldSystem::handle_item_drop(int item_key) {
 	player_inventory.items.erase(item_key);
 	for (Entity entity : registry.uiElements.entities) {
 		if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item_key)) {
+			printf("found\n");
 			registry.pendingRemoves.emplace(entity);
 		}
 	}
@@ -1390,14 +1393,24 @@ void WorldSystem::updateGameUI() {
 	// TODO pull this into a helper method later
 	Inventory& player_inventory = registry.inventory.get(player);
 	cout << player_inventory.items.size() << endl;
-	for (auto item : player_inventory.items) {
-		UISystem::createTexturedUIElement(
-			renderer,
-			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(item.first),
-			getItemTexture(player_inventory.items[item.first]),
-			SCENE_TYPE::GAME);
+	for (auto &item : player_inventory.items) {
+		bool found = false;
+		// check if item is already a uiElement
+		for (Entity entity : registry.uiElements.entities) {
+			if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item.first)) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			UISystem::createTexturedUIElement(
+				renderer,
+				vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+				vec2(75.f, 75.f),
+				"item_ui_" + std::to_string(item.first),
+				getItemTexture(player_inventory.items[item.first]),
+				SCENE_TYPE::GAME);
+		}
 	}
 }
 

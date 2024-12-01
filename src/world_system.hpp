@@ -84,8 +84,9 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Shooting vars
+	// Mouse vars
 	bool left_mouse_button = false;
+	vec2 cursor_position;
 
 	// Boss one vars
 	Entity final_phase_text;
