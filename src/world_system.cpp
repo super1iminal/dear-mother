@@ -390,6 +390,7 @@ void WorldSystem::handle_deaths() {
 void WorldSystem::update_animations() {
 	updatePlayerAnimation();
 
+	// Boss two death
 	Entity& bossTwo = registry.bossTwos.entities[0];
 	RenderRequest& bossTwoRend = registry.renderRequests.get(bossTwo);
 	Animation& bossTwoAnim = registry.animations.get(bossTwo);
@@ -1298,6 +1299,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 	else if (boss_part.boss_pos == BOSS_ONE_POS::MOTHER) {
 		for (BossOne& b : registry.bossOnes.components) {
 			b.mother = false;
+			//createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, registry.roomCoords.get(entity).position, true);
+			createNPC(renderer, { CENTER_X, 300 }, { 450, 300 }, registry.roomCoords.get(entity).position, NPC_TYPE::FINAL_DEATH);
 		}
 	}
 	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
@@ -1320,8 +1323,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
-		//std::cout << "YAYYYY :3" << std::endl;
-	}
+		}
 }
 
 void WorldSystem::handle_boss_two() {
@@ -1838,9 +1840,19 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	}
 	else if (deadly.type == BOSS_ONE) // Boss one mother 
 	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
-		enemy_animation.cols = 22;
-		enemy_animation.frames = 22;
+		if (!registry.players.components[0].boss_one_beat) {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
+			enemy_animation.cols = 22;
+			enemy_animation.frames = 22;
+		}
+		else {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::FINAL_BOSS_DEATH;
+			enemy_animation.cols = 18;
+			enemy_animation.frames = 18;
+			if (enemy_animation.current_frame == 17) {
+				enemy_animation.current_frame = 16;
+			}
+		}
 	}
 	else if (deadly.type == HEAVY_TYPE)
 	{

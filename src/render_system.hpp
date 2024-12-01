@@ -145,6 +145,8 @@ class RenderSystem {
 			textures_path("/anims/death/final-boss-dead.png"),
 			textures_path("/anims/death/boss-1-dead.png"),
 			textures_path("/anims/death/boss_1_death.png"),
+			textures_path("/anims/death/boss-2-death.png"),
+			textures_path("/anims/death/boss-2-dead.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

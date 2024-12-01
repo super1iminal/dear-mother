@@ -330,7 +330,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 
 	// Manage boss states
 	registry.bossOnes.emplace(entity).boss_pos = boss_pos;
-
+	
 	registry.shooters.emplace(entity).fire_rate = 1500.f;
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
@@ -338,7 +338,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 	enemy_animation.rows = 1;
 	enemy_animation.frames = 1;
 	enemy_animation.current_frame = 0;
-
+	
 	if (boss_pos == BOSS_ONE_POS::MOTHER) {
 		deadly.type = BOSS_ONE;
 		deadly.immune = true;
@@ -835,6 +835,10 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 			break;
 		case (NPC_TYPE::SCARECROW_NPC):
 			texture_id = TEXTURE_ASSET_ID::SCARECROW;
+			npc.dialogue_path = dialogue_path("scarecrow.json");
+			break;
+		case (NPC_TYPE::FINAL_DEATH):
+			texture_id = TEXTURE_ASSET_ID::FINAL_BOSS_DEATH;
 			npc.dialogue_path = dialogue_path("scarecrow.json");
 			break;
 		default:
@@ -1338,7 +1342,7 @@ void generate_map() {
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	// Test room
-	roomMap[{-1, 0}] = ROOM_TYPE::BOSS_ROOM_TWO;
+	roomMap[{-1, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;

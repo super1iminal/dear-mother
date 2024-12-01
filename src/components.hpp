@@ -478,7 +478,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	FINAL_BOSS_DEAD = FINAL_BOSS_DEATH + 1,
 	BOSS_1_DEAD = FINAL_BOSS_DEAD + 1,
 	BOSS_1_DEATH = BOSS_1_DEAD + 1,
-	TEXTURE_COUNT = BOSS_1_DEATH + 1,
+	BOSS_2_DEATH = BOSS_1_DEATH + 1,
+	BOSS_2_DEAD = BOSS_2_DEATH + 1,
+	TEXTURE_COUNT = BOSS_2_DEAD + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
