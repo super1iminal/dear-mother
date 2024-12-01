@@ -85,7 +85,11 @@ class RenderSystem {
 			textures_path("supercharged_battery.png"),	
 			textures_path("volatile_blaster.png"),	
 			textures_path("hot_diesel.png"),	
-			textures_path("optical_sensor.png"),	
+			textures_path("optical_sensor.png"),
+			textures_path("battery.png"),	// Should be NOS
+			textures_path("battery.png"),	// Should be STABILIZER
+			textures_path("battery.png"),	// Should be UNSTABLE_TRANSFORMER
+			textures_path("battery.png"),	// Should be THERMAL_PASTE
 			textures_path("cross.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),

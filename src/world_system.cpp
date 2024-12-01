@@ -1134,6 +1134,18 @@ TEXTURE_ASSET_ID WorldSystem::getItemTexture(ItemStat item) {
 	case ITEM_NAME::SUPERCHARGED_BATTERY_PACK:
 		item_texture = TEXTURE_ASSET_ID::SUPERCHARGED_BATTERY_PACK;
 		break;
+	case ITEM_NAME::NOS:
+		item_texture = TEXTURE_ASSET_ID::NOS;
+		break;
+	case ITEM_NAME::STABILIZER:
+		item_texture = TEXTURE_ASSET_ID::STABILIZER;
+		break;
+	case ITEM_NAME::UNSTABLE_TRANSFORMER:
+		item_texture = TEXTURE_ASSET_ID::UNSTABLE_TRANSFORMER;
+		break;
+	case ITEM_NAME::THERMAL_PASTE:
+		item_texture = TEXTURE_ASSET_ID::THERMAL_PASTE;
+		break;
 	}
 	return item_texture;
 }

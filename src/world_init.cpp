@@ -708,6 +708,18 @@ Entity createItem(RenderSystem* renderer, vec2 position, vec2 size, std::uniform
 	case ITEM_NAME::SUPERCHARGED_BATTERY_PACK:
 		item_texture = TEXTURE_ASSET_ID::SUPERCHARGED_BATTERY_PACK;
 		break;
+	case ITEM_NAME::NOS:
+		item_texture = TEXTURE_ASSET_ID::NOS;
+		break;
+	case ITEM_NAME::STABILIZER:
+		item_texture = TEXTURE_ASSET_ID::STABILIZER;
+		break;
+	case ITEM_NAME::UNSTABLE_TRANSFORMER:
+		item_texture = TEXTURE_ASSET_ID::UNSTABLE_TRANSFORMER;
+		break;
+	case ITEM_NAME::THERMAL_PASTE:
+		item_texture = TEXTURE_ASSET_ID::THERMAL_PASTE;
+		break;
 	}
 
 	registry.renderRequests.insert_sorted(
@@ -1540,4 +1552,35 @@ void buildItemSet() {
 	optical_sensor.dodge_chance = 1;
 	registry.all_items.push_back(optical_sensor);
 	registry.range_items.push_back(optical_sensor);
+
+	ItemStat nos;
+	nos.name = ITEM_NAME::NOS;
+	nos.type = ITEM_TYPE::SPEED;
+	nos.percent_speed_mod = 0.05;
+	nos.dodge_chance = 5;
+	registry.all_items.push_back(nos);
+	registry.speed_items.push_back(nos);
+
+	ItemStat stabilizer;
+	stabilizer.name = ITEM_NAME::STABILIZER;
+	stabilizer.type = ITEM_TYPE::RANGE;
+	stabilizer.flat_range = 75;
+	stabilizer.accuracy = -0.1;
+	registry.all_items.push_back(stabilizer);
+	registry.range_items.push_back(stabilizer);
+
+	ItemStat unstable_transformer;
+	unstable_transformer.name = ITEM_NAME::UNSTABLE_TRANSFORMER;
+	unstable_transformer.type = ITEM_TYPE::DAMAGE;
+	unstable_transformer.crit_chance = 6;
+	unstable_transformer.accuracy = 0.1;
+	registry.all_items.push_back(unstable_transformer);
+	registry.damage_items.push_back(unstable_transformer);
+
+	ItemStat thermal_paste;
+	thermal_paste.name = ITEM_NAME::THERMAL_PASTE;
+	thermal_paste.type = ITEM_TYPE::FIRE_RATE;
+	thermal_paste.percent_fire_rate = 0.05;
+	registry.all_items.push_back(thermal_paste);
+	registry.fire_rate_items.push_back(thermal_paste);
 }

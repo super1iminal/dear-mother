@@ -132,12 +132,16 @@ private:
 																{ ITEM_NAME::HEATSINK, "Heatsink" }, 
 																{ ITEM_NAME::CREAKY_WHEEL, "Creaky Wheel" },
 																{ ITEM_NAME::REPEATER, "Repeater" },
-																{ ITEM_NAME::SHATTERED_QUARTZ, "Shattered Quartz"},
-																{ ITEM_NAME::SUPERCHARGED_BATTERY_PACK, "Supercharged Battery Pack"},
-																{ ITEM_NAME::WD4000, "WD-4000"},
-																{ ITEM_NAME::VOLITILE_BLASTER, "Volitile Blaster"},
-																{ ITEM_NAME::HOT_DIESEL, "Hot Diesel"},
-																{ ITEM_NAME::OPTICAL_SENSOR, "Optical Sensor"}, };
+																{ ITEM_NAME::SHATTERED_QUARTZ, "Shattered Quartz" },
+																{ ITEM_NAME::SUPERCHARGED_BATTERY_PACK, "Supercharged Battery Pack" },
+																{ ITEM_NAME::WD4000, "WD-4000" },
+																{ ITEM_NAME::VOLITILE_BLASTER, "Volitile Blaster" },
+																{ ITEM_NAME::HOT_DIESEL, "Hot Diesel" },
+																{ ITEM_NAME::OPTICAL_SENSOR, "Optical Sensor" },
+																{ ITEM_NAME::NOS, "NOS" },
+																{ ITEM_NAME::STABILIZER, "Stabilizer" },
+																{ ITEM_NAME::UNSTABLE_TRANSFORMER, "Unstable Transformer" },
+																{ ITEM_NAME::THERMAL_PASTE, "Thermal Paste" },};
 
 	// ==================== ACTION FUNCTIONS ====================
 	// functions that set/get/act things directly
