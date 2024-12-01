@@ -92,7 +92,7 @@ struct Collision
 };
 
 // Player component
-struct Player // TODO: why are these variables here im crying
+struct Player
 {
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
@@ -115,8 +115,7 @@ struct Health
 
 struct Modifier {
 
-	int damage_modifier_flat = 0;
-	float damage_modifier_percentage = 1.0f;
+	int damage_modifier = 0;
 
 	int crit_chance = 1;
 	int dodge_chance = 0;
@@ -303,12 +302,6 @@ struct UIElement {
 	std::string value;
 };
 
-// contains information relating to UI buttons
-struct UIButton {
-	std::string name;
-	std::function<void()> action;
-};
-
 struct PendingRemove {
 
 };
@@ -383,7 +376,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	MENU_CROSSHAIR = GAME_CROSSHAIR + 1,
 	MENU_HOVER_CROSSHAIR = MENU_CROSSHAIR + 1,
 	UI = MENU_HOVER_CROSSHAIR + 1,
-	ENEMY = UI + 1,
+	HEALTH_UI_BASE = UI + 1,
+	HEALTH_UI_SEGMENT = HEALTH_UI_BASE + 1,
+	HEALTH_UI_SEGMENT_HIDDEN = HEALTH_UI_SEGMENT + 1,
+	ENEMY = HEALTH_UI_SEGMENT_HIDDEN + 1,
 	ENEMY_2 = ENEMY + 1,
 	HORZ_WALL = ENEMY_2 + 1,
 	VERT_WALL = HORZ_WALL + 1,
@@ -396,25 +392,39 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	REPEATER = HEATSINK + 1,
 	HIT_PARTICLE = REPEATER + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
-	START_MENU = HIT_PARTICLE_PLAYER + 1,
+	ITEM_SPARKLES = HIT_PARTICLE_PLAYER + 1,
+	START_MENU = ITEM_SPARKLES + 1,
 	HELP_SCREEN = START_MENU + 1,
 	SHOP_SCREEN = HELP_SCREEN + 1,
-	START_BUTTON = SHOP_SCREEN + 1,
-	RUN_BUTTON = START_BUTTON + 1,
-	CONTINUE_BUTTON = RUN_BUTTON + 1,
-	HELP_BUTTON = CONTINUE_BUTTON + 1,
-	SHOP_BUTTON = HELP_BUTTON + 1,
-	QUIT_BUTTON = SHOP_BUTTON + 1,
-	BACK_BUTTON = QUIT_BUTTON + 1,
-	RESUME_BUTTON = BACK_BUTTON + 1,
-	MENU_BUTTON = RESUME_BUTTON + 1,
-	SAVE_BUTTON = MENU_BUTTON + 1,
-	ITEM_SLOT_BUTTON = SAVE_BUTTON + 1,
-	DMG_UPGRADE_BUTTON = ITEM_SLOT_BUTTON + 1,
-	HEALTH_UPGRADE_BUTTON = DMG_UPGRADE_BUTTON + 1,
-	CRIT_UPGRADE_BUTTON = HEALTH_UPGRADE_BUTTON + 1,
-	DODGE_UPGRADE_BUTTON = CRIT_UPGRADE_BUTTON + 1,
-	PLAYER_WALK = DODGE_UPGRADE_BUTTON + 1,
+	RUN_BUTTON = SHOP_SCREEN + 1,
+	RUN_BUTTON_HOVER = RUN_BUTTON + 1,
+	CONTINUE_BUTTON = RUN_BUTTON_HOVER + 1,
+	CONTINUE_BUTTON_HOVER = CONTINUE_BUTTON + 1,
+	HELP_BUTTON = CONTINUE_BUTTON_HOVER + 1,
+	HELP_BUTTON_HOVER = HELP_BUTTON + 1,
+	SHOP_BUTTON = HELP_BUTTON_HOVER + 1,
+	SHOP_BUTTON_HOVER = SHOP_BUTTON + 1,
+	QUIT_BUTTON = SHOP_BUTTON_HOVER + 1,
+	QUIT_BUTTON_HOVER = QUIT_BUTTON + 1,
+	BACK_BUTTON = QUIT_BUTTON_HOVER + 1,
+	BACK_BUTTON_HOVER = BACK_BUTTON + 1,
+	RESUME_BUTTON = BACK_BUTTON_HOVER + 1,
+	RESUME_BUTTON_HOVER = RESUME_BUTTON + 1,
+	MENU_BUTTON = RESUME_BUTTON_HOVER + 1,
+	MENU_BUTTON_HOVER = MENU_BUTTON + 1,
+	SAVE_BUTTON = MENU_BUTTON_HOVER + 1,
+	SAVE_BUTTON_HOVER = SAVE_BUTTON + 1,
+	ITEM_SLOT_BUTTON = SAVE_BUTTON_HOVER + 1,
+	ITEM_SLOT_BUTTON_HOVER = ITEM_SLOT_BUTTON + 1,
+	DMG_UPGRADE_BUTTON = ITEM_SLOT_BUTTON_HOVER + 1,
+	DMG_UPGRADE_BUTTON_HOVER = DMG_UPGRADE_BUTTON + 1,
+	HEALTH_UPGRADE_BUTTON = DMG_UPGRADE_BUTTON_HOVER + 1,
+	HEALTH_UPGRADE_BUTTON_HOVER = HEALTH_UPGRADE_BUTTON + 1,
+	CRIT_UPGRADE_BUTTON = HEALTH_UPGRADE_BUTTON_HOVER + 1,
+	CRIT_UPGRADE_BUTTON_HOVER = CRIT_UPGRADE_BUTTON + 1,
+	DODGE_UPGRADE_BUTTON = CRIT_UPGRADE_BUTTON_HOVER + 1,
+	DODGE_UPGRADE_BUTTON_HOVER = DODGE_UPGRADE_BUTTON + 1,
+	PLAYER_WALK = DODGE_UPGRADE_BUTTON_HOVER + 1,
 	ENEMY_WALK = PLAYER_WALK + 1,
 	ENEMY_ATTACK = ENEMY_WALK + 1,
 	ENEMY_2_WALK = ENEMY_ATTACK + 1,
@@ -440,9 +450,20 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	TEXT_BOX = ENEMY_ROBOT_OFF + 1,
 	OLD_MAN = TEXT_BOX + 1,
 	SCARECROW = OLD_MAN + 1,
-	TEXTURE_COUNT = SCARECROW + 1,
+	ENEMY_FLY_WALK = SCARECROW + 1,
+	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
+	TEXTURE_COUNT = ENEMY_FLY_ATTACK + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
+
+// contains information relating to UI buttons
+struct UIButton {
+	std::string name;
+	std::function<void()> action;
+	TEXTURE_ASSET_ID base_texture;
+	TEXTURE_ASSET_ID hover_texture;
+	bool is_hovered = false;
+};
 
 struct FloorItem
 {
@@ -453,8 +474,7 @@ enum class EFFECT_ASSET_ID {
 	EGG = COLOURED + 1,
 	UI_ELEMENT = EGG + 1,
 	FONT = UI_ELEMENT + 1,
-	FLOOR_TEXT = FONT + 1,
-	SALMON = FLOOR_TEXT + 1,
+	SALMON = FONT + 1,
 	TEXTURED = SALMON + 1,
 	ANIM = TEXTURED + 1,
 	WATER = ANIM + 1,
@@ -507,6 +527,8 @@ struct ItemStat {
 	int heal_size = 0;
 
 	int scrap_amt = 50;
+
+	Entity particles;	// the particles anim associated with this item; stored here for easy removal when the item is picked up
 };
 
 

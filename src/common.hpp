@@ -38,8 +38,8 @@ inline std::string dialogue_path(const std::string& name) {
 inline std::string npc_path(const std::string& name) {
 	return textures_path("npcs/") + std::string(name);
 };
-const int window_width_px = 1280;
-const int window_height_px = 720;
+const int window_width_px = 1920;
+const int window_height_px = 1080;
 bool on_screen(vec2 position);
 
 
@@ -70,7 +70,7 @@ struct Transform {
 
 // constants
 const float CROSSHAIR_SIZE = 75.f;
-const float BASE_UI_HEIGHT = 120.f;
+const float BASE_UI_HEIGHT = window_height_px / 6;
 const int MAX_INVENTORY_SIZE = 8;
 const int MAX_UPGRADE_LEVEL = 6;
 const int MIN_INVENTORY_SIZE = 2;
@@ -79,7 +79,9 @@ const int MIN_HEALTH = 2;
 // constants for UI
 const float INITIAL_ITEM_UI_OFFSET_X = (window_width_px / 22);
 const float INITIAL_ITEM_UI_OFFSET_Y = window_height_px / 12;
-const float ITEM_UI_OFFSET_X = 103.f;
+const float ITEM_UI_OFFSET_X = window_width_px * 0.081;
+const float HEALTH_UI_LENGTH = 330.f;
+const float HEALTH_UI_HEIGHT = 122.f;
 
 bool gl_has_errors();
 
@@ -196,6 +198,8 @@ enum class ROOM_TYPE {
 	SCATTER = TUNNELS + 1,
 	TWO_HEAVY = SCATTER + 1,
 	ENEMY_SOCIAL = TWO_HEAVY + 1,
+	FLY_TUNNELS = ENEMY_SOCIAL + 1,
+	FLY_LAPS = FLY_TUNNELS + 1,
 	// ...
 };
 

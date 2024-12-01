@@ -26,11 +26,12 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	);
 
 	initButtons();
+	getUpgradeValuesFromCSV();
 
 	description_line_one = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 190.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 285.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_1",
 		"Add another item slot, ",
 		vec3(0.35, 0.76, 0.32),
@@ -39,78 +40,78 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	description_line_two = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 220.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 330.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_2",
-		"so that you can hold more",
+		"so that you can hold",
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	description_line_three = UISystem::createTextUIElement(
 		renderer,
-		vec2(600.f, 250.f),
-		vec2(40.f, 3.f),
+		vec2(900.f, 375.f),
+		vec2(60.f, 5.f),
 		"upgrade_description_line_3",
-		"items during a run.",
+		"more items during a run.",
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	item_slot_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 292.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 438.f),
+		vec2(60.f, 3.f),
 		"item_slot_level",
-		std::to_string(getUpgradeLevel(UPGRADE_TYPE::ITEM_SLOT)),
+		std::to_string(upgrades["item_slots"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	dmg_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 326.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 489.f),
+		vec2(60.f, 3.f),
 		"dmg_upgrade_level",
-		std::to_string(getUpgradeLevel(UPGRADE_TYPE::DMG_UPGRADE)),
+		std::to_string(upgrades["damage_upgrade"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	health_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 364.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 546.f),
+		vec2(60.f, 3.f),
 		"health_upgrade_level",
-		std::to_string(getUpgradeLevel(UPGRADE_TYPE::HEALTH_UPGRADE)),
+		std::to_string(upgrades["health_upgrade"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	crit_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 404.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 606.f),
+		vec2(60.f, 3.f),
 		"crit_upgrade_level",
-		std::to_string(getUpgradeLevel(UPGRADE_TYPE::CRIT_UPGRADE)),
+		std::to_string(upgrades["crit_upgrade"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	dodge_upgrade_level = UISystem::createTextUIElement(
 		renderer,
-		vec2(514.f, 442.f),
-		vec2(40.f, 2.f),
+		vec2(771.f, 663.f),
+		vec2(60.f, 3.f),
 		"dodge_upgrade_level",
-		std::to_string(getUpgradeLevel(UPGRADE_TYPE::DODGE_UPGRADE)),
+		std::to_string(upgrades["dodge_upgrade"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
 	viewed_upgrade_cost = UISystem::createTextUIElement(
 		renderer,
-		vec2(944.f, 406.f),
-		vec2(8.f, 4.f),
+		vec2(1416.f, 609.f),
+		vec2(12.f, 6.f),
 		"viewed_upgrade_cost",
 		"10",
 		vec3(0.35, 0.76, 0.32),
@@ -119,38 +120,37 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	current_scrap_display = UISystem::createTextUIElement(
 		renderer,
-		vec2(772.f, 460.f),
-		vec2(8.f, 3.f),
+		vec2(1158.f, 690.f),
+		vec2(12.f, 5.f),
 		"current_scrap_display",
-		std::to_string(getScrapLevel()),
+		std::to_string(upgrades["scrap"][0]),
 		vec3(0.35, 0.76, 0.32),
 		SCENE_TYPE::SHOP
 	);
 
-	current_scrap = getScrapLevel();
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
-
-	updateUpgrade(UPGRADE_TYPE::ITEM_SLOT);
+	updateViewedUpgrade(UPGRADE_TYPE::ITEM_SLOT);
 }
 
 void ShopSystem::initButtons() {
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - 338.f, window_height_px - 270.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px - 506.f, window_height_px - 405.f),
+		vec2(351.f, 90.f),
 		[&]() {
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::BACK_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
 	buy_button = UISystem::createTextButton(
 		renderer,
-		vec2(592.f, 405.f),
-		vec2(8.f, 4.f),
+		vec2(888.f, 608.f),
+		vec2(12.f, 6.f),
 		[&]() {
 			buyUpgrade();
 		},
@@ -162,66 +162,73 @@ void ShopSystem::initButtons() {
 
 	UISystem::createButton(
 		renderer,
-		vec2(360.f, 284.f),
-		vec2(146.f, 26.f),
+		vec2(540.f, 426.f),
+		vec2(219.f, 39.f),
 		[&]() {
-			updateUpgrade(UPGRADE_TYPE::ITEM_SLOT);
+			updateViewedUpgrade(UPGRADE_TYPE::ITEM_SLOT);
 		},
 		"item_slot_upgrade_button",
 		TEXTURE_ASSET_ID::ITEM_SLOT_BUTTON,
+		TEXTURE_ASSET_ID::ITEM_SLOT_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(380.f, 320.f),
-		vec2(192.f, 38.f),
+		vec2(570.f, 480.f),
+		vec2(288.f, 57.f),
 		[&]() {
-			updateUpgrade(UPGRADE_TYPE::DMG_UPGRADE);
+			updateViewedUpgrade(UPGRADE_TYPE::DMG_UPGRADE);
 		},
 		"damage_upgrade_button",
 		TEXTURE_ASSET_ID::DMG_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::DMG_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(370.f, 360.f),
-		vec2(172.f, 34.f),
+		vec2(555.f, 540.f),
+		vec2(258.f, 51.f),
 		[&]() {
-			updateUpgrade(UPGRADE_TYPE::HEALTH_UPGRADE);
+			updateViewedUpgrade(UPGRADE_TYPE::HEALTH_UPGRADE);
 		},
 		"health_upgrade_button",
 		TEXTURE_ASSET_ID::HEALTH_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::HEALTH_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(380.f, 396.f),
-		vec2(200.f, 30.f),
+		vec2(570.f, 594.f),
+		vec2(300.f, 45.f),
 		[&]() {
-			updateUpgrade(UPGRADE_TYPE::CRIT_UPGRADE);
+			updateViewedUpgrade(UPGRADE_TYPE::CRIT_UPGRADE);
 		},
 		"crit_upgrade_button",
 		TEXTURE_ASSET_ID::CRIT_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::CRIT_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(352.f, 438.f),
-		vec2(152.f, 36.f),
+		vec2(528.f, 657.f),
+		vec2(228.f, 54.f),
 		[&]() {
-			updateUpgrade(UPGRADE_TYPE::DODGE_UPGRADE);
+			updateViewedUpgrade(UPGRADE_TYPE::DODGE_UPGRADE);
 		},
 		"dodge_upgrade_button",
 		TEXTURE_ASSET_ID::DODGE_UPGRADE_BUTTON,
+		TEXTURE_ASSET_ID::DODGE_UPGRADE_BUTTON_HOVER,
 		SCENE_TYPE::SHOP
 	);
 }
 
-void ShopSystem::updateUpgrade(UPGRADE_TYPE upgrade_type) {
+void ShopSystem::updateViewedUpgrade(UPGRADE_TYPE upgrade_type) {
+	getUpgradeValuesFromCSV();
+
 	viewed_upgrade = upgrade_type;
 	int viewed_upgrade_level = 0;
 
@@ -251,44 +258,26 @@ void ShopSystem::updateUpgrade(UPGRADE_TYPE upgrade_type) {
 	}
 
 	UIElement& scrap_element = registry.uiElements.get(current_scrap_display);
+	if (upgrade_ui_element == nullptr) {
+		std::cerr << "No UI Element for upgrade: " << upgrade_name << " found.";
+		return;
+	}
 
-	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	if (read_file.is_open()) {
-		std::string line;
-		while (std::getline(read_file, line)) {
-			std::stringstream ss(line);
-			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
-				if (tag == upgrade_name) {
-					viewed_upgrade_level = value;
-					if (upgrade_ui_element != nullptr) {
-						upgrade_ui_element->value = std::to_string(viewed_upgrade_level);
-					}
-					else {
-						std::cerr << "Upgrade UI element (to update text) was not found.\n";
-					}
-				}
-				else if (tag == "scrap") {
-					scrap_element.value = std::to_string(value);
-				}
-			}
-		}
-		read_file.close();
-	}
-	else {
-		std::cerr << "Unable to open file for reading.\n";
-	}
+	getUpgradeValuesFromCSV();
+	upgrade_ui_element->value = std::to_string((upgrades[upgrade_name])[0]);
+	scrap_element.value = std::to_string((upgrades["scrap"])[0]);
+
+	viewed_upgrade_level = upgrades[upgrade_name][0];
 
 	UIElement& buy_button_element = registry.uiElements.get(buy_button);
 	UIElement& cost_element = registry.uiElements.get(viewed_upgrade_cost);
-	if (viewed_upgrade_level == 6) {
+	if (viewed_upgrade_level == upgrades[upgrade_name][1]) {
 		buy_button_element.value = "MAX LVL";
 		cost_element.value = "N/A";
 	}
 	else {
 		buy_button_element.value = "BUY LVL " + std::to_string(viewed_upgrade_level + 1);
-		cost_element.value = std::to_string((viewed_upgrade_level + 1) * 10);
+		cost_element.value = std::to_string((viewed_upgrade_level + 1) * 10 * upgrades[upgrade_name][2]);
 	}
 
 	updateUpgradeDescription();
@@ -301,12 +290,12 @@ void ShopSystem::updateUpgradeDescription() {
 	switch (viewed_upgrade) {
 		case UPGRADE_TYPE::ITEM_SLOT:
 			description_one.value = "Add another item slot, ";
-			description_two.value = "so that you can hold more";
-			description_three.value = "items during a run.";
+			description_two.value = "so that you can hold";
+			description_three.value = "more items in a run.";
 			break;
 		case UPGRADE_TYPE::DMG_UPGRADE:
 			description_one.value = "Increase the amount of";
-			description_two.value = "damage you deal by 15%.";
+			description_two.value = "damage you deal by 1.";
 			description_three.value = "";
 			break;
 		case UPGRADE_TYPE::HEALTH_UPGRADE:
@@ -316,37 +305,18 @@ void ShopSystem::updateUpgradeDescription() {
 			break;
 		case UPGRADE_TYPE::CRIT_UPGRADE:
 			description_one.value = "Increase the chance of";
-			description_two.value = "a critical hit (x2 damage)";
-			description_three.value = "by 3%.";
+			description_two.value = "a critical hit (dealing ";
+			description_three.value = "x2 damage) by 3%";
 			break;
 		case UPGRADE_TYPE::DODGE_UPGRADE:
 			description_one.value = "Increase the chance of";
 			description_two.value = "dodging an enemy hit";
-			description_three.value = "(avoiding damage) by 2%.";
+			description_three.value = "(no damage) by 2%.";
 			break;
 	}
 }
 
-int ShopSystem::getUpgradeLevel(UPGRADE_TYPE upgrade_type) {
-	std::string upgrade = "";
-	switch (upgrade_type) {
-	case UPGRADE_TYPE::ITEM_SLOT:
-		upgrade = "item_slots";
-		break;
-	case UPGRADE_TYPE::DMG_UPGRADE:
-		upgrade = "damage_upgrade";
-		break;
-	case UPGRADE_TYPE::HEALTH_UPGRADE:
-		upgrade = "health_upgrade";
-		break;
-	case UPGRADE_TYPE::CRIT_UPGRADE:
-		upgrade = "crit_upgrade";
-		break;
-	case UPGRADE_TYPE::DODGE_UPGRADE:
-		upgrade = "dodge_upgrade";
-		break;
-	}
-
+void ShopSystem::getUpgradeValuesFromCSV() {
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	std::vector<std::pair<std::string, int>> data;
 	if (read_file.is_open()) {
@@ -354,20 +324,47 @@ int ShopSystem::getUpgradeLevel(UPGRADE_TYPE upgrade_type) {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
-				if (tag == upgrade) {
-					return value;
+			if (std::getline(ss, tag, ',')) {
+				std::vector<int> values;
+				std::string value;
+				while (std::getline(ss, value, ',')) {
+					try {
+						values.push_back(std::stoi(value));
+					}
+					catch (const std::invalid_argument&) {
+						std::cerr << "Error: Invalid number in CSV for " << tag << std::endl;
+						continue;
+					}
 				}
+				upgrades[tag] = values;
 			}
 		}
 		read_file.close();
-		return -1;
 	}
 	else {
 		std::cerr << "Unable to open file for reading.\n";
-		return -1;
 	}
+}
+
+void ShopSystem::updateUpgradeValuesForCSV() {
+	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
+	if (!write_file.is_open()) {
+		std::cerr << "Error: Could not open file for writing." << std::endl;
+		return;
+	}
+
+	for (const auto& pair : upgrades) {
+		const std::string& key = pair.first;
+		const std::vector<int>& values = pair.second;
+
+		write_file << key;
+		for (int value : values) {
+			write_file << "," << value;
+		}
+		write_file << "\n";
+	}
+
+	write_file.close();
 }
 
 int ShopSystem::getScrapLevel() {
@@ -378,11 +375,11 @@ int ShopSystem::getScrapLevel() {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
+			std::vector<int> values;
+			if (std::getline(ss, tag, ',')) {
 				if (tag == "scrap") {
-					std::cout << "Scrap: " << value << std::endl;
-					return value;
+					std::cout << "Scrap: " << values[0] << std::endl;
+					return values[0];
 				}
 			}
 		}
@@ -395,23 +392,21 @@ int ShopSystem::getScrapLevel() {
 	}
 }
 
-
 void ShopSystem::updateScrapLevel(int updated_value) {
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	std::vector<std::pair<std::string, int>> data;
+	std::unordered_map<std::string, std::vector<int>> data;
 	if (read_file.is_open()) {
 		std::string line;
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
+			std::vector<int> values;
+			if (std::getline(ss, tag, ',')) {
 				if (tag == "scrap") {
-					data.emplace_back(tag, updated_value);
-					std::cout << updated_value << std::endl;
+					data[tag] = { updated_value };
 				}
 				else {
-					data.emplace_back(tag, value);
+					data[tag] = values;
 				}
 			}
 		}
@@ -423,100 +418,70 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 
 	// now save the updated data to the csv file
 	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	if (write_file.is_open()) {
-		for (const auto& entry : data) {
-			write_file << entry.first << "," << entry.second << "\n";
-		}
-		write_file.close();
-		for (Entity entity : registry.uiElements.entities) {
-			if (registry.uiElements.get(entity).name == "current_scrap_display") {
-				registry.uiElements.get(entity).value = std::to_string(updated_value);
-			}
-		}
+	if (!write_file.is_open()) {
+		std::cerr << "Error: Could not open file for writing." << std::endl;
+		return;
 	}
-	else {
-		std::cerr << "Unable to open file for writing.\n";
+
+	for (const auto& pair : data) {
+		const std::string& key = pair.first;
+		const std::vector<int>& values = pair.second;
+
+		write_file << key;
+		for (int value : values) {
+			write_file << "," << value;
+		}
+		write_file << "\n";
 	}
+
+	write_file.close();
 }
 
-
 void ShopSystem::buyUpgrade() {
-	std::string upgrade = "";
+	std::string upgrade_name = "";
 	switch (viewed_upgrade) {
-		case UPGRADE_TYPE::ITEM_SLOT:
-			upgrade = "item_slots";
-			break;
-		case UPGRADE_TYPE::DMG_UPGRADE:
-			upgrade = "damage_upgrade";
-			break;
-		case UPGRADE_TYPE::HEALTH_UPGRADE:
-			upgrade = "health_upgrade";
-			break;
-		case UPGRADE_TYPE::CRIT_UPGRADE:
-			upgrade = "crit_upgrade";
-			break;
-		case UPGRADE_TYPE::DODGE_UPGRADE:
-			upgrade = "dodge_upgrade";
-			break;
+	case UPGRADE_TYPE::ITEM_SLOT:
+		upgrade_name = "item_slots";
+		break;
+	case UPGRADE_TYPE::DMG_UPGRADE:
+		upgrade_name = "damage_upgrade";
+		break;
+	case UPGRADE_TYPE::HEALTH_UPGRADE:
+		upgrade_name = "health_upgrade";
+		break;
+	case UPGRADE_TYPE::CRIT_UPGRADE:
+		upgrade_name = "crit_upgrade";
+		break;
+	case UPGRADE_TYPE::DODGE_UPGRADE:
+		upgrade_name = "dodge_upgrade";
+		break;
 	}
+
+	std::vector<int> levels = upgrades[upgrade_name];
+	int current_level = levels[0];
+	int max_level = levels[1];
+
 	UIElement& cost_element = registry.uiElements.get(viewed_upgrade_cost);
 	if (cost_element.value == "N/A") {
 		return;	// don't attempt the purchase; we are at max lvl already for this upgrade
 	}
 	int upgrade_cost = std::stoi(cost_element.value);
-	std::cout << "upgrade_cost: " << upgrade_cost << std::endl;
-	std::cout << "upgrade: " << upgrade << std::endl;
+
 	bool purchased = false;
 
-	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	std::vector<std::pair<std::string, int>> data;
-	if (read_file.is_open()) {
-		std::string line;
-		while (std::getline(read_file, line)) {
-			std::stringstream ss(line);
-			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
-				if (tag == upgrade && (current_scrap - upgrade_cost) < 0) {
-					// we do not have enough scrap for this upgrade
-					// TODO make the scrap value flash red
-
-					data.emplace_back(tag, value);
-					std::cout << "Not enough scrap!" << std::endl;
-				}
-				else if (tag == upgrade && value + 1 <= MAX_UPGRADE_LEVEL) {
-					data.emplace_back(tag, value + 1);
-					purchased = true;
-				}
-				else if (tag == "scrap" && purchased) {
-					current_scrap = current_scrap - upgrade_cost;
-					data.emplace_back(tag, current_scrap);
-				}
-				else {
-					data.emplace_back(tag, value);
-				}
-			}
-		}
-		read_file.close();
+	if (upgrades["scrap"][0] - upgrade_cost < 0) {
+		// we do not have enough scrap for this upgrade
+		// TODO make the scrap value flash red
+		std::cout << "Not enough scrap!" << std::endl;
 	}
-	else {
-		std::cerr << "Unable to open file for reading.\n";
+	else if (current_level + 1 <= max_level) {
+		upgrades["scrap"][0] -= upgrade_cost;
+		upgrades[upgrade_name][0] = current_level + 1;
 	}
 
-	// now save the updated data to the csv file 
-	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	if (write_file.is_open()) {
-		for (const auto& entry : data) {
-			write_file << entry.first << "," << entry.second << "\n";
-		}
-		write_file.close();
-	}
-	else {
-		std::cerr << "Unable to open file for writing.\n";
-	}
-
-	// update the UI to show the next level the player will purchase
-	updateUpgrade(viewed_upgrade);
+	updateUpgradeValuesForCSV();
+	// update UI for this upgrade
+	updateViewedUpgrade(viewed_upgrade);
 }
 
 void ShopSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
@@ -549,12 +514,12 @@ bool ShopSystem::is_mouse_within_button(WorldObject buttonObject)
 bool ShopSystem::is_mouse_within_text_button(WorldObject buttonObject)
 {
 	float scale_x = buttonObject.scale.x * 20;
-	float scale_y = buttonObject.scale.y * 20;
+	float scale_y = buttonObject.scale.y * 7;
 	
 	bool passesX = (cursor_position.x > buttonObject.position.x
 		&& cursor_position.x < buttonObject.position.x + (scale_x));
-	bool passesY = (cursor_position.y > buttonObject.position.y - (scale_y)
-		&& cursor_position.y < buttonObject.position.y + (scale_y));
+	bool passesY = (cursor_position.y > buttonObject.position.y - (1.5 * scale_y)
+		&& cursor_position.y < buttonObject.position.y + (0.5 * scale_y));
 	return passesX && passesY;
 }
 
@@ -562,5 +527,43 @@ void ShopSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+
+	auto& uiButtonsRegistry = registry.shopSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	bool is_any_button_hovered = false;
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton& button = registry.uiButtons.get(buttonEntity);
+		WorldObject& buttonObject = registry.worldObjects.get(buttonEntity);
+		RenderRequest& button_render_request = registry.renderRequests.get(buttonEntity);
+		bool mouse_within_button = (registry.uiElements.has(buttonEntity) && is_mouse_within_text_button(buttonObject)) || is_mouse_within_button(buttonObject);
+		if (mouse_within_button) {
+			is_any_button_hovered = true;
+
+			if (!button.is_hovered) {
+				button.is_hovered = true;
+				if (registry.uiElements.has(buttonEntity)) {	// if this is a text button, change the text color
+					registry.colors.remove(buttonEntity);
+					registry.colors.emplace(buttonEntity) = vec3(0.58, 0.83, 0.39);
+				}
+				else {
+					button_render_request.used_texture = button.hover_texture;	// change the texture
+				}
+			}
+		}
+		else {
+			if (button.is_hovered) {
+				button.is_hovered = false;
+				if (registry.uiElements.has(buttonEntity)) {	// if this is a text button, change the text color
+					registry.colors.remove(buttonEntity);
+					registry.colors.emplace(buttonEntity) = vec3(0.35, 0.76, 0.32);
+				}
+				else {
+					button_render_request.used_texture = button.base_texture;	// change the texture
+				}
+			}
+		}
+	}
+
+	crosshair_render_request.used_texture = is_any_button_hovered ? TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR
+		: TEXTURE_ASSET_ID::MENU_CROSSHAIR;
 }

@@ -26,39 +26,42 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	UISystem::createButton(
 		renderer,
 		vec2(window_width_px / 2, window_height_px / 2),
-		vec2(130.f, 28.f),
+		vec2(129.f, 36.f),
 		[&]() {
 			ReloadabilitySystem::saveGame();
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"save_and_quit_button",
 		TEXTURE_ASSET_ID::SAVE_BUTTON,
+		TEXTURE_ASSET_ID::SAVE_BUTTON_HOVER,
 		SCENE_TYPE::PAUSE
 	);
 
 	UISystem::createButton(
 		renderer,
 		vec2(window_width_px / 2, window_height_px / 2 - 82.f),
-		vec2(130.f, 28.f),
+		vec2(195.f, 42.f),
 		[&]() {
 			printf("return to game button presssed\n");
 			scene_manager.set_scene(SCENE_TYPE::GAME);
 		},
 		"return_to_game_button",
 		TEXTURE_ASSET_ID::RESUME_BUTTON,
+		TEXTURE_ASSET_ID::RESUME_BUTTON_HOVER,
 		SCENE_TYPE::PAUSE
 	);
 
 	UISystem::createButton(
 		renderer,
 		vec2(window_width_px / 2, window_height_px / 2 + 42.f),
-		vec2(184.f, 32.f),
+		vec2(276.f, 48.f),
 		[&]() {
 			printf("return to menu button pressed\n");
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::MENU_BUTTON,
+		TEXTURE_ASSET_ID::MENU_BUTTON_HOVER,
 		SCENE_TYPE::PAUSE
 	);
 
@@ -72,10 +75,11 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"help_button",
 		TEXTURE_ASSET_ID::HELP_BUTTON,
+		TEXTURE_ASSET_ID::HELP_BUTTON_HOVER,
 		SCENE_TYPE::PAUSE
 	);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::PAUSE);
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::PAUSE);
 
 	// pause music
 	pause_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 01 Demons from the Dark-compressed.wav").c_str());
@@ -125,5 +129,35 @@ void PauseSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+
+	auto& uiButtonsRegistry = registry.pauseSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	bool is_any_button_hovered = false;
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton& button = registry.uiButtons.get(buttonEntity);
+		WorldObject& buttonObject = registry.worldObjects.get(buttonEntity);
+		RenderRequest& button_render_request = registry.renderRequests.get(buttonEntity);
+		bool mouse_within_button = is_mouse_within_button(buttonObject);
+		if (mouse_within_button) {
+			is_any_button_hovered = true;
+
+			if (!button.is_hovered) {
+				button.is_hovered = true;
+				button_render_request.used_texture = button.hover_texture;	// change the texture
+				buttonObject.scale.x = buttonObject.scale.x * 1.16;
+				buttonObject.position.x = buttonObject.position.x - 10.f;
+			}
+		}
+		else {
+			if (button.is_hovered) {
+				button.is_hovered = false;
+				button_render_request.used_texture = button.base_texture;	// change the texture
+				buttonObject.scale.x = buttonObject.scale.x * 0.86;
+				buttonObject.position.x = buttonObject.position.x + 10.f;
+			}
+		}
+	}
+
+	crosshair_render_request.used_texture = is_any_button_hovered ? TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR
+		: TEXTURE_ASSET_ID::MENU_CROSSHAIR;
 }

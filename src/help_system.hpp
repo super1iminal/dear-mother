@@ -24,5 +24,7 @@ private:
 
 	vec2 cursor_position;
 
+	Entity crosshair;
+
 	bool is_mouse_within_button(WorldObject buttonObject);
 };

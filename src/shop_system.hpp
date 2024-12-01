@@ -5,6 +5,8 @@
 #include "tiny_ecs_registry.hpp"
 #include "scene_manager.hpp"
 
+#include <unordered_map>
+
 class ShopSystem
 {
 public:
@@ -40,6 +42,8 @@ private:
 		DODGE_UPGRADE = CRIT_UPGRADE + 1
 	};
 
+	Entity crosshair;
+
 	UPGRADE_TYPE viewed_upgrade;
 
 	Entity viewed_upgrade_cost;
@@ -57,17 +61,21 @@ private:
 	Entity dodge_upgrade_level;
 	Entity current_scrap_display;
 
-	int current_scrap;
+	std::unordered_map<std::string, std::vector<int>> upgrades;
 
 	void initButtons();
 
-	int getUpgradeLevel(UPGRADE_TYPE upgrade_type);
+	//int getUpgradeLevel(UPGRADE_TYPE upgrade_type);
 
-	void updateUpgrade(UPGRADE_TYPE upgrade_type);
+	void updateViewedUpgrade(UPGRADE_TYPE upgrade_type);
 
 	void updateUpgradeDescription();
 
 	void buyUpgrade();
+
+	void getUpgradeValuesFromCSV();	// updates upgrades map w/ values from csv
+
+	void updateUpgradeValuesForCSV();	// updates the csv with the values from upgrades map
 
 	bool is_mouse_within_button(WorldObject buttonObject);
 

@@ -57,6 +57,9 @@ class RenderSystem {
 			textures_path("/crosshairs/crosshair193.png"),
 			textures_path("/crosshairs/crosshair070.png"),
 			textures_path("base_UI.png"),
+			textures_path("base_health_bar.png"),
+			textures_path("health_segment.png"),
+			textures_path("health_segment_inactive.png"),
 			textures_path("enemy_robot.png"),
 			textures_path("enemy_robot_2.png"),
 			textures_path("horz_wall_new.png"),
@@ -66,29 +69,42 @@ class RenderSystem {
 			textures_path("battery.png"),
 			textures_path("shattered_quartz.png"),
 			textures_path("creaky_wheel.png"),
-			textures_path("heatsink.png"), 
-			textures_path("repeater.png"), 
+			textures_path("heatsink.png"),
+			textures_path("repeater.png"),
 			textures_path("gear.png"),
 			textures_path("gear_player.png"),
+			textures_path("/anims/idle/sparkles_anim.png"),
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
-			textures_path("/buttons/start_button.png"),
-
-		textures_path("/buttons/run_button.png"),
-		textures_path("/buttons/continue_button.png"),
+			textures_path("/buttons/run_button.png"),
+			textures_path("/buttons/run_button_hover.png"),
+			textures_path("/buttons/continue_button.png"),
+			textures_path("/buttons/continue_button_hover.png"),
 			textures_path("/buttons/help_button.png"),
+			textures_path("/buttons/help_button_hover.png"),
 			textures_path("/buttons/upgrade_button.png"),
+			textures_path("/buttons/upgrade_button_hover.png"),
 			textures_path("/buttons/quit_button.png"),
+			textures_path("/buttons/quit_button_hover.png"),
 			textures_path("/buttons/back_button.png"),
+			textures_path("/buttons/back_button_hover.png"),
 			textures_path("/buttons/resume_button.png"),
+			textures_path("/buttons/resume_button_hover.png"),
 			textures_path("/buttons/main_menu_button.png"),
+			textures_path("/buttons/main_menu_button_hover.png"),
 			textures_path("/buttons/save_button.png"),
+			textures_path("/buttons/save_button_hover.png"),
 			textures_path("/buttons/item_slot_button.png"),
+			textures_path("/buttons/item_slot_button_hover.png"),
 			textures_path("/buttons/damage_upgrade_button.png"),
+			textures_path("/buttons/damage_upgrade_button_hover.png"),
 			textures_path("/buttons/health_upgrade_button.png"),
+			textures_path("/buttons/health_upgrade_button_hover.png"),
 			textures_path("/buttons/crit_upgrade_button.png"),
+			textures_path("/buttons/crit_upgrade_button_hover.png"),
 			textures_path("/buttons/dodge_upgrade_button.png"),
+			textures_path("/buttons/dodge_upgrade_button_hover.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png"),
@@ -115,9 +131,10 @@ class RenderSystem {
 			// Also potential for an interactable floor item oil spill, which the player slides across without control
 			// floor items must be kept together ====================================================================
 			textures_path("textbox.png"),
-			npc_path("old_man.png"),
-			npc_path("scarecrow.png"),
-
+			textures_path("/anims/idle/npc_1_anim.png"),
+			textures_path("/anims/idle/npc_2_anim.png"),
+			textures_path("/anims/walk/enemy_fly_walk.png"),
+			textures_path("/anims/attack/enemy_fly_attack.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -126,7 +143,6 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("egg"),
 		shader_path("ui_element"),
-		shader_path("font"),
 		shader_path("font"),
 		shader_path("salmon"),
 		shader_path("textured"),
@@ -205,16 +221,6 @@ private:
 
 	// font characters
 	std::map<char, Character> m_ftCharacters;
-
-	// text entities to render
-	std::vector<Entity> text_to_render;
-
-	// floor text entities to render
-	std::vector<Entity> floor_text_to_render;
-
-	void drawText();
-
-	void drawFloorText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

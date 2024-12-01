@@ -16,8 +16,6 @@
 #include <fstream>
 #include <iomanip>
 
-
-
 // ==================== PUBLIC ====================
 // ==================== BASIC FUNCTIONS ====================
 // create the  world
@@ -330,9 +328,8 @@ void WorldSystem::handle_deaths() {
 		Health& health = registry.healthComponents.get(entity);
 		if (health.curr_health <= 0)
 		{
-			// Scream, reset timer, and make the salmon sink
 			if (registry.players.has(entity)) {
-				updateGameUI();//todo
+				updateGameUI();
 				if (!registry.deathTimers.has(entity)) {
 					ReloadabilitySystem::recordPlayerDeathRoom();
 					registry.deathTimers.emplace(entity);
@@ -341,9 +338,8 @@ void WorldSystem::handle_deaths() {
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity)) {
 					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
-						createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
-						//createItem(renderer, registry.worldObjects.get(entity).position, vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 				}
 				else if (registry.bossOnes.has(entity)) {
 					handle_boss_one_death(entity);
@@ -447,11 +443,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	// if (action == GLFW_RELEASE && key == GLFW_KEY_Z) {
-	// 	ReloadabilitySystem::saveGame();
-	// }
-
-	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9 };
+	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8 };
 	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end()) {
 		handle_item_drop(key - GLFW_KEY_1);
 	}
@@ -462,10 +454,6 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
 }
-
-
-
-
 
 // ==================== PRIVATE ====================
 // ==================== INIT FUNCTIONS ====================
@@ -497,10 +485,19 @@ void WorldSystem::initUpgrades() {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
+			if (std::getline(ss, tag, ',')) {
+				std::string values_str;
+				std::vector<int> values;
+				if (std::getline(ss, values_str, ',')) {
+					try {
+						values.push_back(std::stoi(values_str)); // Convert to int and add to vector
+					}
+					catch (const std::invalid_argument&) {
+						std::cerr << "Error: Invalid number in CSV for tag: " << tag << std::endl;
+					}
+				}
 				if (tagMap.find(tag) != tagMap.end()) {
-					*tagMap[tag] = value;
+					*tagMap[tag] = values[0];
 				}
 			}
 		}
@@ -511,8 +508,9 @@ void WorldSystem::initUpgrades() {
 	}
 
 	player_inventory.size = PLAYER_BASE_INV_SIZE + item_slots;
-	player_modifier.damage_modifier_percentage = 1.0f + (damage_upgrade * DAMAGE_UPGRADE_MODIFIER);
+	player_modifier.damage_modifier = damage_upgrade;
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
+	player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
 	player_modifier.dodge_chance = (dodge_upgrade * 2);
 
@@ -535,69 +533,75 @@ void WorldSystem::initGameUI() {
 		TEXTURE_ASSET_ID::UI
 	);
 
-	// grab player health
-	int player_health = registry.healthComponents.get(registry.players.entities[0]).curr_health;
-
-	// create health_ui entity
-	health_ui = UISystem::createTextUIElement(
+	// create the health UI (base)
+	health_ui = UISystem::createTexturedUIElement(
 		renderer,
-		vec2(120.f, 75.f),
-		vec2(8.f, 3.f),
-		"health_ui",
-		std::to_string(player_health),
-		vec3(1.0, 1.0, 1.0),
-		SCENE_TYPE::GAME);
+		vec2(195.f, (BASE_UI_HEIGHT / 2) - 3),
+		vec2(HEALTH_UI_LENGTH, HEALTH_UI_HEIGHT),
+		"health_ui_base",
+		TEXTURE_ASSET_ID::HEALTH_UI_BASE,
+		SCENE_TYPE::GAME
+	);
+
+	Health player_health_component = registry.healthComponents.get(player);
+	int max_health = player_health_component.max_health;
+	// determine how large each segment should be based on the max health
+	// each segment has a 5px gap between it and the next segment
+	health_segment_length = ((HEALTH_UI_LENGTH * 0.87) - ((max_health - 1) * 5)) / max_health;
+
+	health_segments_ui.clear();
+	health_segments_ui.reserve(player_health_component.max_health);
+	// create segments for each hitpoint
+	for (int i = 0; i < player_health_component.max_health; i++) {
+		Entity health_segment = UISystem::createTexturedUIElement(
+			renderer,
+			vec2(50.f + (health_segment_length / 2) + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
+			vec2(health_segment_length, HEALTH_UI_HEIGHT * 0.65),
+			"health_ui_seg_" + std::to_string(i),
+			TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT,
+			SCENE_TYPE::GAME);
+		health_segments_ui.push_back(health_segment);
+	}
+
+	std::cout << "Max health: " << max_health << std::endl;
+	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(360.f, 45.f),
-		vec2(8.f, 3.f),
+		vec2(536.f, 68.f),
+		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
 	level_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(368.f, 84.f),
-		vec2(8.f, 3.f),
+		vec2(488.f, 134.f),
+		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
-	// later, we will want to render all the items and show locked slots too
 	Inventory& player_inventory = registry.inventory.get(player);
-	for (auto item : player_inventory.items) {
-		UISystem::createTexturedUIElement(
-			renderer,
-			vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(75.f, 75.f),
-			"item_ui_" + std::to_string(item.first),
-			getItemTexture(player_inventory.items[item.first]),
-			SCENE_TYPE::GAME);
-	}
+	drawItemInventory();
 
 	// cover the locked slots
 	for (uint i = 0; i < MAX_INVENTORY_SIZE - player_inventory.size; i++) {
-		int opposite_offset = MAX_INVENTORY_SIZE - i - 1;
 		UISystem::createSquareUIElement(
 			renderer,
-			vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X) - 5, INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(100.f, 100.f),
+			vec2(window_width_px - ((i * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X) - 5, INITIAL_ITEM_UI_OFFSET_Y),
+			vec2(150.f, 150.f),
 			"locked_slot_ui" + std::to_string(i),
 			SCENE_TYPE::GAME
 		);
 	}
 
 	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::GAME_CROSSHAIR, SCENE_TYPE::GAME);
-
-	// the following was a test. you can safely delete it. i may have forgotten to.
-	//UISystem::createTextBox(renderer, vec2(window_width_px / 2, window_height_px / 2), vec2(DIALOGUE_BOX_WIDTH, DIALOGUE_BOX_HEIGHT), vec3(1.f, 1.f, 1.f), SCENE_TYPE::GAME, 
-	//	"Hello. My name is Asher. \nThis is a test for dialogue boxes. The line needs a line break at some point. Let's see! Bah be boo be bahh be boo be bahh be boo be");
 }
 
 
@@ -622,12 +626,12 @@ void WorldSystem::shoot(Entity& entity) {
 
 				// Apply modifiers to player bullets
 				angle += (2 * (uniform_dist(rng) - 0.5)) * player_modifier.accuracy_modifier;
-				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 525.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += player_modifier.range_modifier_flat + (bullet_range * player_modifier.range_modifier_percent);
 				Modifier& player_modifier = registry.modifiers.get(player);
 
-				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier_flat) * player_modifier.damage_modifier_percentage;
+				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier);
 				// check if this hit could be a crit
 				if (uniform_dist(rng) * 100 > (100 - player_modifier.crit_chance)) {
 					projectile_damage *= 2;
@@ -653,7 +657,7 @@ void WorldSystem::shoot(Entity& entity) {
 				float angle = atan2(dy, dx) - M_PI;
 				if (angle < 0)
 					angle += 2 * M_PI;
-				createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, angle, 525.0f, false, current_room);
 				Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 				set_last_shot_time(entity);
 			}
@@ -668,33 +672,23 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		if (boss.boss_state == BOSS_ONE_STATE::FOUR_ALIVE) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT ||
 				boss.boss_pos == BOSS_ONE_POS::TOP_RIGHT) {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(75.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(105.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
-				createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(100.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(80.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(90.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(100.f), 525.0f, false, current_room);
 
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 				//Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			}
 			else {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(255.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(285.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
-				createProjectile(renderer, entity_object.position, radians(260.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(280.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(260.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(270.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(280.f), 525.0f, false, current_room);
 
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 				//Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			}
 		}
@@ -703,8 +697,8 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 			|| boss.boss_state == BOSS_ONE_STATE::THREE_ALIVE_ONE_TOP_LEFT
 			|| boss.boss_state == BOSS_ONE_STATE::THREE_ALIVE_ONE_TOP_RIGHT) {
 
-			createProjectile(renderer, entity_object.position, radians(0.f + boss.bullet_angle), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f + boss.bullet_angle), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f + boss.bullet_angle), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f + boss.bullet_angle), 525.0f, false, current_room);
 
 			boss.bullet_angle += 25;
 		}
@@ -714,33 +708,33 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT ||
 				boss.boss_pos == BOSS_ONE_POS::BOT_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_R_R) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_RIGHT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_L_L) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
 				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
@@ -750,14 +744,14 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_BR_TL) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 		}
 	}
@@ -766,50 +760,50 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		if (boss.shot_pattern == 0) {
 			boss.shot_pattern++;
 
-			createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 		}
 		else if (boss.shot_pattern == 1) {
 			boss.shot_pattern++;
 
-			createProjectile(renderer, entity_object.position, radians(0.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f - wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f - wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f - wave), 525.0f, false, current_room);
 		}
 		else if (boss.shot_pattern == 2) {
 			boss.shot_pattern = 0;
 
-			createProjectile(renderer, entity_object.position, radians(0.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f + wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f + wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f + wave), 525.0f, false, current_room);
 		}
 	}
 	set_last_shot_time(entity);
@@ -885,11 +879,6 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_animation.cols = 7;
 		enemy_animation.frames = 7;
 	}
-	else if (deadly.type == 1) {
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_ATTACK;
-		enemy_animation.cols = 7;
-		enemy_animation.frames = 7;
-	}
 	else if (deadly.type == 2) { // Final mother bodygaurds
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_ATTACK;
 		enemy_animation.cols = 7;
@@ -904,6 +893,11 @@ void WorldSystem::playEnemyAttack(Entity enemy) {
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_ATTACK;
 		enemy_animation.cols = 7;
 		enemy_animation.frames = 7;
+	}
+	else if (deadly.type == 5) {
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_FLY_ATTACK;
+		enemy_animation.cols = 4;
+		enemy_animation.frames = 4;
 	}
 	deadly.attacking = false;
 }
@@ -923,6 +917,10 @@ void playPlayerDamagedEffect(Entity entity) {
 }
 
 void remove_item(Entity item) {
+	// remove the sparkling animation
+	ItemStat item_stat = registry.itemStats.get(item);
+	registry.pendingRemoves.emplace(item_stat.particles);
+
 	// give this item a flashing effect
 	FlashingColor& flashing_color = registry.flashingColors.emplace(item);
 	flashing_color.color = vec3(0.2, 0.2, 1.0);
@@ -975,7 +973,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		}
 	}
 	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
-		final_phase_text = create_self_destruct_text(renderer, current_room);
+		final_phase_text = create_self_destruct_text(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 525, window_height_px / 2 + 150 }, { 12, 9 }, current_room);
 		text_shown = true;
 	}
 
@@ -989,8 +987,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		&& !boss_part.bot_left_alive && !boss_part.bot_right_alive
 		&& !boss_part.mother) {
 		// DROP ITEMS HERE FOR KILLING BOSS
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(75, 75), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
@@ -1009,11 +1007,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 1" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1027,11 +1025,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 2" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1045,11 +1043,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE :3" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1063,11 +1061,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 4" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1146,7 +1144,7 @@ void WorldSystem::handle_item_drop(int item_key) {
 	}
 	ItemStat dropped_item = player_inventory.items[item_key];
 	// create a new item entity
-	Entity new_item = createItem(renderer, registry.worldObjects.get(player).position, vec2(75, 75), uniform_dist, rng, current_room, dropped_item.type, &dropped_item);
+	Entity new_item = createItem(renderer, registry.worldObjects.get(player).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, dropped_item.type, &dropped_item);
 	// remove the item from the player's inventory
 	player_inventory.items.erase(item_key);
 	for (Entity entity : registry.uiElements.entities) {
@@ -1228,29 +1226,37 @@ void WorldSystem::handlePlayerBossOne(Entity player, Entity boss) {
 		if (!registry.invincibleTimers.has(entity) && !registry.deathTimers.has(player)) {
 			registry.invincibleTimers.emplace(entity);
 			if (registry.players.has(entity)) {
-				registry.healthComponents.get(entity).curr_health -= registry.deadlys.get(boss).melee_damge;
-
-				if (registry.bossOnes.has(boss)) {
-					if ((registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_L
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_R
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_L
-						|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_R)
-						&& registry.bossOnes.get(boss).boss_pos != BOSS_ONE_POS::MOTHER) {
-						registry.healthComponents.get(boss).curr_health = 0;
-					}
+				Modifier& player_modifier = registry.modifiers.get(player);
+				if (uniform_dist(rng) * 100 > (100 - player_modifier.dodge_chance)) {
+					// successful dodge; do not remove health
+					playPlayerDodgeEffect(player);
+					// TODO: a special sound effect would be nice
 				}
+				else {
+					registry.healthComponents.get(entity).curr_health -= registry.deadlys.get(boss).melee_damge;
+
+					if (registry.bossOnes.has(boss)) {
+						if ((registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_L
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_B_R
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_L
+							|| registry.bossOnes.get(boss).boss_state == BOSS_ONE_STATE::ONE_ALIVE_T_R)
+							&& registry.bossOnes.get(boss).boss_pos != BOSS_ONE_POS::MOTHER) {
+							registry.healthComponents.get(boss).curr_health = 0;
+						}
+					}
+
+					createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+					Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
+				}
+				
 			}
 			else if (!registry.deadlys.get(entity).immune) {
 				registry.healthComponents.get(entity).curr_health -= 1;
 			}
-			updateGameUI();
-			if (registry.players.has(entity)) {
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
-				Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
-			}
 			else {
 				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
 			}
+			updateGameUI();
 
 		}
 	}
@@ -1270,7 +1276,7 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 					playPlayerDodgeEffect(player);
 					// TODO: a special sound effect would be nice
 				}
-				else {
+				else if (registry.deadlys.get(deadly).type != 1) {
 					registry.healthComponents.get(entity).curr_health -= 1;
 					updateGameUI();
 					playPlayerDamagedEffect(player);
@@ -1278,17 +1284,14 @@ void WorldSystem::handlePlayerDeadly(Entity player, Entity deadly) {
 					Mix_Volume(Mix_PlayChannel(-1, melee_sound, 0), 10);
 				}
 			}
-			else if (!registry.deadlys.get(entity).immune) {
-				registry.healthComponents.get(entity).curr_health -= 1;
-				createParticles(renderer, registry.worldObjects.get(entity).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE, current_room);
-			}
-
 		}
 	}
 	return;
 }
 
 void WorldSystem::handleActorBlocker(Entity actor, Entity blocker) {
+	if (registry.deadlys.has(actor) && registry.deadlys.get(actor).type == FLY_TYPE)
+		return;
 	// Get the WorldObject components of both entities
 	WorldObject& worldobject_actor = registry.worldObjects.get(actor);
 	WorldObject& worldobject_blocker = registry.worldObjects.get(blocker);
@@ -1364,13 +1367,20 @@ void WorldSystem::handleProjectileDeadly(Entity projectile, Entity deadly) {
 void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 	// Decrease health of player
 	if (!registry.invincibleTimers.has(player) && !registry.deathTimers.has(player)) {
-		registry.invincibleTimers.emplace(player);
-		registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
-		playPlayerDamagedEffect(player);
-		createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
+		Modifier& player_modifier = registry.modifiers.get(player);
+		if (uniform_dist(rng) * 100 > (100 - player_modifier.dodge_chance)) {
+			playPlayerDodgeEffect(player);
+			// TODO: a special sound effect would be nice
+		}
+		else {
+			registry.invincibleTimers.emplace(player);
+			registry.healthComponents.get(player).curr_health -= registry.projectiles.get(projectile).damage;
+			playPlayerDamagedEffect(player);
+			createParticles(renderer, registry.worldObjects.get(player).position, uniform_dist, rng, TEXTURE_ASSET_ID::HIT_PARTICLE_PLAYER, current_room);
 
-		updateGameUI();
-		Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+			updateGameUI();
+			Mix_Volume(Mix_PlayChannel(-1, player_projectile_damage_sound, 0), 5);
+		}
 	}
 
 	// Remove projectile
@@ -1383,17 +1393,34 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 // ==================== UPDATE FUNCTIONS ====================
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
-	UIElement& health_elt = registry.uiElements.get(health_ui);
-	health_elt.value = std::to_string(registry.healthComponents.get(player).curr_health);
+
+	// make the segments visible or transparent based on how many hitpoints are left
+	Health player_health_component = registry.healthComponents.get(player);
+	for (int i = 0; i < player_health_component.max_health; i++ ) {
+		std::cout << i << std::endl;
+		Entity health_segment = health_segments_ui[i];
+		RenderRequest& health_render_request = registry.renderRequests.get(health_segment);
+		if (i + 1 > player_health_component.curr_health) {
+			health_render_request.used_texture = TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT_HIDDEN;
+		}
+		else {
+			health_render_request.used_texture = TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT;
+		}
+	}
+
+	std::cout << "Max health: " << player_health_component.max_health << std::endl;
+	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
 
 	// re render the items
-	// TODO pull this into a helper method later
+	drawItemInventory();
+}
+
+void WorldSystem::drawItemInventory() {
 	Inventory& player_inventory = registry.inventory.get(player);
-	cout << player_inventory.items.size() << endl;
-	for (auto &item : player_inventory.items) {
+	for (auto& item : player_inventory.items) {
 		bool found = false;
 		// check if item is already a uiElement
 		for (Entity entity : registry.uiElements.entities) {
@@ -1403,10 +1430,11 @@ void WorldSystem::updateGameUI() {
 			}
 		}
 		if (!found) {
+			int opposite_offset = MAX_INVENTORY_SIZE - item.first - 1;
 			UISystem::createTexturedUIElement(
 				renderer,
-				vec2(window_width_px - ((item.first * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-				vec2(75.f, 75.f),
+				vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+				vec2(ITEM_SIZE, ITEM_SIZE),
 				"item_ui_" + std::to_string(item.first),
 				getItemTexture(player_inventory.items[item.first]),
 				SCENE_TYPE::GAME);
@@ -1434,23 +1462,15 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	Deadly& deadly = registry.deadlys.get(enemy);
 
 	// reset to walking texture
-	if (deadly.type == 0) 		// select robot 1
+	enemy_animation.cols = 4;
+	enemy_animation.frames = 4;
+	if (deadly.type == 0 || deadly.type  == 2) 		// select robot 1
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
 	}
 	else if (deadly.type == 1)						// select robot 2
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_2_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
-	}
-	else if (deadly.type == 2) // Boss one bodygaurd
-	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
 	}
 	else if (deadly.type == 3) // Boss one mother 
 	{
@@ -1458,11 +1478,13 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 		enemy_animation.cols = 22;
 		enemy_animation.frames = 22;
 	}
-	else if (deadly.type == 4)
+	else if (deadly.type == HEAVY_TYPE)
 	{
 		enemy_render_request.used_texture = TEXTURE_ASSET_ID::HEAVY_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
+	}
+	else if (deadly.type == FLY_TYPE)
+	{
+		enemy_render_request.used_texture = TEXTURE_ASSET_ID::ENEMY_FLY_WALK;
 	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
@@ -1472,8 +1494,11 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	else if (deadly.type == 3) {
 		enemy_animation.frames = enemy_animation.cols * enemy_animation.rows;
 	}
+	else if (deadly.type == FLY_TYPE) {
+		enemy_animation.frames = 4;
+	}
 	else {
-		// enemy is still; use only 1 frame
+		// enemy is still; use only 1 frame unless flying
 		enemy_animation.frames = 1;
 	}
 }
@@ -1510,7 +1535,7 @@ void WorldSystem::update_player_modifier() const {
 	}
 	Modifier& player_modifier = registry.modifiers.get(player);
 
-	player_modifier.damage_modifier_flat = new_damage_flat;
+	player_modifier.damage_modifier = new_damage_flat;
 
 	player_modifier.speed_modifier_flat = new_speed_flat;
 	player_modifier.speed_modifier_percent = new_speed_percent;
