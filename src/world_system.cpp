@@ -351,9 +351,11 @@ void WorldSystem::handle_deaths() {
 
 					registry.players.get(entity).dead = true;
 					show_player_death(entity);
-					display_death_screen();
 					registry.deathTimers.emplace(entity);
 					registry.deathTimers.get(entity).counter_ms = 10000;
+				}
+				if (abs(registry.deathTimers.get(entity).counter_ms - 1000) <= 50) {
+					display_death_screen();
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
@@ -1783,7 +1785,7 @@ void WorldSystem::drawItemInventory() {
 }
 
 void WorldSystem::updatePlayerAnimation() {
-	if (registry.players.get(player).dead) // player is dead (for death animation)
+	if (registry.players.get(player).dead || registry.animations.get(player).current_frame >= 20) // player is dead (for death animation)
 		return;
 	Animation& player_animation = registry.animations.get(player);
 	Motion player_motion = registry.motions.get(player);
