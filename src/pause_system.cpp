@@ -25,20 +25,20 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	);
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 - 82.f),
+		vec2(window_width_px / 2, window_height_px / 2),
 		vec2(130.f, 28.f),
 		[&]() {
 			ReloadabilitySystem::saveGame();
 			scene_manager.set_scene(SCENE_TYPE::MENU);
 		},
-		"return_to_game_button",
+		"save_and_quit_button",
 		TEXTURE_ASSET_ID::SAVE_BUTTON,
 		SCENE_TYPE::PAUSE
 	);
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 - 42.f),
+		vec2(window_width_px / 2, window_height_px / 2 - 82.f),
 		vec2(130.f, 28.f),
 		[&]() {
 			printf("return to game button presssed\n");
@@ -51,7 +51,7 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2),
+		vec2(window_width_px / 2, window_height_px / 2 + 42.f),
 		vec2(184.f, 32.f),
 		[&]() {
 			printf("return to menu button pressed\n");
@@ -59,6 +59,19 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::MENU_BUTTON,
+		SCENE_TYPE::PAUSE
+	);
+
+	UISystem::createButton(
+		renderer,
+		vec2(window_width_px / 2, window_height_px / 2 - 42.f),
+		vec2(90.f, 44.f),
+		[&]() {
+			std::cout << "Help button pressed!" << std::endl;
+			scene_manager.set_scene(SCENE_TYPE::HELP);
+		},
+		"help_button",
+		TEXTURE_ASSET_ID::HELP_BUTTON,
 		SCENE_TYPE::PAUSE
 	);
 

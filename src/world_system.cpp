@@ -81,12 +81,10 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	restart_game();
 }
 
-void WorldSystem::restart_game() {
+void WorldSystem::pre_start() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-	printf("Restarting\n");
-
-	reset_dialogue_run_status(); // dialogue-related, 
+	printf("Resetting base states\n");
 	// TODO: the above needs to occur when a new run happens, but not upon continue. currently happens on both
 
 	// Reset the game speed
@@ -107,18 +105,28 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+}
 
-	// create a new Player entity
+void WorldSystem::restart_game() {
+	pre_start();
 
-	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
-	}
-	else {
-		ReloadabilitySystem::loadGame();
-		player = registry.players.entities[0];
-		change_rooms(registry.roomCoords.get(player).position);
-		update_player_modifier();
-	}
+	reset_dialogue_run_status(); // dialogue-related, 
+
+	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+	post_start();
+}
+
+void WorldSystem::load_game() {
+	pre_start();
+	ReloadabilitySystem::loadGame();
+	player = registry.players.entities[0];
+	change_rooms(registry.roomCoords.get(player).position);
+	update_player_modifier();
+	post_start();
+	
+}
+
+void WorldSystem::post_start() {
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
 

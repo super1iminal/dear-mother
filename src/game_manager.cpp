@@ -255,7 +255,12 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// this is the only location where has_just_changed is used and can be removed safely
 		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			if (scene_manager.get_previous_scene() == SCENE_TYPE::MENU) {
-				world.restart_game();
+				if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+					world.restart_game();
+				}
+				else {
+					world.load_game();
+				}
 			} if (scene_manager.get_previous_scene() != SCENE_TYPE::DIALOGUE) {
 				world.update_music();
 			}

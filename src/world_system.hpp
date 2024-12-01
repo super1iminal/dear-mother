@@ -33,6 +33,7 @@ public:
 	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 	// restart level
 	void restart_game();
+	void load_game();
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
@@ -68,6 +69,9 @@ private:
 	void initUpgrades();
 	// initialize HUD
 	void initGameUI();
+
+	void pre_start();
+	void post_start();
 	
 
 	// ==================== MEMBER VARIABLES ====================

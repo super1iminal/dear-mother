@@ -28,7 +28,7 @@ void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		vec2(234.f, 60.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
-			scene_manager.set_scene(SCENE_TYPE::MENU);
+			scene_manager.set_scene(scene_manager.get_previous_scene());
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
