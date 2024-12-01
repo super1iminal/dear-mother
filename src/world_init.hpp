@@ -24,6 +24,8 @@ const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
 const float HEAVY_HEALTH = 10;
 const float HEAVY_TYPE = 4;
 const float FLY_TYPE = 5;
+const float BOSS_ONE = 3;
+const float BOSS_THREE = 6;
 
 // particle stuff
 const float MAX_NUM_PARTICLES = 4;
@@ -52,6 +54,8 @@ const float CENTER_Y = window_height_px - (window_height_px - BASE_UI_HEIGHT) / 
 
 // item stuff
 const float ITEM_SIZE = 113.f;
+const float MAX_ACCURACY = 1.f; // 0 is perfect accuracy
+const float MIN_RANGE = 200.f;
 
 // floor item stuff
 const float FLOOR_ITEM_SIZE = 113.f;
@@ -89,11 +93,14 @@ Entity createEnemy(
 
 Entity createText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
 
-// boss one
+// boss one (should be 3rd boss)
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
 
-// boss two
+// boss two (should be 1st boss)
 Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
+
+// boss three (should be 2nd boss)
+Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord);
 
 // floors
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type = FLOOR_TYPE::DEFAULT);
@@ -104,7 +111,7 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value, ivec2 room_coord);
 
 // Projectiles
-Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord);
+Entity createProjectile(RenderSystem* renderer, vec2 pos, float angle, float speed, bool is_friendly, ivec2 room_coord, int lifespan = PROJECTILE_LIFESPAN);
 
 // items
 Entity createItem(RenderSystem* renderer, vec2 position, vec2 size,  std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, ivec2 room_coord,ITEM_TYPE spec_type = ITEM_TYPE::RANDOM, ItemStat* loaded_item = nullptr);
@@ -139,6 +146,8 @@ void enemyRoomGenerateEnemies(RenderSystem* renderer, ivec2 coord, ROOM_TYPE typ
 void createBossRoomOne(RenderSystem* renderer, ivec2 coord);
 
 void createBossRoomTwo(RenderSystem* renderer, ivec2 coord);
+
+void createBossRoomThree(RenderSystem* renderer, ivec2 coord);
 
 void generate_map();
 

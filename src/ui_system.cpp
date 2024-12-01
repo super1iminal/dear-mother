@@ -194,6 +194,45 @@ Entity UISystem::createTextUIElement(
 	return entity;
 }
 
+Entity UISystem::createTextDeathScreen(
+	RenderSystem* renderer,
+	vec2 pos,
+	vec2 scale,
+	std::string element_name,
+	std::string element_value,
+	vec3 color,
+	SCENE_TYPE scene_type) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
+	
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	// setting value for UI
+	UIElement& ui_elt = registry.uiElements.emplace(entity);
+	ui_elt.name = element_name;
+	ui_elt.value = element_value; // the actual text to be rendered
+
+	vec3& ui_color = registry.colors.emplace(entity);
+	ui_color = color;
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::DEATH_TEXT,
+			GEOMETRY_BUFFER_ID::SQUARE,
+			RENDER_ORDER::UI_ELEMENT });
+
+	return entity;
+}
+
 Entity UISystem::createTexturedUIElement(
 	RenderSystem* renderer, 
 	vec2 pos, 
@@ -433,7 +472,7 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 // WHEN GETTING RID OF A TEXT BOX, GET RID OF ITS CONSTITUENT ENTITIES FIRST!
 // linebreaks automatically inserted when text is too long
 // size is the size of the text box, not the text (text scale is defined by a constant)
-Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text) {
+Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type) {
 	// right now, its not a button, but it could be modified to be one
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -487,6 +526,10 @@ Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec
 			last_space_idx = -1;
 			continue;
 		}
+		else if (c == '\t') {
+			formatted_text += c;
+			curr_width += 8.f;
+		}
 
 		// Check if adding the current character exceeds the maximum line width
 		if (curr_width + char_width > max_line_width) {
@@ -534,8 +577,13 @@ Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec
 
 	vec2 text_pos = { pos.x - size.x / 2.f + DIALOGUE_BOX_MARGINS, pos.y - (size.y / 2.f) + (line_height + DIALOGUE_BOX_MARGINS) };
 
-	textbox.textbox_sprite = createTexturedUIElement(renderer, pos, size, "textbox", TEXTURE_ASSET_ID::TEXT_BOX, scene_type);
-	textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+	if (text_box_type == TEXT_BOX_TYPE::DEFAULT) {
+		textbox.textbox_sprite = createTexturedUIElement(renderer, pos, size, "textbox", TEXTURE_ASSET_ID::TEXT_BOX, scene_type);
+		textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+	}
+	else if (text_box_type == TEXT_BOX_TYPE::DEATH_SCREEN) {
+		textbox.textbox_text = createTextDeathScreen(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+	}
 
 	return entity;
 }

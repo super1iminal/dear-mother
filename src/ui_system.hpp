@@ -45,6 +45,15 @@ public:
 		vec3 color,
 		SCENE_TYPE scene_type);
 
+	static Entity createTextDeathScreen(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		std::string element_value,
+		vec3 color,
+		SCENE_TYPE scene_type);
+
 	static Entity createTexturedUIElement(
 		RenderSystem* renderer,
 		vec2 pos,
@@ -74,7 +83,7 @@ public:
 		SCENE_TYPE scene_type);
 
 	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
-	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text);
+	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type = TEXT_BOX_TYPE::DEFAULT);
 private:
 	// Window handle
 	GLFWwindow* window;

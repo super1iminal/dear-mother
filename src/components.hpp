@@ -9,8 +9,6 @@
 #include <iostream>
 #include <chrono>
 
-
-
 // All data relevant to the motion of entities
 struct Motion {
 	float max_speed;
@@ -97,7 +95,10 @@ struct Player
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
 	bool boss_one_beat = false;
 	bool boss_two_beat = false;
+	bool boss_three_beat = false;
+	int kills = 0;
 	int scrap = 0;
+	bool dead = false;
 };
 
 struct Shooter
@@ -117,8 +118,8 @@ struct Modifier {
 
 	int damage_modifier = 0;
 
-	int crit_chance = 1;
-	int dodge_chance = 0;
+	int crit_chance = 1;	// Start with 1% crit chance
+	int dodge_chance = 0;	// Start with 0% dodge change
 
 	float speed_modifier_flat = 0;
 	float speed_modifier_percent = 0;
@@ -176,6 +177,14 @@ struct BossTwo
 	int wave_3 = 8;
 
 	int wave_4 = 10;
+};
+
+struct BossThree
+{
+	BOSS_THREE_PHASE boss_phase = BOSS_THREE_PHASE::PHASE_ONE;
+	int reflect_shots = 0;
+	int items_to_disable = 3;
+	bool items_disabled = false;
 };
 
 // anything that the player can interact with
@@ -375,7 +384,17 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	GAME_CROSSHAIR = BULLET_ENEMY + 1,
 	MENU_CROSSHAIR = GAME_CROSSHAIR + 1,
 	MENU_HOVER_CROSSHAIR = MENU_CROSSHAIR + 1,
-	UI = MENU_HOVER_CROSSHAIR + 1,
+	COOLDOWN_CROSSHAIR_0 = MENU_HOVER_CROSSHAIR + 1,
+	COOLDOWN_CROSSHAIR_1 = COOLDOWN_CROSSHAIR_0 + 1,
+	COOLDOWN_CROSSHAIR_2 = COOLDOWN_CROSSHAIR_1 + 1,
+	COOLDOWN_CROSSHAIR_3 = COOLDOWN_CROSSHAIR_2 + 1,
+	COOLDOWN_CROSSHAIR_4 = COOLDOWN_CROSSHAIR_3 + 1,
+	COOLDOWN_CROSSHAIR_5 = COOLDOWN_CROSSHAIR_4 + 1,
+	COOLDOWN_CROSSHAIR_6 = COOLDOWN_CROSSHAIR_5 + 1,
+	COOLDOWN_CROSSHAIR_7 = COOLDOWN_CROSSHAIR_6 + 1,
+	COOLDOWN_CROSSHAIR_8 = COOLDOWN_CROSSHAIR_7 + 1,
+	COOLDOWN_CROSSHAIR_9 = COOLDOWN_CROSSHAIR_8 + 1,
+	UI = COOLDOWN_CROSSHAIR_9 + 1,
 	HEALTH_UI_BASE = UI + 1,
 	HEALTH_UI_SEGMENT = HEALTH_UI_BASE + 1,
 	HEALTH_UI_SEGMENT_HIDDEN = HEALTH_UI_SEGMENT + 1,
@@ -390,7 +409,13 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
 	HEATSINK = CREAKY_WHEEL + 1,
 	REPEATER = HEATSINK + 1,
-	HIT_PARTICLE = REPEATER + 1,
+	WD4000 = REPEATER + 1,
+	SUPERCHARGED_BATTERY_PACK = WD4000 + 1,
+	VOLITILE_BLASTER = SUPERCHARGED_BATTERY_PACK + 1,
+	HOT_DIESEL = VOLITILE_BLASTER + 1,
+	OPTICAL_SENSOR = HOT_DIESEL + 1,
+	CROSS = OPTICAL_SENSOR + 1,
+	HIT_PARTICLE = CROSS + 1,
 	HIT_PARTICLE_PLAYER = HIT_PARTICLE + 1,
 	ITEM_SPARKLES = HIT_PARTICLE_PLAYER + 1,
 	START_MENU = ITEM_SPARKLES + 1,
@@ -436,9 +461,10 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	BOSS_ONE_FLOOR = BOSS_ONE_IDLE + 1,
 	BOSS_ONE_HORZ_WALL = BOSS_ONE_FLOOR + 1,
 	BOSS_ONE_VERT_WALL = BOSS_ONE_HORZ_WALL + 1,
+	BOSS_TWO_WALK = BOSS_ONE_VERT_WALL + 1,
 
 	// floor items must be kept together ====================================================================
-	BROKEN_GENERATOR = BOSS_ONE_VERT_WALL + 1,
+	BROKEN_GENERATOR = BOSS_TWO_WALK + 1,
 	BROKEN_CONTROL_PANEL = BROKEN_GENERATOR + 1,
 	DEAD_ROBOT = BROKEN_CONTROL_PANEL + 1,
 	FLOOR_HOLE = DEAD_ROBOT + 1,
@@ -452,7 +478,15 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SCARECROW = OLD_MAN + 1,
 	ENEMY_FLY_WALK = SCARECROW + 1,
 	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
-	TEXTURE_COUNT = ENEMY_FLY_ATTACK + 1,
+
+	PLAYER_DEATH = ENEMY_FLY_ATTACK + 1,
+	FINAL_BOSS_DEATH = PLAYER_DEATH + 1,
+	FINAL_BOSS_DEAD = FINAL_BOSS_DEATH + 1,
+	BOSS_1_DEAD = FINAL_BOSS_DEAD + 1,
+	BOSS_1_DEATH = BOSS_1_DEAD + 1,
+	BOSS_2_DEATH = BOSS_1_DEATH + 1,
+	BOSS_2_DEAD = BOSS_2_DEATH + 1,
+	TEXTURE_COUNT = BOSS_2_DEAD + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -474,7 +508,9 @@ enum class EFFECT_ASSET_ID {
 	EGG = COLOURED + 1,
 	UI_ELEMENT = EGG + 1,
 	FONT = UI_ELEMENT + 1,
-	SALMON = FONT + 1,
+	FLOOR_TEXT = FONT + 1,
+	DEATH_TEXT = FLOOR_TEXT + 1,
+	SALMON = DEATH_TEXT + 1,
 	TEXTURED = SALMON + 1,
 	ANIM = TEXTURED + 1,
 	WATER = ANIM + 1,
@@ -524,9 +560,16 @@ struct ItemStat {
 
 	float accuracy = 0;
 
+	int crit_chance = 0;
+
+	float dodge_chance = 0;
+
 	int heal_size = 0;
 
 	int scrap_amt = 50;
+
+
+	bool disabled = false;
 
 	Entity particles;	// the particles anim associated with this item; stored here for easy removal when the item is picked up
 };
