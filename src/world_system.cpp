@@ -559,11 +559,11 @@ void WorldSystem::initGameUI() {
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(476.f, 68.f),
+		vec2(536.f, 68.f),
 		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
@@ -573,7 +573,7 @@ void WorldSystem::initGameUI() {
 		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
@@ -616,7 +616,7 @@ void WorldSystem::shoot(Entity& entity) {
 
 				// Apply modifiers to player bullets
 				angle += (2 * (uniform_dist(rng) - 0.5)) * player_modifier.accuracy_modifier;
-				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 525.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				registry.lifetimes.get(projectile).time_remaining_ms += player_modifier.range_modifier_flat + (bullet_range * player_modifier.range_modifier_percent);
 				Modifier& player_modifier = registry.modifiers.get(player);
@@ -647,7 +647,7 @@ void WorldSystem::shoot(Entity& entity) {
 				float angle = atan2(dy, dx) - M_PI;
 				if (angle < 0)
 					angle += 2 * M_PI;
-				createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, angle, 525.0f, false, current_room);
 				Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 				set_last_shot_time(entity);
 			}
@@ -662,33 +662,23 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		if (boss.boss_state == BOSS_ONE_STATE::FOUR_ALIVE) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT ||
 				boss.boss_pos == BOSS_ONE_POS::TOP_RIGHT) {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(75.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(105.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
-				createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(100.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(80.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(90.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(100.f), 525.0f, false, current_room);
 
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 				//Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			}
 			else {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(255.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(285.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
-				createProjectile(renderer, entity_object.position, radians(260.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(280.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(260.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(270.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(280.f), 525.0f, false, current_room);
 
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 				//Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			}
 		}
@@ -697,8 +687,8 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 			|| boss.boss_state == BOSS_ONE_STATE::THREE_ALIVE_ONE_TOP_LEFT
 			|| boss.boss_state == BOSS_ONE_STATE::THREE_ALIVE_ONE_TOP_RIGHT) {
 
-			createProjectile(renderer, entity_object.position, radians(0.f + boss.bullet_angle), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f + boss.bullet_angle), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f + boss.bullet_angle), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f + boss.bullet_angle), 525.0f, false, current_room);
 
 			boss.bullet_angle += 25;
 		}
@@ -708,33 +698,33 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT ||
 				boss.boss_pos == BOSS_ONE_POS::BOT_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_R_R) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_RIGHT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_L_L) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
 				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
@@ -744,14 +734,14 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_BR_TL) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT) {
-				createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(225.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(225.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(135.f), 525.0f, false, current_room);
 			}
 			else {
-				createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(45.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(-45.f), 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(45.f), 525.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, radians(-45.f), 525.0f, false, current_room);
 			}
 		}
 	}
@@ -760,50 +750,50 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		if (boss.shot_pattern == 0) {
 			boss.shot_pattern++;
 
-			createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f), 525.0f, false, current_room);
 		}
 		else if (boss.shot_pattern == 1) {
 			boss.shot_pattern++;
 
-			createProjectile(renderer, entity_object.position, radians(0.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f - wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f - wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f - wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f - wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f - wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f - wave), 525.0f, false, current_room);
 		}
 		else if (boss.shot_pattern == 2) {
 			boss.shot_pattern = 0;
 
-			createProjectile(renderer, entity_object.position, radians(0.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(20.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(40.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(0.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(20.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(40.f + wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(60.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(80.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(100.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(120.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(60.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(80.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(100.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(120.f + wave), 525.0f, false, current_room);
 
-			createProjectile(renderer, entity_object.position, radians(140.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(160.f + wave), 350.0f, false, current_room);
-			createProjectile(renderer, entity_object.position, radians(180.f + wave), 350.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(140.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(160.f + wave), 525.0f, false, current_room);
+			createProjectile(renderer, entity_object.position, radians(180.f + wave), 525.0f, false, current_room);
 		}
 	}
 	set_last_shot_time(entity);
@@ -1007,11 +997,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 1" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1025,11 +1015,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 2" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1043,11 +1033,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE :3" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}
@@ -1061,11 +1051,11 @@ void WorldSystem::handle_boss_two() {
 			std::cout << "WAVE 4" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
-				createEnemy(renderer, { 342, 234 + 25 * left }, 200, current_room);
+				createEnemy(renderer, { 342, 234 + 25 * left }, 300, current_room);
 				left++;
 			}
 			else {
-				createEnemy(renderer, { 982, 234 + 25 * right }, 200, current_room);
+				createEnemy(renderer, { 982, 234 + 25 * right }, 300, current_room);
 				right++;
 			}
 		}

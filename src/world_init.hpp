@@ -7,7 +7,7 @@
 // ==================== CONSTANTS ==================== 
 const float ENEMY_BB_WIDTH = 98.f;
 const float ENEMY_BB_HEIGHT = 131.f;
-const float ENEMY_SPEED = 150.f;
+const float ENEMY_SPEED = 225.f;
 const float PLAYER_MAX_SPEED = 450.f;
 const float PLAYER_SIZE = 90.f;
 const int PLAYER_MAX_HEALTH = 5;
@@ -19,7 +19,6 @@ const float OLD_ROBOT_HEIGHT = 264.f;
 const float SCARECROW_WIDTH = 197.f;
 const float SCARECROW_HEIGHT = 161.2;
 
-const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
 const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
 
 const float HEAVY_HEALTH = 10;
