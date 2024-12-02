@@ -353,13 +353,14 @@ void WorldSystem::handle_deaths() {
 					set_player_velocity({ 0,0 });
 
 					registry.players.get(entity).dead = true;
+					ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+ ceil(registry.players.components[0].scrap * 0.25));
 					display_death_screen();
 					registry.deathTimers.emplace(entity);
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity) && registry.players.get(player).combat_state != COMBAT_STATE::BOSS_TWO_COMBAT) {
-					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
+					if (uniform_dist(rng) * 100 > (100 - 100)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
 					registry.players.get(player).kills++;
@@ -1366,6 +1367,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
 		registry.winTimers.emplace(player);
+		ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel() + registry.players.components[0].scrap);
 		display_victory_screen();
 		set_player_velocity({ 0,0 });
 		std::cout << "YAYYYY :3" << std::endl;
@@ -1559,7 +1561,7 @@ void WorldSystem::handle_item_drop(int item_key) {
 void WorldSystem::handle_scrapping(Entity item) {
 	ItemStat item_stat = registry.itemStats.get(item);
 	registry.players.components[0].scrap += item_stat.scrap_amt;
-	ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
+	// ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
 	remove_item(item);
 	updateGameUI();
 }

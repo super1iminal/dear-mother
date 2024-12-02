@@ -131,6 +131,7 @@ void ShopSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::SHOP);
 
 	updateViewedUpgrade(UPGRADE_TYPE::ITEM_SLOT);
+	updateScrapUI();
 }
 
 void ShopSystem::initButtons() {
@@ -226,6 +227,11 @@ void ShopSystem::initButtons() {
 	);
 }
 
+void ShopSystem::updateScrapUI() {
+	UIElement& scrap_element = registry.uiElements.get(current_scrap_display);
+	scrap_element.value = std::to_string((upgrades["scrap"])[0]);
+}
+
 void ShopSystem::updateViewedUpgrade(UPGRADE_TYPE upgrade_type) {
 	getUpgradeValuesFromCSV();
 
@@ -257,7 +263,6 @@ void ShopSystem::updateViewedUpgrade(UPGRADE_TYPE upgrade_type) {
 		break;
 	}
 
-	UIElement& scrap_element = registry.uiElements.get(current_scrap_display);
 	if (upgrade_ui_element == nullptr) {
 		std::cerr << "No UI Element for upgrade: " << upgrade_name << " found.";
 		return;
@@ -265,7 +270,6 @@ void ShopSystem::updateViewedUpgrade(UPGRADE_TYPE upgrade_type) {
 
 	getUpgradeValuesFromCSV();
 	upgrade_ui_element->value = std::to_string((upgrades[upgrade_name])[0]);
-	scrap_element.value = std::to_string((upgrades["scrap"])[0]);
 
 	viewed_upgrade_level = upgrades[upgrade_name][0];
 
@@ -376,8 +380,18 @@ int ShopSystem::getScrapLevel() {
 			std::stringstream ss(line);
 			std::string tag;
 			std::vector<int> values;
+			std::string value;
 			if (std::getline(ss, tag, ',')) {
 				if (tag == "scrap") {
+					while (std::getline(ss, value, ',')) {
+						try {
+							values.push_back(std::stoi(value));
+						}
+						catch (const std::invalid_argument&) {
+							std::cerr << "Error: Invalid number in CSV for " << tag << std::endl;
+							continue;
+						}
+					}
 					std::cout << "Scrap: " << values[0] << std::endl;
 					return values[0];
 				}
@@ -400,8 +414,19 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
+			std::string values_str;
 			std::vector<int> values;
 			if (std::getline(ss, tag, ',')) {
+				while (std::getline(ss, values_str, ',')) {
+					try {
+						values.push_back(std::stoi(values_str));
+					}
+					catch (const std::invalid_argument&) {
+						std::cerr << "Error: Invalid number in CSV for " << tag << std::endl;
+						continue;
+					}
+				}
+
 				if (tag == "scrap") {
 					data[tag] = { updated_value };
 				}
@@ -482,6 +507,7 @@ void ShopSystem::buyUpgrade() {
 	updateUpgradeValuesForCSV();
 	// update UI for this upgrade
 	updateViewedUpgrade(viewed_upgrade);
+	updateScrapUI();
 }
 
 void ShopSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)

@@ -22,6 +22,8 @@ public:
 	void on_mouse_move(vec2 mouse_position);
 	static void updateScrapLevel(int updated_value);
 	static int getScrapLevel();
+	void getUpgradeValuesFromCSV();	// updates upgrades map w/ values from csv
+	void updateScrapUI();
 private:
 	RenderSystem* renderer;
 
@@ -65,15 +67,11 @@ private:
 
 	void initButtons();
 
-	//int getUpgradeLevel(UPGRADE_TYPE upgrade_type);
-
 	void updateViewedUpgrade(UPGRADE_TYPE upgrade_type);
 
 	void updateUpgradeDescription();
 
 	void buyUpgrade();
-
-	void getUpgradeValuesFromCSV();	// updates upgrades map w/ values from csv
 
 	void updateUpgradeValuesForCSV();	// updates the csv with the values from upgrades map
 
