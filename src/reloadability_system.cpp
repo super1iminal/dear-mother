@@ -141,6 +141,9 @@ void ReloadabilitySystem::saveGame() {
 
     // save item on floor
     for (Entity entity : registry.itemStats.entities) {
+        if (registry.lifetimes.has(entity)) {
+            continue;
+        }
         id = to_string((int)entity);
         save[id];
 
@@ -239,7 +242,7 @@ void ReloadabilitySystem::loadGame() {
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
 
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
-            registry.players.components[0].combat_state = data["player"]["combat_state"];
+            registry.players.components[0].combat_state = data["player"]["combat_state"]; // update_doors is called in world system after this
             registry.players.components[0].boss_one_beat = data["player"]["boss_one_beat"];
             registry.players.components[0].boss_two_beat = data["player"]["boss_two_beat"];
             registry.players.components[0].scrap = data["player"]["scrap"];

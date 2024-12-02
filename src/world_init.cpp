@@ -828,7 +828,7 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 			npc_anim.cols = 30;
 			npc_anim.frames = 30;
 			break;
-		case (NPC_TYPE::SCARECROW_NPC):
+		case (NPC_TYPE::BILLYBOY_NPC):
 			texture_id = TEXTURE_ASSET_ID::SCARECROW;
 			npc.dialogue_path = dialogue_path("scarecrow.json");
 			npc_anim.cols = 28;
@@ -1207,7 +1207,7 @@ void createNPCRoom(RenderSystem* renderer, ivec2 coord, NPC_TYPE npc_type) {
 			coord,
 			npc_type);
 		break;
-	case NPC_TYPE::SCARECROW_NPC:
+	case NPC_TYPE::BILLYBOY_NPC:
 		createNPC(renderer, 
 			vec2(window_width_px - WALL_WIDTH - SCARECROW_WIDTH / 2.f, WALL_WIDTH + BASE_UI_HEIGHT + SCARECROW_HEIGHT / 2.f),
 			vec2({ SCARECROW_WIDTH, SCARECROW_HEIGHT }),
@@ -1423,7 +1423,7 @@ void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& roo
 		createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
 		break;
 	case ROOM_TYPE::SCARECROW_ROOM:
-		createNPCRoom(renderer, coord, NPC_TYPE::SCARECROW_NPC);
+		createNPCRoom(renderer, coord, NPC_TYPE::BILLYBOY_NPC);
 		break;
 	default: // ALL ENEMY ROOMS
 		createEnemyRoom(renderer, coord, type);
@@ -1528,7 +1528,7 @@ void buildItemSet() {
 	ItemStat wd_4000;
 	wd_4000.name = ITEM_NAME::WD4000;
 	wd_4000.type = ITEM_TYPE::FIRE_RATE;
-	wd_4000.percent_fire_rate = 0.1;
+	wd_4000.percent_fire_rate = 0.2;
 	wd_4000.accuracy = 0.1;
 	registry.all_items.push_back(wd_4000);
 	registry.fire_rate_items.push_back(wd_4000);

@@ -92,8 +92,7 @@ public:
     {
         if (check_for_duplicates)
         {
-            // We no longer assert if the entity already has components
-            // Instead, we proceed to add the new component
+            assert(!has(e) && "ALREADY HAS IT BABY!!!!");
         }
         if (map_entity_componentID.count(e) == 0)
         {
@@ -115,29 +114,35 @@ public:
     {
         if (check_for_duplicates)
         {
-            // We no longer assert if the entity already has components
-            // Instead, we proceed to add the new component
+            assert(!has(e) && "ALREADY HAS IT BABY (SORTED)!!!!");
         }
         if (map_entity_componentID.count(e) == 0)
         {
-            static_assert(has_compareFunction<Component>::value , "Component does not have compareFunction defined");
-            bool inserted = false;
-            for (int i = 0; i < entities.size(); i++) {
-                if (c.compareFunction(c, get(entities[i])) == -1) {  // if this entity should come before entities[i]
-                    entities.insert(entities.begin() + i, e);
-                    inserted = true;
-                    break;
+            static_assert(has_compareFunction<Component>::value, "Component does not have compareFunction defined");
+
+            // Binary search to find the correct insertion index
+            int left = 0;
+            int right = entities.size();
+            while (left < right) {
+                int mid = left + (right - left) / 2;
+                int cmp = c.compareFunction(c, get(entities[mid]));
+                if (cmp == -1) {
+                    // c should come before get(entities[mid])
+                    right = mid;
+                }
+                else {
+                    // c >= get(entities[mid])
+                    left = mid + 1;
                 }
             }
-            if (!inserted) {
-                // entity e goes in at the end of the vector
-                entities.push_back(e);
-            }
+            // Insert entity e at the found position
+            entities.insert(entities.begin() + left, e);
         }
         map_entity_componentID.insert(std::make_pair(e, (unsigned int)components.size()));
         components.push_back(std::move(c));
         components_entities.push_back(e);
-        // add to filtered components
+
+        // Notify callbacks
         for (auto& callback : onEntityAddedCallbacks) {
             callback(e);
         }

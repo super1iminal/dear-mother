@@ -368,40 +368,66 @@ void ShopSystem::updateUpgradeValuesForCSV() {
 }
 
 int ShopSystem::getScrapLevel() {
-	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
-	std::vector<std::pair<std::string, int>> data;
-	if (read_file.is_open()) {
-		std::string line;
-		while (std::getline(read_file, line)) {
-			std::stringstream ss(line);
-			std::string tag;
-			std::vector<int> values;
-			if (std::getline(ss, tag, ',')) {
-				if (tag == "scrap") {
-					std::cout << "Scrap: " << values[0] << std::endl;
-					return values[0];
-				}
-			}
-		}
-		read_file.close();
-		return -1;
-	}
-	else {
-		std::cerr << "Unable to open file for reading.\n";
-		return -1;
-	}
+    std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
+    if (read_file.is_open()) {
+        std::string line;
+        while (std::getline(read_file, line)) {
+            std::stringstream ss(line);
+            std::string tag;
+            std::vector<int> values;
+
+            // Read the tag
+            if (std::getline(ss, tag, ',')) {
+                std::string value_str;
+
+                // Read the rest of the values
+                while (std::getline(ss, value_str, ',')) {
+                    int value = std::stoi(value_str);
+                    values.push_back(value);
+                }
+
+                // Check if tag is "scrap"
+                if (tag == "scrap") {
+                    if (!values.empty()) {
+                        std::cout << "Scrap: " << values[0] << std::endl;
+                        return values[0];
+                    } else {
+                        std::cerr << "No values found for 'scrap'." << std::endl;
+                        return -1;
+                    }
+                }
+            }
+        }
+        read_file.close();
+        return -1;
+    } else {
+        std::cerr << "Unable to open file for reading.\n";
+        return -1;
+    }
 }
 
 void ShopSystem::updateScrapLevel(int updated_value) {
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	std::unordered_map<std::string, std::vector<int>> data;
+
 	if (read_file.is_open()) {
 		std::string line;
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
 			std::vector<int> values;
+
+			// Read the tag
 			if (std::getline(ss, tag, ',')) {
+				std::string value_str;
+
+				// Read the rest of the values
+				while (std::getline(ss, value_str, ',')) {
+					int value = std::stoi(value_str);
+					values.push_back(value);
+				}
+
+				// Update the value if the tag is "scrap"
 				if (tag == "scrap") {
 					data[tag] = { updated_value };
 				}
@@ -414,9 +440,10 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 	}
 	else {
 		std::cerr << "Unable to open file for reading.\n";
+		return;
 	}
 
-	// now save the updated data to the csv file
+	// Save the updated data back to the CSV file
 	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	if (!write_file.is_open()) {
 		std::cerr << "Error: Could not open file for writing." << std::endl;
@@ -436,6 +463,7 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 
 	write_file.close();
 }
+
 
 void ShopSystem::buyUpgrade() {
 	std::string upgrade_name = "";

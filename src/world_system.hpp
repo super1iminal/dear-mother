@@ -39,7 +39,7 @@ public:
 
 	// ==================== ACTION FUNCTIONS ==================== 
 	void set_player_velocity(vec2 velocity);
-
+	void set_combat_state(COMBAT_STATE cs);
 
 	// ==================== HANDLING FUNCTIONS ====================
 	// ran once per step. public ones are called from game_manager.cpp
@@ -50,11 +50,12 @@ public:
 
 
 	// ==================== UPDATE FUNCTIONS ====================
-	// ran once per step. public ones are called from game_manager.cpp
+	// (not always) ran once per step. public ones are called from game_manager.cpp
 	// update animations
 	void update_animations();
 	void update_music();
 	void update_crosshair_cooldown();
+	void update_doors(); // switches door textures to be open_closed
 
 	// ==================== CALLBACK FUNCTIONS ====================
 	// Input callback functions
@@ -99,6 +100,7 @@ private:
 	Mix_Chunk* player_shooting_sound;
 	Mix_Chunk* enemy_shooting_sound;
 	Mix_Chunk* player_projectile_damage_sound;
+	Mix_Chunk* door_change_sound;
 	Mix_Music* post_combat_music;
 	Mix_Music* combat_music;
 	//Music control
@@ -148,6 +150,28 @@ private:
 																{ ITEM_NAME::UNSTABLE_TRANSFORMER, "Unstable Transformer" },
 																{ ITEM_NAME::THERMAL_PASTE, "Thermal Paste" },};
 
+	const std::unordered_map<ITEM_NAME, std::string> itemNameToDescription = {
+		{ ITEM_NAME::BATTERY_PACK, "Battery Pack (Heals 1 HP)" },
+		{ ITEM_NAME::HEATSINK, "Heatsink (+10% fire rate)" },
+		{ ITEM_NAME::CREAKY_WHEEL, "Creaky Wheel (+20% speed)" },
+		{ ITEM_NAME::REPEATER, "Repeater (+100 range)" },
+		{ ITEM_NAME::SHATTERED_QUARTZ, "Shattered Quartz (+100% damage, -200 range, -30% fire rate, -30% accuracy)" },
+		{ ITEM_NAME::SUPERCHARGED_BATTERY_PACK, "Supercharged Battery Pack (Heals 2 HP)" },
+		{ ITEM_NAME::WD4000, "WD-4000 (+20% fire rate, -10% accuracy)" },
+		{ ITEM_NAME::VOLITILE_BLASTER, "Volatile Blaster (+3% crit chance)" },
+		{ ITEM_NAME::HOT_DIESEL, "Hot Diesel (+10% speed, +2% dodge chance)" },
+		{ ITEM_NAME::OPTICAL_SENSOR, "Optical Sensor (+75 range, +1% dodge chance)" },
+		{ ITEM_NAME::NOS, "NOS (+5% speed, +5% dodge chance)" },
+		{ ITEM_NAME::STABILIZER, "Stabilizer (+75 range, +10% accuracy)" },
+		{ ITEM_NAME::UNSTABLE_TRANSFORMER, "Unstable Transformer (+6% crit, -10% accuracy)" },
+		{ ITEM_NAME::THERMAL_PASTE, "Thermal Paste (+5% fire rate)" },
+	};
+
+	const std::unordered_map<NPC_TYPE, std::string> NPCtypeToDescription = {
+		{NPC_TYPE::OLD_ROBOT_NPC, "A wanderer, an advisor, a relic."},
+		{NPC_TYPE::BILLYBOY_NPC, "Traditional, survivalist, rowdy."},
+	};
+	
 	// ==================== ACTION FUNCTIONS ====================
 	// functions that set/get/act things directly
 	void shoot(Entity& entity);
@@ -161,6 +185,7 @@ private:
 	void set_last_shot_time(Entity& entity);
 	// For selecting item texture
 	TEXTURE_ASSET_ID getItemTexture(ItemStat item);
+	ITEM_NAME WorldSystem::getItemNameFromTexture(TEXTURE_ASSET_ID texture_id);
 	std::chrono::steady_clock::time_point get_curr_time();
 	// animation playing
 	void playEnemyAttack(Entity enemy);
@@ -190,8 +215,8 @@ private:
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
-	// void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
-
+	void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
+	void handleCrosshairInteractable(Entity crosshair, Entity texturedUIElement);
 
 	// ==================== UPDATE FUNCTIONS ====================
 	// ran once per step. private ones are called from inside world_system.cpp

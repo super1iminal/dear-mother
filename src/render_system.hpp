@@ -157,6 +157,8 @@ class RenderSystem {
 			textures_path("/anims/idle/npc_2_anim.png"),
 			textures_path("/anims/walk/enemy_fly_walk.png"),
 			textures_path("/anims/attack/enemy_fly_attack.png"),
+			textures_path("door_leftright_closed.png"),
+			textures_path("door_updown_closed.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

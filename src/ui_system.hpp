@@ -8,6 +8,7 @@
 const float DIALOGUE_BOX_MARGINS = 12.5f;
 
 const float DIALOGUE_TEXT_SCALE = 2.f;
+const float POPUP_TEXT_SCALE = 1.5f;
 
 class UISystem
 {
@@ -54,6 +55,15 @@ public:
 		vec3 color,
 		SCENE_TYPE scene_type);
 
+	static Entity createTextPopUpAsher(RenderSystem* renderer, 
+		vec2 pos, 
+		vec2 size, 
+		vec3 color, 
+		SCENE_TYPE scene_type, 
+		std::string text,
+		Entity parent,
+		float lifetime);
+
 	static Entity createTexturedUIElement(
 		RenderSystem* renderer,
 		vec2 pos,
@@ -83,10 +93,11 @@ public:
 		SCENE_TYPE scene_type);
 
 	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
-	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type = TEXT_BOX_TYPE::DEFAULT);
+	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type = TEXT_BOX_TYPE::DEFAULT, float text_size = DIALOGUE_TEXT_SCALE);
 private:
 	// Window handle
 	GLFWwindow* window;
 
 	vec2 cursor_position;
 };
+

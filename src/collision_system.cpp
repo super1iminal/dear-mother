@@ -280,9 +280,6 @@ void CollisionSystem::add_collisions() {
     const auto& entities = registry.gameSceneActives.entities;
     size_t entityCount = entities.size();
 
-    // crosshair(s) can only collide with one ui element at a time
-    bool crosshair_has_collided = false;
-
     for (size_t i = 0; i < entityCount; ++i) {
         Entity entity_i = entities[i];
         if (!registry.activeComponents.has(entity_i)) { continue; } // Skip inactive entities
@@ -316,6 +313,8 @@ void CollisionSystem::add_collisions() {
 				bool isTexturedUIElement_j = registry.uiElements.has(entity_j);
 				bool isCrosshair_i = registry.crosshairs.has(entity_i);
 				bool isCrosshair_j = registry.crosshairs.has(entity_j);
+				bool isInteractable_i = registry.interactables.has(entity_i);
+				bool isInteractable_j = registry.interactables.has(entity_j);
 
                 // Handle projectile collisions
                 if (isProjectile_i) {
@@ -404,15 +403,30 @@ void CollisionSystem::add_collisions() {
                     registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::PLAYER_DOOR);
                 }
 
-				if (!crosshair_has_collided && isCrosshair_i && isTexturedUIElement_i) {
-					crosshair_has_collided = true;
+				if (isCrosshair_i && isTexturedUIElement_j) {
 					registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
 				}
-                else if (!crosshair_has_collided && isCrosshair_j && isTexturedUIElement_j) {
-                    crosshair_has_collided = true;
+                else if (isCrosshair_j && isTexturedUIElement_i) {
                     registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
                 }
+
+                if (isInteractable_i && isCrosshair_j) {
+                    registry.collisions.emplace_with_duplicates(entity_j, entity_i, COLLISION_TYPE::CROSSHAIR_INTERACTABLE);
+				}
+				else if (isCrosshair_i && isInteractable_j) {
+                    registry.collisions.emplace_with_duplicates(entity_i, entity_j, COLLISION_TYPE::CROSSHAIR_INTERACTABLE);
+				}
             }
         }
     }
 }
+
+
+//for (Entity entity_uiElement : registry.uiElements.entities) { // inefficient
+//    if (registry.activeComponents.has(entity_uiElement)) {
+//        Entity base_crosshair = registry.crosshairs.entities[0];
+//        if (collides(entity_uiElement, base_crosshair)) {
+//            registry.collisions.emplace_with_duplicates(base_crosshair, entity_uiElement, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
+//        }
+//    }
+//}
