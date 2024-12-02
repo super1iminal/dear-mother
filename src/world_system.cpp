@@ -338,6 +338,16 @@ void WorldSystem::handle_collisions() {
 	registry.collisions.clear();
 }
 
+void WorldSystem::show_player_death(Entity& entity) {
+	RenderRequest& rendReq = registry.renderRequests.get(entity);
+	Animation& anim = registry.animations.get(entity);
+	anim.cols = 107;
+	anim.frames = 107;
+	anim.current_frame = 0;
+	rendReq.used_texture = TEXTURE_ASSET_ID::PLAYER_DEATH;
+	registry.projectiles.clear();
+}
+
 void WorldSystem::handle_deaths() {
 	for (Entity entity : registry.healthComponents.entities)
 	{
@@ -354,8 +364,13 @@ void WorldSystem::handle_deaths() {
 
 					registry.players.get(entity).dead = true;
 					ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+ ceil(registry.players.components[0].scrap * 0.25));
+					show_player_death(entity);
 					display_death_screen();
 					registry.deathTimers.emplace(entity);
+					registry.deathTimers.get(entity).counter_ms = 10000;
+				}
+				if (abs(registry.deathTimers.get(entity).counter_ms - 1000) <= 50) {
+					display_death_screen();
 				}
 			}
 			else if (registry.activeDeadlys.has(entity)) {
@@ -386,9 +401,21 @@ void WorldSystem::handle_deaths() {
 
 
 // ==================== UPDATE FUNCTIONS ====================
-// ran once per step. called from game_manager.cpp
+// runs once per step. called from game_manager.cpp
 void WorldSystem::update_animations() {
 	updatePlayerAnimation();
+
+	// Boss two death
+	Entity& bossTwo = registry.bossTwos.entities[0];
+	RenderRequest& bossTwoRend = registry.renderRequests.get(bossTwo);
+	Animation& bossTwoAnim = registry.animations.get(bossTwo);
+	if (bossTwoAnim.current_frame >= 24) {
+		bossTwoAnim.frames = 1;
+		bossTwoAnim.cols = 1;
+		bossTwoAnim.rows = 1;
+		bossTwoAnim.current_frame = 0;
+		bossTwoRend.used_texture = TEXTURE_ASSET_ID::BOSS_1_DEAD;
+	}
 
 	// update enemy animations
 	auto& enemyRegistry = registry.activeDeadlys;
@@ -633,11 +660,11 @@ void WorldSystem::initUpgrades() {
 	shop_crit_upgrade = player_modifier.crit_chance;
 	shop_dodge_upgrade = player_modifier.dodge_chance;
 
-	std::cout << "Item slots upgrade: " << item_slots << std::endl;
-	std::cout << "Damage upgrade: " << damage_upgrade << std::endl;
-	std::cout << "Health upgrade: " << health_upgrade << std::endl;
-	std::cout << "Crit upgrade: " << crit_upgrade << std::endl;
-	std::cout << "Dodge upgrade: " << dodge_upgrade << std::endl;
+	//std::cout << "Item slots upgrade: " << item_slots << std::endl;
+	//std::cout << "Damage upgrade: " << damage_upgrade << std::endl;
+	//std::cout << "Health upgrade: " << health_upgrade << std::endl;
+	//std::cout << "Crit upgrade: " << crit_upgrade << std::endl;
+	//std::cout << "Dodge upgrade: " << dodge_upgrade << std::endl;
 }
 
 void WorldSystem::initGameUI() {
@@ -674,7 +701,7 @@ void WorldSystem::initGameUI() {
 	for (int i = 0; i < player_health_component.max_health; i++) {
 		Entity health_segment = UISystem::createTexturedUIElement(
 			renderer,
-			vec2(50.f + (health_segment_length / 2) + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
+			vec2(76.f + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
 			vec2(health_segment_length, HEALTH_UI_HEIGHT * 0.65),
 			"health_ui_seg_" + std::to_string(i),
 			TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT,
@@ -682,8 +709,8 @@ void WorldSystem::initGameUI() {
 		health_segments_ui.push_back(health_segment);
 	}
 
-	std::cout << "Max health: " << max_health << std::endl;
-	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
+	//std::cout << "Max health: " << max_health << std::endl;
+	//std::cout << "Current health: " << player_health_component.curr_health << std::endl;
 
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
@@ -882,7 +909,7 @@ void WorldSystem::boss_disable_items() {
 			std::advance(item, rand() % player_inventory.items.size());
 			if (!item->second.disabled) {
 				item->second.disabled = true;
-				std::cout << "Disabled: " << itemNameToString.at(item->second.name) << std::endl;
+				//std::cout << "Disabled: " << itemNameToString.at(item->second.name) << std::endl;
 				boss_three.items_to_disable--;
 				update_player_modifier();
 				updateGameUI();
@@ -1343,6 +1370,8 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 	else if (boss_part.boss_pos == BOSS_ONE_POS::MOTHER) {
 		for (BossOne& b : registry.bossOnes.components) {
 			b.mother = false;
+			//createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, registry.roomCoords.get(entity).position, true);
+			createNPC(renderer, { CENTER_X, 300 }, { 450, 300 }, registry.roomCoords.get(entity).position, NPC_TYPE::FINAL_DEATH);
 		}
 	}
 	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
@@ -1370,7 +1399,6 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel() + registry.players.components[0].scrap);
 		display_victory_screen();
 		set_player_velocity({ 0,0 });
-		std::cout << "YAYYYY :3" << std::endl;
 	}
 }
 
@@ -1385,7 +1413,7 @@ void WorldSystem::handle_boss_two() {
 		int left = 0;
 		int right = 0;
 		for (int i = 0; i < bossTwo.wave_1; i++) {
-			std::cout << "WAVE 1" << std::endl;
+			//std::cout << "WAVE 1" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
 				createEnemy(renderer, { left_x_spawn, y_spawn + 25 * left }, 200, current_room);
@@ -1403,7 +1431,7 @@ void WorldSystem::handle_boss_two() {
 		int left = 0;
 		int right = 0;
 		for (int i = 0; i < bossTwo.wave_2; i++) {
-			std::cout << "WAVE 2" << std::endl;
+			//std::cout << "WAVE 2" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
 				createEnemy(renderer, { left_x_spawn, y_spawn + 25 * left }, 200, current_room);
@@ -1421,7 +1449,7 @@ void WorldSystem::handle_boss_two() {
 		int left = 0;
 		int right = 0;
 		for (int i = 0; i < bossTwo.wave_3; i++) {
-			std::cout << "WAVE :3" << std::endl;
+			//std::cout << "WAVE :3" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
 				createEnemy(renderer, { left_x_spawn, y_spawn + 25 * left }, 200, current_room);
@@ -1439,7 +1467,7 @@ void WorldSystem::handle_boss_two() {
 		int left = 0;
 		int right = 0;
 		for (int i = 0; i < bossTwo.wave_4; i++) {
-			std::cout << "WAVE 4" << std::endl;
+			//std::cout << "WAVE 4" << std::endl;
 			int loc = rand() % 2;
 			if (loc == 0) {
 				createEnemy(renderer, { left_x_spawn, y_spawn + 25 * left }, 200, current_room);
@@ -1485,6 +1513,15 @@ void WorldSystem::handle_boss_two_death(Entity& boss) {
 	boss_object.scale = { boss_object.scale.x - 57, boss_object.scale.y + 10 };
 	registry.renderRequests.get(boss).used_texture = TEXTURE_ASSET_ID::BOSS_TWO_DEAD;
 	update_music();
+
+	auto& entity = registry.bossTwos.entities[0];
+	Animation& anim = registry.animations.get(entity);
+	RenderRequest& rendReq = registry.renderRequests.get(entity);
+	rendReq.used_texture = TEXTURE_ASSET_ID::BOSS_1_DEATH;
+	anim.frames = 25;
+	anim.cols = 25;
+	anim.rows = 1;
+	anim.current_frame = 0;
 }
 
 void WorldSystem::handle_boss_three_death(Entity& entity) {
@@ -1495,7 +1532,7 @@ void WorldSystem::handle_boss_three_death(Entity& entity) {
 	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 	enable_all_items();
 	update_music();
-	std::cout << "YAYYYY :3" << std::endl;
+	//std::cout << "YAYYYY :3" << std::endl;
 }
 
 void WorldSystem::handle_item_pickup(Entity item) {
@@ -1526,7 +1563,7 @@ void WorldSystem::handle_item_pickup(Entity item) {
 			
 		}
 		else {
-			std::cout << "Already have " << player_inventory.size << " items" << std::endl;
+			//std::cout << "Already have " << player_inventory.size << " items" << std::endl;
 		}
 		updateGameUI();
 	}
@@ -1536,11 +1573,11 @@ void WorldSystem::handle_item_drop(int item_key) {
 	Inventory& player_inventory = registry.inventory.get(player);
 	//print all item keys and values
 	for (auto const& item : player_inventory.items) {
-		std::cout << "Item key: " << item.first << " pressed key: "<<item_key  << std::endl;
+		//std::cout << "Item key: " << item.first << " pressed key: "<<item_key  << std::endl;
 	}
 
 	if (player_inventory.items.find(item_key) == player_inventory.items.end()) {
-		std::cout << "Item not found" << std::endl;
+		//std::cout << "Item not found" << std::endl;
 		return;
 	}
 	ItemStat dropped_item = player_inventory.items[item_key];
@@ -1807,7 +1844,7 @@ void WorldSystem::updateGameUI() {
 	// make the segments visible or transparent based on how many hitpoints are left
 	Health player_health_component = registry.healthComponents.get(player);
 	for (int i = 0; i < player_health_component.max_health; i++ ) {
-		std::cout << i << std::endl;
+		//std::cout << i << std::endl;
 		Entity health_segment = health_segments_ui[i];
 		RenderRequest& health_render_request = registry.renderRequests.get(health_segment);
 		if (i + 1 > player_health_component.curr_health) {
@@ -1818,8 +1855,8 @@ void WorldSystem::updateGameUI() {
 		}
 	}
 
-	std::cout << "Max health: " << player_health_component.max_health << std::endl;
-	std::cout << "Current health: " << player_health_component.curr_health << std::endl;
+	//std::cout << "Max health: " << player_health_component.max_health << std::endl;
+	//std::cout << "Current health: " << player_health_component.curr_health << std::endl;
 
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
@@ -1863,6 +1900,8 @@ void WorldSystem::drawItemInventory() {
 }
 
 void WorldSystem::updatePlayerAnimation() {
+	if (registry.players.get(player).dead || registry.animations.get(player).current_frame >= 20) // player is dead (for death animation)
+		return;
 	Animation& player_animation = registry.animations.get(player);
 	Motion player_motion = registry.motions.get(player);
 	if (player_motion.target_velocity.x != 0.f || player_motion.target_velocity.y != 0.f) {
@@ -1894,9 +1933,19 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	}
 	else if (deadly.type == BOSS_ONE) // Boss one mother 
 	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
-		enemy_animation.cols = 22;
-		enemy_animation.frames = 22;
+		if (!registry.players.components[0].boss_one_beat) {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE;
+			enemy_animation.cols = 22;
+			enemy_animation.frames = 22;
+		}
+		else {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::FINAL_BOSS_DEATH;
+			enemy_animation.cols = 18;
+			enemy_animation.frames = 18;
+			if (enemy_animation.current_frame == 17) {
+				enemy_animation.current_frame = 16;
+			}
+		}
 	}
 	else if (deadly.type == HEAVY_TYPE)
 	{
@@ -1970,7 +2019,7 @@ void WorldSystem::update_player_modifier() const {
 			new_accuracy += item.accuracy;
 		}
 		else {
-			std::cout << itemNameToString.at(item.name) << " is disabled" << std::endl;
+			//std::cout << itemNameToString.at(item.name) << " is disabled" << std::endl;
 		}
 	}
 	Modifier& player_modifier = registry.modifiers.get(player);
@@ -2007,14 +2056,14 @@ void WorldSystem::update_player_modifier() const {
 		player_modifier.dodge_chance = 0;
 	}
 
-	std::cout << "DF" << player_modifier.damage_modifier << std::endl;
-	std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
-	std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
-	std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;
-	std::cout << "RP" << player_modifier.range_modifier_percent << std::endl;
-	std::cout << "FRF" << player_modifier.fire_rate_modifier_flat << std::endl;
-	std::cout << "FRP" << player_modifier.fire_rate_modifier_percent << std::endl;
-	std::cout << "AM" << player_modifier.accuracy_modifier << std::endl;
-	std::cout << "CC" << player_modifier.crit_chance << std::endl;
-	std::cout << "DC" << player_modifier.dodge_chance << std::endl;
+	//std::cout << "DF" << player_modifier.damage_modifier_flat << std::endl;
+	//std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
+	//std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
+	//std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;
+	//std::cout << "RP" << player_modifier.range_modifier_percent << std::endl;
+	//std::cout << "FRF" << player_modifier.fire_rate_modifier_flat << std::endl;
+	//std::cout << "FRP" << player_modifier.fire_rate_modifier_percent << std::endl;
+	//std::cout << "AM" << player_modifier.accuracy_modifier << std::endl;
+	//std::cout << "CC" << player_modifier.crit_chance << std::endl;
+	//std::cout << "DC" << player_modifier.dodge_chance << std::endl;
 }

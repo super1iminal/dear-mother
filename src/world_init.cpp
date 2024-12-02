@@ -301,7 +301,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 
 	// Manage boss states
 	registry.bossOnes.emplace(entity).boss_pos = boss_pos;
-
+	
 	registry.shooters.emplace(entity).fire_rate = 1500.f;
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
@@ -309,7 +309,7 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 	enemy_animation.rows = 1;
 	enemy_animation.frames = 1;
 	enemy_animation.current_frame = 0;
-
+	
 	if (boss_pos == BOSS_ONE_POS::MOTHER) {
 		deadly.type = BOSS_ONE;
 		deadly.immune = true;
@@ -834,6 +834,10 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 			npc_anim.cols = 28;
 			npc_anim.frames = 28;
 			break;
+		case (NPC_TYPE::FINAL_DEATH):
+			texture_id = TEXTURE_ASSET_ID::FINAL_BOSS_DEATH;
+			npc.dialogue_path = dialogue_path("scarecrow.json");
+			break;
 		default:
 			printf("NPC type not recognized\n");
 			exit(1);
@@ -1102,10 +1106,10 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 4.f) + (FLOOR_ITEM_BUFFER * 4.f), middleY }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CORNER_MIX:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::FLY_LAPS:
 	case ROOM_TYPE::LAPS:
@@ -1117,18 +1121,18 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px * 3.f / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CHECKERBOARD:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { window_width_px / 2.f, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px / 2.f, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::BIG_X:
 		createWall(renderer, { window_width_px / 2.f, middleY, }, scale, 0.f, randomFloorItem(), coord);
@@ -1335,12 +1339,11 @@ void generate_map() {
 	registry.map.emplace(entity);
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
 	// Test room
-	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+	roomMap[{-1, 0}] = ROOM_TYPE::BOSS_ROOM_ONE;
 
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
 	roomMap[{ 1, 0 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ -1,  0 }] = ROOM_TYPE::BOSS_ROOM_ONE; // Boss Three Temp location
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
@@ -1360,13 +1363,13 @@ void generate_map() {
 	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
 	roomMap[{ 3,  3 }] = ROOM_TYPE::FLY_LAPS;
 	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 3,  5 }] = ROOM_TYPE::FLY_TUNNELS;
+	roomMap[{ 3,  5 }] = ROOM_TYPE::LAPS;
 	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
 	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 4,  2 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 4,  1 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 4, -1 }] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
