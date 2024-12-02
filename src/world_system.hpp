@@ -33,6 +33,7 @@ public:
 	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 	// restart level
 	void restart_game();
+	void load_game();
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
@@ -53,6 +54,7 @@ public:
 	// update animations
 	void update_animations();
 	void update_music();
+	void update_crosshair_cooldown();
 
 	// ==================== CALLBACK FUNCTIONS ====================
 	// Input callback functions
@@ -68,6 +70,9 @@ private:
 	void initUpgrades();
 	// initialize HUD
 	void initGameUI();
+
+	void pre_start();
+	void post_start();
 	
 
 	// ==================== MEMBER VARIABLES ====================
@@ -80,8 +85,9 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Shooting vars
+	// Mouse vars
 	bool left_mouse_button = false;
+	vec2 cursor_position;
 
 	// Boss one vars
 	Entity final_phase_text;
@@ -115,8 +121,32 @@ private:
 	Entity health_ui;
 	Entity scrap_ui;
 	Entity level_ui;
-	std::vector<Entity> items_ui;
+	std::vector<Entity> health_segments_ui;
+	int health_segment_length;
+
+	// In Game Crosshair
+	Entity game_crosshair;
+	bool cooldown_in_progress = false;
 	
+	// Item stuff
+	int shop_crit_upgrade = 0;
+	int shop_dodge_upgrade = 0;
+
+	// Const for ITEM_NAME to string conversion
+	const std::map<ITEM_NAME, std::string> itemNameToString = { { ITEM_NAME::BATTERY_PACK, "Battery Pack" }, 
+																{ ITEM_NAME::HEATSINK, "Heatsink" }, 
+																{ ITEM_NAME::CREAKY_WHEEL, "Creaky Wheel" },
+																{ ITEM_NAME::REPEATER, "Repeater" },
+																{ ITEM_NAME::SHATTERED_QUARTZ, "Shattered Quartz" },
+																{ ITEM_NAME::SUPERCHARGED_BATTERY_PACK, "Supercharged Battery Pack" },
+																{ ITEM_NAME::WD4000, "WD-4000" },
+																{ ITEM_NAME::VOLITILE_BLASTER, "Volitile Blaster" },
+																{ ITEM_NAME::HOT_DIESEL, "Hot Diesel" },
+																{ ITEM_NAME::OPTICAL_SENSOR, "Optical Sensor" },
+																{ ITEM_NAME::NOS, "NOS" },
+																{ ITEM_NAME::STABILIZER, "Stabilizer" },
+																{ ITEM_NAME::UNSTABLE_TRANSFORMER, "Unstable Transformer" },
+																{ ITEM_NAME::THERMAL_PASTE, "Thermal Paste" },};
 
 	// ==================== ACTION FUNCTIONS ====================
 	// functions that set/get/act things directly
@@ -124,6 +154,8 @@ private:
 	void increaseScrap(int amt);
 	// Boss One Stuff
 	void boss_one_shoot(Entity& entity, WorldObject& entity_object);
+	// Boss Three Stuff
+	void boss_three_shoot(Entity& entity, WorldObject& entity_object);
 	// room stuff
 	void change_rooms(ivec2 new_room);
 	void set_last_shot_time(Entity& entity);
@@ -132,12 +164,18 @@ private:
 	std::chrono::steady_clock::time_point get_curr_time();
 	// animation playing
 	void playEnemyAttack(Entity enemy);
+	void display_death_screen();
+	void display_victory_screen();
 
 
 	// ==================== HANDLING FUNCTIONS ====================
 	// ran once per step. private ones are called from inside world_system.cpp
 	void handle_boss_one_death(Entity& entity);
 	void handle_boss_two();
+	void handle_boss_two_death(Entity& entity);
+	void handle_boss_three_death(Entity& entity);
+	void boss_disable_items();
+	void enable_all_items();
 	void handle_item_pickup(Entity item);
 	void handle_scrapping(Entity item);
 	void handle_item_drop(int item_key);
@@ -152,12 +190,14 @@ private:
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
+	// void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
 
 
 	// ==================== UPDATE FUNCTIONS ====================
 	// ran once per step. private ones are called from inside world_system.cpp
 	// update HUD
 	void updateGameUI();
+	void drawItemInventory(); // helper for initializing and updating the inventory UI
 
 	// animation updates
 	void updatePlayerAnimation();

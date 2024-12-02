@@ -38,8 +38,8 @@ inline std::string dialogue_path(const std::string& name) {
 inline std::string npc_path(const std::string& name) {
 	return textures_path("npcs/") + std::string(name);
 };
-const int window_width_px = 1280;
-const int window_height_px = 720;
+const int window_width_px = 1920;
+const int window_height_px = 1080;
 bool on_screen(vec2 position);
 
 
@@ -70,7 +70,7 @@ struct Transform {
 
 // constants
 const float CROSSHAIR_SIZE = 75.f;
-const float BASE_UI_HEIGHT = 120.f;
+const float BASE_UI_HEIGHT = window_height_px / 6;
 const int MAX_INVENTORY_SIZE = 8;
 const int MAX_UPGRADE_LEVEL = 6;
 const int MIN_INVENTORY_SIZE = 2;
@@ -79,7 +79,9 @@ const int MIN_HEALTH = 2;
 // constants for UI
 const float INITIAL_ITEM_UI_OFFSET_X = (window_width_px / 22);
 const float INITIAL_ITEM_UI_OFFSET_Y = window_height_px / 12;
-const float ITEM_UI_OFFSET_X = 103.f;
+const float ITEM_UI_OFFSET_X = window_width_px * 0.081;
+const float HEALTH_UI_LENGTH = 330.f;
+const float HEALTH_UI_HEIGHT = 122.f;
 
 bool gl_has_errors();
 
@@ -96,7 +98,8 @@ enum class COLLISION_TYPE {
 	PLAYER_DEADLY = DEADLY_BLOCKER + 1,
 	PLAYER_DOOR = PLAYER_DEADLY + 1,
 	PLAYER_BOSS_ONE = PLAYER_DOOR + 1,
-	COLLISION_COUNT = PLAYER_BOSS_ONE + 1
+	CROSSHAIR_TEXTURED_UI_ELEMENT = PLAYER_BOSS_ONE + 1,
+	COLLISION_COUNT = CROSSHAIR_TEXTURED_UI_ELEMENT + 1
 };
 
 // font character structure
@@ -115,6 +118,15 @@ enum class ITEM_NAME {
 	CREAKY_WHEEL = SHATTERED_QUARTZ + 1,
 	HEATSINK = CREAKY_WHEEL + 1,
 	REPEATER = HEATSINK + 1,
+	WD4000 = REPEATER + 1,
+	SUPERCHARGED_BATTERY_PACK = WD4000 + 1,
+	VOLITILE_BLASTER = SUPERCHARGED_BATTERY_PACK + 1,
+	HOT_DIESEL = VOLITILE_BLASTER + 1,
+	OPTICAL_SENSOR = HOT_DIESEL + 1,
+	NOS = OPTICAL_SENSOR + 1,
+	STABILIZER = NOS + 1,
+	UNSTABLE_TRANSFORMER = STABILIZER + 1,
+	THERMAL_PASTE = UNSTABLE_TRANSFORMER + 1,
 };
 
 enum class ITEM_TYPE {
@@ -177,13 +189,19 @@ enum class BOSS_ONE_STATE {
 	ALL_DEAD = START + 1,
 };
 
+enum class BOSS_THREE_PHASE {
+	PHASE_ONE = 0,
+	PHASE_TWO = PHASE_ONE + 1,
+	PHASE_THREE = PHASE_TWO + 1,
+};
 
 enum class ROOM_TYPE {
 	EMPTY = 0,
 	ENEMY_ROOM = EMPTY + 1,
 	BOSS_ROOM_ONE = ENEMY_ROOM + 1,
 	BOSS_ROOM_TWO = BOSS_ROOM_ONE + 1,
-	OLD_ROBOT_ROOM = BOSS_ROOM_TWO + 1,
+	BOSS_ROOM_THREE = BOSS_ROOM_TWO + 1,
+	OLD_ROBOT_ROOM = BOSS_ROOM_THREE + 1,
 	SCARECROW_ROOM = OLD_ROBOT_ROOM + 1,
 	TWO_SIMPLE = SCARECROW_ROOM + 1,
 	MIDLINE_PROJ = TWO_SIMPLE + 1,
@@ -196,6 +214,8 @@ enum class ROOM_TYPE {
 	SCATTER = TUNNELS + 1,
 	TWO_HEAVY = SCATTER + 1,
 	ENEMY_SOCIAL = TWO_HEAVY + 1,
+	FLY_TUNNELS = ENEMY_SOCIAL + 1,
+	FLY_LAPS = FLY_TUNNELS + 1,
 	// ...
 };
 
@@ -204,6 +224,7 @@ enum class COMBAT_STATE {
 	NORMAL_COMBAT = NO_COMBAT + 1,
 	BOSS_ONE_COMBAT = NORMAL_COMBAT + 1,
 	BOSS_TWO_COMBAT = BOSS_ONE_COMBAT + 1,
+	BOSS_THREE_COMBAT = BOSS_TWO_COMBAT + 1,
 };
 
 enum class NPC_TYPE {
@@ -235,4 +256,9 @@ enum class FLOOR_TYPE {
 	DEFAULT = 0,
 	BOSS_ROOM_ONE = DEFAULT + 1,
 	// ...
+};
+
+enum class TEXT_BOX_TYPE {
+	DEFAULT = 0,
+	POP_UP = DEFAULT + 1,
 };

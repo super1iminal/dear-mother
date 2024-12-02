@@ -24,18 +24,19 @@ void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px - 330.f, window_height_px - 268.f),
-		vec2(234.f, 60.f),
+		vec2(window_width_px - 507.f, window_height_px - 402.f),
+		vec2(351.f, 90.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
-			scene_manager.set_scene(SCENE_TYPE::MENU);
+			scene_manager.set_scene(scene_manager.get_previous_scene());
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
 		SCENE_TYPE::HELP
 	);
 
-	UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::HELP);
+	crosshair = UISystem::createCrosshair(renderer, TEXTURE_ASSET_ID::MENU_CROSSHAIR, SCENE_TYPE::HELP);
 }
 
 void HelpSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
@@ -67,5 +68,20 @@ void HelpSystem::on_mouse_move(vec2 mouse_position) {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cursor_position = vec2(xpos, ypos);
-	// change cursor to be hover
+
+	auto& uiButtonsRegistry = registry.helpSceneButtons.entities;
+	RenderRequest& crosshair_render_request = registry.renderRequests.get(crosshair);
+	for (Entity buttonEntity : uiButtonsRegistry) {
+		UIButton button = registry.uiButtons.get(buttonEntity);
+		WorldObject buttonObject = registry.worldObjects.get(buttonEntity);
+		bool within_button = is_mouse_within_button(buttonObject);
+		if (within_button) {
+			// change cursor to be hover
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR;
+			break;
+		}
+		else if (crosshair_render_request.used_texture == TEXTURE_ASSET_ID::MENU_HOVER_CROSSHAIR) {
+			crosshair_render_request.used_texture = TEXTURE_ASSET_ID::MENU_CROSSHAIR;
+		}
+	}
 }

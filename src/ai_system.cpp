@@ -315,17 +315,15 @@ void check_state_one(BossOne& currBoss) {
 }
 
 void AISystem::boss_one_ai() {
-	int LEFT_OUTER_X_BOUND = 136;
-	int LEFT_INNER_X_BOUND = 628;
-	int RIGHT_OUTER_X_BOUND = 1136;
-	int RIGHT_INNER_X_BOUND = 714;
+	int LEFT_OUTER_X_BOUND = window_width_px / 9;
+	int LEFT_INNER_X_BOUND = window_width_px * 0.48;
+	int RIGHT_OUTER_X_BOUND = window_width_px - (window_width_px / 9);
+	int RIGHT_INNER_X_BOUND = window_width_px * 0.53;
 
-	int TOP_OUTER_Y_BOUND = 270 + 50;
-	//int TOP_INNER_Y_BOUND = 350;
-	int BOT_OUTER_Y_BOUND = 550;
-	//int BOT_INNER_Y_BOUND = 500;
+	int TOP_OUTER_Y_BOUND = window_height_px * 0.4;
+	int BOT_OUTER_Y_BOUND = window_height_px * 0.76;
 
-	int CENTER_X = 638;
+	int CENTER_X = window_width_px / 2;
 
 	auto& bossOneRegistry = registry.bossOnes;
 	for (Entity& boss : bossOneRegistry.entities) {
@@ -700,28 +698,28 @@ void AISystem::boss_one_ai() {
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_T_L:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_T_R:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_B_L:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
 			break;
 		case BOSS_ONE_STATE::ONE_ALIVE_B_R:
 			if (currBoss.boss_pos != BOSS_ONE_POS::MOTHER) {
-				bossMotion.max_speed = 100;
+				bossMotion.max_speed = 300;
 				pathfinding(boss);
 			}
 			check_state_one(currBoss);
@@ -737,6 +735,39 @@ void AISystem::boss_one_ai() {
 	}
 }
 
+void AISystem::boss_three_ai() {
+	Entity& boss_entity = registry.bossThrees.entities[0];
+	BossThree& boss_three = registry.bossThrees.get(boss_entity);
+	Motion& boss_motion = registry.motions.get(boss_entity);
+	Health& boss_health = registry.healthComponents.get(boss_entity);
+	switch (boss_three.boss_phase)
+	{
+	case BOSS_THREE_PHASE::PHASE_ONE:
+		pathfinding(boss_entity);
+		registry.shooters.get(boss_entity).fire_rate = 2000;
+		if (boss_health.curr_health <= 40) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_TWO;
+		}
+		else if (boss_health.curr_health <= 10) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_THREE;
+		}
+		break;
+	case BOSS_THREE_PHASE::PHASE_TWO:
+		pathfinding(boss_entity);
+		registry.shooters.get(boss_entity).fire_rate = 1000;
+		boss_motion.max_speed = 120;
+		if (boss_health.curr_health <= 10) {
+			boss_three.boss_phase = BOSS_THREE_PHASE::PHASE_THREE;
+		}
+		break;
+	case BOSS_THREE_PHASE::PHASE_THREE:
+		pathfinding(boss_entity);
+		boss_motion.max_speed = 140; // Maybe this is too much?
+		//registry.shooters.get(boss_entity).fire_rate = 750;
+		break;
+	}
+}
+
 void AISystem::step(float elapsed_ms) {
 	auto& worldObjectRegistry = registry.worldObjects;
 	auto& playerRegistry = registry.players;
@@ -746,7 +777,11 @@ void AISystem::step(float elapsed_ms) {
 
 	if (playerRegistry.get(player).combat_state == COMBAT_STATE::BOSS_ONE_COMBAT) {
 		boss_one_ai();
-	} else {
+	}
+	else if (playerRegistry.get(player).combat_state == COMBAT_STATE::BOSS_THREE_COMBAT) {
+		boss_three_ai();
+	}
+	else {
 		for (int i = 0; i < deadlyRegistry.entities.size(); i++) {
 			Entity& enemy = deadlyRegistry.entities[i];
 			if (!registry.bossOnes.has(enemy)) {

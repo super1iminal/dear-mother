@@ -135,15 +135,8 @@ void GameManager::on_mouse_move(vec2 pos) {
 	// Update the position of the crosshair
 	for (Entity crosshair : registry.crosshairs.entities) {
 		WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-		if (scene_manager.get_scene() == SCENE_TYPE::GAME) {
-			if (pos.x > 0 && pos.x < window_width_px && pos.y > BASE_UI_HEIGHT && pos.y < window_height_px)
-				crosshair_object.position = pos;
-		}
-		else {
-			if (pos.x > 0 && pos.x < window_width_px && pos.y > 0 && pos.y < window_height_px)
-				crosshair_object.position = pos;
-		}
-		
+		if (pos.x > 0 && pos.x < window_width_px && pos.y > 0 && pos.y < window_height_px)
+			crosshair_object.position = pos;
 	}
 	switch (scene_manager.get_scene()) {
 	case SCENE_TYPE::GAME:
@@ -255,7 +248,12 @@ bool GameManager::step(float elapsed_ms, double fps)
 		// this is the only location where has_just_changed is used and can be removed safely
 		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			if (scene_manager.get_previous_scene() == SCENE_TYPE::MENU) {
-				world.restart_game();
+				if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
+					world.restart_game();
+				}
+				else {
+					world.load_game();
+				}
 			} if (scene_manager.get_previous_scene() != SCENE_TYPE::DIALOGUE) {
 				world.update_music();
 			}
@@ -267,6 +265,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 		world.update_animations();
 		world.handle_collisions();
 		world.handle_deaths();
+		world.update_crosshair_cooldown();
 		break;
 	}
 	case SCENE_TYPE::MENU:
@@ -340,6 +339,12 @@ void GameManager::cleanup() {
 
 	// Remove components of each entity
 	for (Entity entity : entities_to_remove) {
+		if (registry.textBoxes.has(entity)) {
+			TextBox& text_box = registry.textBoxes.get(entity);
+			registry.remove_all_components_of(text_box.textbox_sprite);
+			registry.remove_all_components_of(text_box.textbox_text);
+
+		}
 		registry.remove_all_components_of(entity);
 	}
 

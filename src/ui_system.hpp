@@ -45,6 +45,15 @@ public:
 		vec3 color,
 		SCENE_TYPE scene_type);
 
+	static Entity createTextPopUp(
+		RenderSystem* renderer,
+		vec2 pos,
+		vec2 scale,
+		std::string element_name,
+		std::string element_value,
+		vec3 color,
+		SCENE_TYPE scene_type);
+
 	static Entity createTexturedUIElement(
 		RenderSystem* renderer,
 		vec2 pos,
@@ -53,13 +62,14 @@ public:
 		TEXTURE_ASSET_ID texture_id,
 		SCENE_TYPE scene_type);
 
-	static Entity createButton(
+	static Entity UISystem::createButton(
 		RenderSystem* renderer,
 		vec2 pos,
 		vec2 scale,
 		std::function<void()> action,
 		std::string button_name,
 		TEXTURE_ASSET_ID texture_id,
+		TEXTURE_ASSET_ID hover_texture_id,
 		SCENE_TYPE scene_type);
 
 	static Entity createTextButton(
@@ -73,7 +83,7 @@ public:
 		SCENE_TYPE scene_type);
 
 	static Entity createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID texture, SCENE_TYPE scene_type);
-	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text);
+	static Entity createTextBox(RenderSystem* renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type = TEXT_BOX_TYPE::DEFAULT);
 private:
 	// Window handle
 	GLFWwindow* window;
