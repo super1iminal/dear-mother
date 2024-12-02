@@ -145,7 +145,10 @@ void WorldSystem::go_next_stage() {
 	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
 		Entity entity = registry.gameSceneWorldObjects.entities[i];
 		// remove everything in the game except for player? I guess we also need to keep inventory and stuff, too...
-		if (!registry.players.has(entity)) {
+		if (!registry.players.has(entity) 
+			&& !registry.baseUI.has(entity) 
+			&& !registry.uiElements.has(entity) 
+			&& !registry.crosshairs.has(entity)) {
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -1839,27 +1842,38 @@ void WorldSystem::handlePlayerDoor(Entity player, Entity door) {
 	// Lock door during combat
 	if (registry.players.get(player).combat_state == COMBAT_STATE::NO_COMBAT) {
 		// change rooms
+		Door& door_component = registry.doors.get(door);
+		if (!door_component.stage_switch) {
+			ivec2 new_room = registry.doors.get(door).leads_to;
+			printf("room switching from %d, %d to %d, %d\n", current_room.x, current_room.y, new_room.x, new_room.y);
+			WorldObject& player_worldobject = registry.worldObjects.get(player);
 
-		ivec2 new_room = registry.doors.get(door).leads_to;
-		printf("room switching from %d, %d to %d, %d\n", current_room.x, current_room.y, new_room.x, new_room.y);
-		WorldObject& player_worldobject = registry.worldObjects.get(player);
+			int dx = new_room.x - current_room.x; // positive if moving to the right
+			int dy = new_room.y - current_room.y; // positive if moving up
 
-		int dx = new_room.x - current_room.x; // positive if moving to the right
-		int dy = new_room.y - current_room.y; // positive if moving up
+			if (dx == 1) {
+				player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+			}
+			else if (dx == -1) {
+				player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+			}
+			else if (dy == 1) {
+				player_worldobject.position = { window_width_px / 2, (window_height_px - WALL_WIDTH) - 80 };
+			}
+			else if (dy == -1) {
+				player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
+			}
+			change_rooms(new_room);
+		}
+		else {
+			go_next_stage();
 
-		if (dx == 1) {
-			player_worldobject.position = { WALL_WIDTH + 80, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+			ivec2 new_room = current_room;
+			WorldObject& player_worldobject = registry.worldObjects.get(player);
+
+			player_worldobject.position = { window_width_px / 2, (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
+			change_rooms(current_room);
 		}
-		else if (dx == -1) {
-			player_worldobject.position = { window_width_px - (WALL_WIDTH + 80), (window_height_px - BASE_UI_HEIGHT) / 2.f + BASE_UI_HEIGHT };
-		}
-		else if (dy == 1) {
-			player_worldobject.position = { window_width_px / 2, (window_height_px - WALL_WIDTH) - 80 };
-		}
-		else if (dy == -1) {
-			player_worldobject.position = { window_width_px / 2, BASE_UI_HEIGHT + (WALL_WIDTH + 80) };
-		}
-		change_rooms(new_room);
 	}
 }
 

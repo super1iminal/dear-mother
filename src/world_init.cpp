@@ -470,7 +470,7 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 }
 
 // need to add to collisions
-Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation) {
+Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation, bool stage_switch) {
 	// create an entity in order to render the floor background
 	auto door = Entity();
 	registry.gameSceneComponents.emplace(door);
@@ -480,7 +480,8 @@ Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRE
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(door, &mesh);
-	registry.doors.emplace(door, leads_to, orientation);
+	auto& door_component = registry.doors.emplace(door, leads_to, orientation);
+	door_component.stage_switch = stage_switch;
 
 	// Setting initial position, scale, and orientation values
 	WorldObject& worldobject = registry.worldObjects.emplace(door);
@@ -1279,13 +1280,26 @@ void createBossRoomTwo(RenderSystem* renderer, ivec2 coord) {
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 45.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 
+	bool switch_door_created = false;
+
 	auto roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
+	else if (roomMap.find({ coord.x + 1, coord.y }) == roomMap.end() && !switch_door_created) {
+		// Make stage switch door
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT, true);
+		switch_door_created = true;
+	}
+
 	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
+	} else if (roomMap.find({ coord.x - 1, coord.y }) == roomMap.end() && !switch_door_created) {
+		// Make stage switch door
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT, true);
+		switch_door_created = true;
 	}
+
 	if (roomMap.find({ coord.x, coord.y - 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
@@ -1306,13 +1320,27 @@ void createBossRoomThree(RenderSystem* renderer, ivec2 coord) {
 	// bottom wall
 	createWall(renderer, { window_width_px / 2, window_height_px - 45.f }, { window_width_px, WALL_WIDTH }, M_PI, TEXTURE_ASSET_ID::HORZ_WALL, coord);
 
+	bool switch_door_created = false;
+
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 	if (roomMap.find({ coord.x + 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT);
 	}
+	else if (roomMap.find({ coord.x + 1, coord.y }) == roomMap.end() && !switch_door_created) {
+		// Make stage switch door
+		createDoor(renderer, coord, { coord.x + 1, coord.y }, DIRECTION::RIGHT, true);
+		switch_door_created = true;
+	}
+
 	if (roomMap.find({ coord.x - 1, coord.y }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT);
 	}
+	else if (roomMap.find({ coord.x - 1, coord.y }) == roomMap.end() && !switch_door_created) {
+		// Make stage switch door
+		createDoor(renderer, coord, { coord.x - 1, coord.y }, DIRECTION::LEFT, true);
+		switch_door_created = true;
+	}
+
 	if (roomMap.find({ coord.x, coord.y + 1 }) != roomMap.end()) {
 		createDoor(renderer, coord, { coord.x, coord.y + 1 }, DIRECTION::UP);
 	}
@@ -1557,13 +1585,13 @@ void generate_random_stage(int stage = 1) {
 		auto boss_room_pos = boss_room_candidates[idx];
 		switch (stage) {
 		case 1:
-			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_ONE;
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_TWO; // Made bosses out of order initially, so this is what it should actually be
 			break;
 		case 2:
-			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_TWO;
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_THREE;
 			break;
 		case 3:
-			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_THREE;
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_ONE;
 			break;
 		}
 		printf("creating boss room at %d, %d", boss_room_pos.first, boss_room_pos.second);
@@ -1587,13 +1615,13 @@ void generate_random_stage(int stage = 1) {
 				if (roomMap.find(neighbor) == roomMap.end()) {
 					switch (stage) {
 					case 1:
-						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_ONE;
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_TWO; // Made bosses out of order initially, so this is what it should actually be
 						break;
 					case 2:
-						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_TWO;
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_THREE;
 						break;
 					case 3:
-						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_THREE;
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_ONE;
 						break;
 					}
 					printf("creating boss room at %d, %d", neighbor.first, neighbor.second);

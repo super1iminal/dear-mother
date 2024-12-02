@@ -294,6 +294,7 @@ struct Door
 {
 	ivec2 leads_to; // is the room coords that the door leads to
 	DIRECTION direction;
+	bool stage_switch = false;
 	Door(ivec2 leads_to, DIRECTION direction) : leads_to(leads_to), direction(direction) {};
 };
 
