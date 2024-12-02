@@ -150,6 +150,8 @@ void WorldSystem::go_next_stage() {
 		}
 	}
 
+	assert(registry.players.get(player).stage + 1 < 4 && "stagge too high, cant go\n");
+	registry.players.get(player).stage = registry.players.get(player).stage + 1;
 	generate_rooms(renderer, current_room, uniform_dist, rng, registry.players.get(player).stage);
 
 	// Set initial cooldown time

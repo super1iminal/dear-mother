@@ -1,37 +1,92 @@
 {
-    "127": {
+    "108": {
         "floorItem": {
             "type": 94
         }
     },
-    "128": {
-        "floorItem": {
-            "type": 97
-        }
-    },
-    "129": {
+    "109": {
         "floorItem": {
             "type": 96
         }
     },
-    "130": {
+    "110": {
         "floorItem": {
-            "type": 93
+            "type": 92
         }
     },
-    "131": {
-        "floorItem": {
-            "type": 93
-        }
-    },
-    "132": {
+    "111": {
         "floorItem": {
             "type": 97
         }
     },
-    "154": {
+    "112": {
+        "floorItem": {
+            "type": 98
+        }
+    },
+    "142": {
+        "floorItem": {
+            "type": 93
+        }
+    },
+    "143": {
+        "floorItem": {
+            "type": 97
+        }
+    },
+    "144": {
+        "floorItem": {
+            "type": 98
+        }
+    },
+    "145": {
+        "floorItem": {
+            "type": 93
+        }
+    },
+    "146": {
         "floorItem": {
             "type": 94
+        }
+    },
+    "147": {
+        "floorItem": {
+            "type": 98
+        }
+    },
+    "148": {
+        "floorItem": {
+            "type": 97
+        }
+    },
+    "149": {
+        "floorItem": {
+            "type": 92
+        }
+    },
+    "150": {
+        "floorItem": {
+            "type": 94
+        }
+    },
+    "151": {
+        "floorItem": {
+            "type": 95
+        }
+    },
+    "152": {
+        "floorItem": {
+            "type": 92
+        }
+    },
+    "153": {
+        "floorItem": {
+            "type": 96
+        }
+    },
+    "154": {
+        "floorItem": {
+            "type": 95
         }
     },
     "155": {
@@ -41,32 +96,32 @@
     },
     "156": {
         "floorItem": {
-            "type": 94
+            "type": 97
         }
     },
     "157": {
         "floorItem": {
-            "type": 97
+            "type": 92
         }
     },
     "158": {
         "floorItem": {
-            "type": 98
+            "type": 97
         }
     },
     "159": {
         "floorItem": {
-            "type": 92
+            "type": 98
         }
     },
     "160": {
         "floorItem": {
-            "type": 93
+            "type": 97
         }
     },
     "161": {
         "floorItem": {
-            "type": 95
+            "type": 98
         }
     },
     "162": {
@@ -76,157 +131,47 @@
     },
     "163": {
         "floorItem": {
-            "type": 93
+            "type": 94
         }
     },
     "164": {
         "floorItem": {
-            "type": 93
+            "type": 97
         }
     },
     "165": {
         "floorItem": {
-            "type": 96
-        }
-    },
-    "166": {
-        "floorItem": {
-            "type": 95
-        }
-    },
-    "167": {
-        "floorItem": {
-            "type": 94
-        }
-    },
-    "168": {
-        "floorItem": {
             "type": 97
         }
     },
-    "169": {
-        "floorItem": {
-            "type": 93
-        }
-    },
-    "170": {
+    "185": {
         "floorItem": {
             "type": 92
-        }
-    },
-    "171": {
-        "floorItem": {
-            "type": 93
-        }
-    },
-    "172": {
-        "floorItem": {
-            "type": 95
-        }
-    },
-    "173": {
-        "floorItem": {
-            "type": 96
-        }
-    },
-    "174": {
-        "floorItem": {
-            "type": 92
-        }
-    },
-    "175": {
-        "floorItem": {
-            "type": 94
-        }
-    },
-    "176": {
-        "floorItem": {
-            "type": 92
-        }
-    },
-    "177": {
-        "floorItem": {
-            "type": 95
         }
     },
     "186": {
         "floorItem": {
-            "type": 93
+            "type": 97
         }
     },
     "187": {
         "floorItem": {
-            "type": 96
+            "type": 98
         }
     },
     "188": {
         "floorItem": {
-            "type": 97
-        }
-    },
-    "189": {
-        "floorItem": {
             "type": 92
-        }
-    },
-    "190": {
-        "floorItem": {
-            "type": 95
-        }
-    },
-    "191": {
-        "floorItem": {
-            "type": 96
-        }
-    },
-    "192": {
-        "floorItem": {
-            "type": 93
-        }
-    },
-    "193": {
-        "floorItem": {
-            "type": 98
-        }
-    },
-    "194": {
-        "floorItem": {
-            "type": 97
-        }
-    },
-    "205": {
-        "floorItem": {
-            "type": 92
-        }
-    },
-    "206": {
-        "floorItem": {
-            "type": 96
-        }
-    },
-    "207": {
-        "floorItem": {
-            "type": 98
-        }
-    },
-    "208": {
-        "floorItem": {
-            "type": 96
-        }
-    },
-    "209": {
-        "floorItem": {
-            "type": 97
         }
     },
     "210": {
         "floorItem": {
-            "type": 96
+            "type": 98
         }
     },
     "211": {
         "floorItem": {
-            "type": 94
+            "type": 98
         }
     },
     "212": {
@@ -236,52 +181,57 @@
     },
     "213": {
         "floorItem": {
-            "type": 97
+            "type": 98
         }
     },
     "214": {
         "floorItem": {
-            "type": 92
+            "type": 95
         }
     },
-    "226": {
+    "215": {
         "floorItem": {
-            "type": 93
+            "type": 96
         }
     },
-    "227": {
+    "216": {
         "floorItem": {
-            "type": 97
+            "type": 94
         }
     },
-    "228": {
-        "floorItem": {
-            "type": 98
-        }
-    },
-    "229": {
+    "217": {
         "floorItem": {
             "type": 95
         }
     },
+    "218": {
+        "floorItem": {
+            "type": 92
+        }
+    },
+    "229": {
+        "floorItem": {
+            "type": 94
+        }
+    },
     "230": {
         "floorItem": {
-            "type": 96
+            "type": 93
         }
     },
     "231": {
         "floorItem": {
-            "type": 96
+            "type": 97
         }
     },
     "232": {
         "floorItem": {
-            "type": 98
+            "type": 94
         }
     },
     "233": {
         "floorItem": {
-            "type": 97
+            "type": 92
         }
     },
     "234": {
@@ -289,17 +239,26 @@
             "type": 92
         }
     },
-    "235": {
-        "floorItem": {
-            "type": 92
-        }
-    },
-    "256": {
+    "248": {
         "health": {
             "curr_health": 4,
             "max_health": 5
         },
-        "inventory": null,
+        "inventory": {
+            "0": {
+                "accuracy": 0.0,
+                "flat_damage_mod": 0,
+                "flat_fire_rate": 0.0,
+                "flat_range": 0.0,
+                "flat_speed_mod": 0.0,
+                "heal_size": 0,
+                "name": 3,
+                "percent_fire_rate": 0.10000000149011612,
+                "percent_range": 0.0,
+                "percent_speed_mod": 0.0,
+                "type": 2
+            }
+        },
         "player": {
             "boss_one_beat": false,
             "boss_two_beat": false,
@@ -309,30 +268,227 @@
         },
         "roomCoord": {
             "position": [
-                0,
-                -1
+                -1,
+                1
             ]
         },
         "worldObject": {
             "position": [
-                959.9998168945313,
-                917.4912719726563
+                1660.314453125,
+                885.5475463867188
             ]
         }
     },
-    "257": {
+    "249": {
         "map": {
-            "-1,0": 7,
-            "-2,-1": 5,
-            "-2,-2": 19,
-            "-2,0": 9,
-            "-3,0": 2,
-            "0,-1": 12,
-            "0,-2": 12,
-            "0,0": 0
+            "-1,1": 8,
+            "-1,2": 5,
+            "-1,3": 2,
+            "0,-1": 15,
+            "0,0": 0,
+            "0,1": 7,
+            "1,0": 9
+        }
+    },
+    "259": {
+        "floorItem": {
+            "type": 97
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                960.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "260": {
+        "floorItem": {
+            "type": 96
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                824.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "261": {
+        "floorItem": {
+            "type": 95
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                688.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "262": {
+        "floorItem": {
+            "type": 93
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                552.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "263": {
+        "floorItem": {
+            "type": 94
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                416.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
         }
     },
     "264": {
+        "floorItem": {
+            "type": 98
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1096.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "265": {
+        "floorItem": {
+            "type": 93
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1232.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "266": {
+        "floorItem": {
+            "type": 97
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1368.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "267": {
+        "floorItem": {
+            "type": 94
+        },
+        "roomCoord": {
+            "position": [
+                -1,
+                1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1504.0,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "283": {
         "bossOne": {
             "BOSS_ONE_POS": 0,
             "BOSS_ONE_STATE": 15,
@@ -358,8 +514,8 @@
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -369,7 +525,7 @@
             ]
         }
     },
-    "265": {
+    "284": {
         "bossOne": {
             "BOSS_ONE_POS": 1,
             "BOSS_ONE_STATE": 15,
@@ -395,8 +551,8 @@
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -406,7 +562,7 @@
             ]
         }
     },
-    "266": {
+    "285": {
         "bossOne": {
             "BOSS_ONE_POS": 2,
             "BOSS_ONE_STATE": 15,
@@ -432,8 +588,8 @@
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -443,7 +599,7 @@
             ]
         }
     },
-    "267": {
+    "286": {
         "bossOne": {
             "BOSS_ONE_POS": 3,
             "BOSS_ONE_STATE": 15,
@@ -469,8 +625,8 @@
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -480,7 +636,7 @@
             ]
         }
     },
-    "268": {
+    "287": {
         "bossOne": {
             "BOSS_ONE_POS": 4,
             "BOSS_ONE_STATE": 15,
@@ -506,8 +662,8 @@
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -517,14 +673,14 @@
             ]
         }
     },
-    "269": {
+    "288": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -539,14 +695,14 @@
             ]
         }
     },
-    "270": {
+    "289": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -561,14 +717,14 @@
             ]
         }
     },
-    "271": {
+    "290": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -583,14 +739,14 @@
             ]
         }
     },
-    "272": {
+    "291": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -605,14 +761,14 @@
             ]
         }
     },
-    "273": {
+    "292": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -627,14 +783,14 @@
             ]
         }
     },
-    "274": {
+    "293": {
         "floorItem": {
             "type": 99
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -649,14 +805,14 @@
             ]
         }
     },
-    "275": {
+    "294": {
         "floorItem": {
             "type": 94
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -671,14 +827,14 @@
             ]
         }
     },
-    "276": {
+    "295": {
         "floorItem": {
             "type": 94
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -693,14 +849,14 @@
             ]
         }
     },
-    "277": {
+    "296": {
         "floorItem": {
             "type": 94
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -715,14 +871,14 @@
             ]
         }
     },
-    "278": {
+    "297": {
         "floorItem": {
             "type": 94
         },
         "roomCoord": {
             "position": [
-                -3,
-                0
+                -1,
+                3
             ]
         },
         "worldObject": {
@@ -737,191 +893,21 @@
             ]
         }
     },
-    "285": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 5
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 135.0
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "position": [
-                960.0,
-                499.0
-            ]
-        }
-    },
-    "286": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 5
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 135.0
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "position": [
-                960.0,
-                761.0
-            ]
-        }
-    },
-    "287": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 0
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 225.0
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "position": [
-                829.0,
-                630.0
-            ]
-        }
-    },
-    "288": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 1
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 157.5
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "position": [
-                1091.0,
-                630.0
-            ]
-        }
-    },
-    "289": {
-        "floorItem": {
-            "type": 92
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                480.0,
-                630.0
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "290": {
-        "floorItem": {
-            "type": 96
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                480.0,
-                766.0
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "291": {
-        "floorItem": {
-            "type": 98
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                480.0,
-                494.0
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "292": {
+    "307": {
         "floorItem": {
             "type": 94
         },
         "roomCoord": {
             "position": [
-                -2,
-                -2
+                0,
+                -1
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
-                1440.0,
-                630.0
+                923.0,
+                691.0
             ],
             "scale": [
                 113.0,
@@ -929,331 +915,213 @@
             ]
         }
     },
-    "293": {
-        "floorItem": {
-            "type": 97
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1440.0,
-                494.0
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "294": {
-        "floorItem": {
-            "type": 96
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1440.0,
-                766.0
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "312": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 1
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 157.5
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                139.0,
-                924.5
-            ]
-        }
-    },
-    "313": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 1
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 157.5
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                139.0,
-                335.5
-            ]
-        }
-    },
-    "314": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 0
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 225.0
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                1781.0,
-                924.5
-            ]
-        }
-    },
-    "315": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 1
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 157.5
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                1781.0,
-                335.5
-            ]
-        }
-    },
-    "316": {
-        "floorItem": {
-            "type": 93
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                259.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "317": {
-        "floorItem": {
-            "type": 96
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                259.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "318": {
-        "floorItem": {
-            "type": 93
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1660.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "319": {
-        "floorItem": {
-            "type": 94
-        },
-        "roomCoord": {
-            "position": [
-                -2,
-                0
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1660.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "327": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 1
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 157.5
-        },
-        "roomCoord": {
-            "position": [
-                -1,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                640.0,
-                630.0
-            ]
-        }
-    },
-    "328": {
-        "deadly": {
-            "attacking": false,
-            "immune": false,
-            "type": 0
-        },
-        "health": {
-            "curr_health": 5,
-            "max_health": 5
-        },
-        "motion": {
-            "max_speed": 225.0
-        },
-        "roomCoord": {
-            "position": [
-                -1,
-                0
-            ]
-        },
-        "worldObject": {
-            "position": [
-                1280.0,
-                630.0
-            ]
-        }
-    },
-    "338": {
+    "308": {
         "floorItem": {
             "type": 92
         },
         "roomCoord": {
             "position": [
                 0,
-                -2
+                -1
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
-                259.5,
-                797.9000244140625
+                360.0,
+                628.4000244140625
             ],
             "scale": [
                 113.0,
                 113.0
+            ]
+        }
+    },
+    "309": {
+        "floorItem": {
+            "type": 92
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                -1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1490.5999755859375,
+                630.0
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "310": {
+        "floorItem": {
+            "type": 92
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                -1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1773.5,
+                933.5
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "311": {
+        "floorItem": {
+            "type": 93
+        },
+        "roomCoord": {
+            "position": [
+                0,
+                -1
+            ]
+        },
+        "worldObject": {
+            "angle": 0.0,
+            "position": [
+                1208.5,
+                326.5
+            ],
+            "scale": [
+                113.0,
+                113.0
+            ]
+        }
+    },
+    "335": {
+        "deadly": {
+            "attacking": false,
+            "immune": false,
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5,
+            "max_health": 5
+        },
+        "motion": {
+            "max_speed": 157.5
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                139.0,
+                924.5
+            ]
+        }
+    },
+    "336": {
+        "deadly": {
+            "attacking": false,
+            "immune": false,
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5,
+            "max_health": 5
+        },
+        "motion": {
+            "max_speed": 157.5
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                139.0,
+                335.5
+            ]
+        }
+    },
+    "337": {
+        "deadly": {
+            "attacking": false,
+            "immune": false,
+            "type": 1
+        },
+        "health": {
+            "curr_health": 5,
+            "max_health": 5
+        },
+        "motion": {
+            "max_speed": 157.5
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1781.0,
+                924.5
+            ]
+        }
+    },
+    "338": {
+        "deadly": {
+            "attacking": false,
+            "immune": false,
+            "type": 0
+        },
+        "health": {
+            "curr_health": 5,
+            "max_health": 5
+        },
+        "motion": {
+            "max_speed": 225.0
+        },
+        "roomCoord": {
+            "position": [
+                1,
+                0
+            ]
+        },
+        "worldObject": {
+            "position": [
+                1781.0,
+                335.5
             ]
         }
     },
     "339": {
         "floorItem": {
-            "type": 93
+            "type": 97
         },
         "roomCoord": {
             "position": [
-                0,
-                -2
+                1,
+                0
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
                 259.5,
-                462.1000061035156
+                797.9000244140625
             ],
             "scale": [
                 113.0,
@@ -1263,19 +1131,19 @@
     },
     "340": {
         "floorItem": {
-            "type": 95
+            "type": 98
         },
         "roomCoord": {
             "position": [
-                0,
-                -2
+                1,
+                0
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
-                1660.5,
-                797.9000244140625
+                259.5,
+                462.1000061035156
             ],
             "scale": [
                 113.0,
@@ -1285,19 +1153,19 @@
     },
     "341": {
         "floorItem": {
-            "type": 98
+            "type": 93
         },
         "roomCoord": {
             "position": [
-                0,
-                -2
+                1,
+                0
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
                 1660.5,
-                462.1000061035156
+                797.9000244140625
             ],
             "scale": [
                 113.0,
@@ -1307,348 +1175,18 @@
     },
     "342": {
         "floorItem": {
-            "type": 93
+            "type": 92
         },
         "roomCoord": {
             "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                598.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "343": {
-        "floorItem": {
-            "type": 93
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                598.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "344": {
-        "floorItem": {
-            "type": 96
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1321.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "345": {
-        "floorItem": {
-            "type": 95
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1321.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "346": {
-        "floorItem": {
-            "type": 94
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                960.0,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "347": {
-        "floorItem": {
-            "type": 97
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -2
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                960.0,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "358": {
-        "floorItem": {
-            "type": 93
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                259.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "359": {
-        "floorItem": {
-            "type": 95
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                259.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "360": {
-        "floorItem": {
-            "type": 96
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
+                1,
+                0
             ]
         },
         "worldObject": {
             "angle": 0.0,
             "position": [
                 1660.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "361": {
-        "floorItem": {
-            "type": 92
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1660.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "362": {
-        "floorItem": {
-            "type": 94
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                598.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "363": {
-        "floorItem": {
-            "type": 92
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                598.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "364": {
-        "floorItem": {
-            "type": 95
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1321.5,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "365": {
-        "floorItem": {
-            "type": 95
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                1321.5,
-                462.1000061035156
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "366": {
-        "floorItem": {
-            "type": 92
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                960.0,
-                797.9000244140625
-            ],
-            "scale": [
-                113.0,
-                113.0
-            ]
-        }
-    },
-    "367": {
-        "floorItem": {
-            "type": 93
-        },
-        "roomCoord": {
-            "position": [
-                0,
-                -1
-            ]
-        },
-        "worldObject": {
-            "angle": 0.0,
-            "position": [
-                960.0,
                 462.1000061035156
             ],
             "scale": [
