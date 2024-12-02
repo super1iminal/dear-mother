@@ -274,35 +274,6 @@ Entity createEnemy(
 	return entity;
 }
 
-Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord) {
-	// Store a reference to the potentially re-used mesh object
-	Entity entity = Entity();
-	registry.gameSceneComponents.emplace(entity);
-	registry.activeComponents.emplace(entity);
-	registry.roomCoords.emplace(entity, room_coord);
-
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial position, scale, and orientation values
-	WorldObject& worldobject = registry.worldObjects.emplace(entity);
-	worldobject.position = pos;
-	worldobject.scale = scale;
-
-	vec3& text_color = registry.colors.emplace(entity);
-	text_color = vec3(1.f, 0.f, 0.f);
-
-	registry.floorTexts.emplace(entity).text = text;
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::FLOOR_TEXT,
-			GEOMETRY_BUFFER_ID::SQUARE });
-
-	return entity;
-}
-
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
@@ -344,21 +315,26 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 		deadly.immune = true;
 		health.curr_health = 20;
 		worldobject.scale = vec2({ 450, 300 });
-		registry.renderRequests.insert(
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY
+			});
 	}
 	else {
 		deadly.type = 2;
 		deadly.immune = false;
-		worldobject.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
-		registry.renderRequests.insert(
+		//worldobject.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+		worldobject.scale = vec2({ 105, 150 });
+		registry.renderRequests.insert_sorted(
 			entity,
 			{ TEXTURE_ASSET_ID::ENEMY_WALK,
 				EFFECT_ASSET_ID::ANIM,
-				GEOMETRY_BUFFER_ID::SPRITE });
+				GEOMETRY_BUFFER_ID::SPRITE,
+				RENDER_ORDER::ENEMY
+			});
 	}
 
 	return entity;
@@ -392,7 +368,7 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 
 	registry.blockers.emplace(entity);
 	// don't be fooled, type is type
-	registry.renderRequests.insert(
+	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::BOSS_TWO_IDLE,
 			EFFECT_ASSET_ID::ANIM,
@@ -448,7 +424,9 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 		entity,
 		{ TEXTURE_ASSET_ID::BOSS_THREE_WALK,
 			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE });
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_ORDER::ENEMY
+		});
 
 	return entity;
 }
@@ -838,16 +816,23 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 	worldobject.scale = size;
 
 	NPC& npc = registry.NPCs.emplace(entity, "", npc_type);
+	Animation& npc_anim = registry.animations.emplace(entity);
+	npc_anim.rows = 1;
+	npc_anim.current_frame = 0;
 
 	TEXTURE_ASSET_ID texture_id;
 	switch (npc_type) {
 		case (NPC_TYPE::OLD_ROBOT_NPC):
 			texture_id = TEXTURE_ASSET_ID::OLD_MAN;
 			npc.dialogue_path = dialogue_path("old_robot.json");
+			npc_anim.cols = 30;
+			npc_anim.frames = 30;
 			break;
 		case (NPC_TYPE::SCARECROW_NPC):
 			texture_id = TEXTURE_ASSET_ID::SCARECROW;
 			npc.dialogue_path = dialogue_path("scarecrow.json");
+			npc_anim.cols = 28;
+			npc_anim.frames = 28;
 			break;
 		default:
 			printf("NPC type not recognized\n");
@@ -881,7 +866,7 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ texture_id,
-			EFFECT_ASSET_ID::TEXTURED,
+			EFFECT_ASSET_ID::ANIM,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_ORDER::ENEMY });
 
@@ -1355,7 +1340,7 @@ void generate_map() {
 	// FLOOR ONE
 	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
 	roomMap[{ 1, 0 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ -1,  0 }] = ROOM_TYPE::BOSS_ROOM_THREE; // Boss Three Temp location
+	roomMap[{ -1,  0 }] = ROOM_TYPE::BOSS_ROOM_ONE; // Boss Three Temp location
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
@@ -1470,9 +1455,34 @@ void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_rea
 	}
 }
 
-// useless lol
-Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room) {
-	return createFloorText(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 350, window_height_px / 2 - 100 }, { 6, 2 }, current_room);
+Entity create_self_destruct_text(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 current_room) {
+	// Store a reference to the potentially re-used mesh object
+	Entity entity = Entity();
+	registry.gameSceneComponents.emplace(entity);
+	registry.activeComponents.emplace(entity);
+	registry.roomCoords.emplace(entity, current_room);
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Setting initial position, scale, and orientation values
+	WorldObject& worldobject = registry.worldObjects.emplace(entity);
+	worldobject.position = pos;
+	worldobject.scale = scale;
+
+	vec3& text_color = registry.colors.emplace(entity);
+	text_color = vec3(1.f, 0.f, 0.f);
+
+	registry.uiElements.emplace(entity).value = text;
+
+	registry.renderRequests.insert_sorted(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::FONT,
+			GEOMETRY_BUFFER_ID::SQUARE,
+			RENDER_ORDER::PARTICLE
+		});
+	return entity;
 } 
 
 

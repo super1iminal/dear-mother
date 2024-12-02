@@ -291,11 +291,12 @@ Entity UISystem::createTexturedUIElement(
 
 Entity UISystem::createButton(
 	RenderSystem* renderer,
-	vec2 pos, 
-	vec2 scale, 
-	std::function<void()> action, 
-	std::string button_name, 
-	TEXTURE_ASSET_ID texture_id, 
+	vec2 pos,
+	vec2 scale,
+	std::function<void()> action,
+	std::string button_name,
+	TEXTURE_ASSET_ID texture_id,
+	TEXTURE_ASSET_ID hover_texture_id,
 	SCENE_TYPE scene_type) {
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -335,6 +336,8 @@ Entity UISystem::createButton(
 	UIButton& ui_button = registry.uiButtons.emplace(entity);
 	ui_button.name = button_name;
 	ui_button.action = action;
+	ui_button.base_texture = texture_id;
+	ui_button.hover_texture = hover_texture_id;
 
 	registry.renderRequests.insert_sorted(
 		entity,

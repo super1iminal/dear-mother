@@ -79,12 +79,10 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	restart_game();
 }
 
-void WorldSystem::restart_game() {
+void WorldSystem::pre_start() {
 	// Debugging for memory/component leaks
 	registry.list_all_components();
-	printf("Restarting\n");
-
-	reset_dialogue_run_status(); // dialogue-related, 
+	printf("Resetting base states\n");
 	// TODO: the above needs to occur when a new run happens, but not upon continue. currently happens on both
 
 	// Reset the game speed
@@ -108,18 +106,28 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+}
 
-	// create a new Player entity
+void WorldSystem::restart_game() {
+	pre_start();
 
-	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
-	}
-	else {
-		ReloadabilitySystem::loadGame();
-		player = registry.players.entities[0];
-		change_rooms(registry.roomCoords.get(player).position);
-		update_player_modifier();
-	}
+	reset_dialogue_run_status(); // dialogue-related, 
+
+	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
+	post_start();
+}
+
+void WorldSystem::load_game() {
+	pre_start();
+	ReloadabilitySystem::loadGame();
+	player = registry.players.entities[0];
+	change_rooms(registry.roomCoords.get(player).position);
+	update_player_modifier();
+	post_start();
+	
+}
+
+void WorldSystem::post_start() {
 	// function to use for interactable
 	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
 
@@ -315,6 +323,9 @@ void WorldSystem::handle_collisions() {
 			case COLLISION_TYPE::PLAYER_BOSS_ONE:
 				handlePlayerBossOne(entity, entity_other);
 				break;
+			case COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT:
+				// handleCrosshairTexturedUIElement(entity, entity_other);
+				break;
 			default:
 				printf("Unhandled collision\n");
 				break;
@@ -339,7 +350,7 @@ void WorldSystem::handle_deaths() {
 					ReloadabilitySystem::recordPlayerDeathRoom();
 
 					Motion& player_motion = registry.motions.get(player);
-					player_motion.target_velocity = { 0,0 };
+					set_player_velocity({ 0,0 });
 
 					registry.players.get(entity).dead = true;
 					display_death_screen();
@@ -554,7 +565,9 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// nothing yet
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	cursor_position = vec2(xpos, ypos);
 }
 
 // ==================== PRIVATE ====================
@@ -587,10 +600,19 @@ void WorldSystem::initUpgrades() {
 		while (std::getline(read_file, line)) {
 			std::stringstream ss(line);
 			std::string tag;
-			int value;
-			if (std::getline(ss, tag, ',') && ss >> value) {
+			if (std::getline(ss, tag, ',')) {
+				std::string values_str;
+				std::vector<int> values;
+				if (std::getline(ss, values_str, ',')) {
+					try {
+						values.push_back(std::stoi(values_str)); // Convert to int and add to vector
+					}
+					catch (const std::invalid_argument&) {
+						std::cerr << "Error: Invalid number in CSV for tag: " << tag << std::endl;
+					}
+				}
 				if (tagMap.find(tag) != tagMap.end()) {
-					*tagMap[tag] = value;
+					*tagMap[tag] = values[0];
 				}
 			}
 		}
@@ -601,7 +623,7 @@ void WorldSystem::initUpgrades() {
 	}
 
 	player_inventory.size = PLAYER_BASE_INV_SIZE + item_slots;
-	player_modifier.damage_modifier_percentage = 1.0f + (damage_upgrade * DAMAGE_UPGRADE_MODIFIER);
+	player_modifier.damage_modifier = damage_upgrade;
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
@@ -665,11 +687,11 @@ void WorldSystem::initGameUI() {
 	// create scrap_ui entity
 	scrap_ui = UISystem::createTextUIElement(
 		renderer,
-		vec2(476.f, 68.f),
+		vec2(536.f, 68.f),
 		vec2(12.f, 5.f),
 		"scrap_ui",
 		std::to_string(registry.players.components[0].scrap),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create level_ui entity
@@ -679,7 +701,7 @@ void WorldSystem::initGameUI() {
 		vec2(12.f, 5.f),
 		"level_ui",
 		std::to_string(level),
-		vec3(1.0, 1.0, 1.0),
+		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
 	// create item_ui entities
@@ -723,13 +745,13 @@ void WorldSystem::shoot(Entity& entity) {
 
 				// Apply modifiers to player bullets
 				angle += (2 * (uniform_dist(rng) - 0.5)) * player_modifier.accuracy_modifier;
-				Entity projectile = createProjectile(renderer, entity_object.position, angle, 350.0f, true, current_room);
+				Entity projectile = createProjectile(renderer, entity_object.position, angle, 525.0f, true, current_room);
 				float bullet_range = registry.lifetimes.get(projectile).time_remaining_ms;
 				bullet_range = std::max(registry.lifetimes.get(projectile).time_remaining_ms + player_modifier.range_modifier_flat + (bullet_range * player_modifier.range_modifier_percent), MIN_RANGE);
 				registry.lifetimes.get(projectile).time_remaining_ms = bullet_range;
 				Modifier& player_modifier = registry.modifiers.get(player);
 
-				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier_flat) * player_modifier.damage_modifier_percentage;
+				int projectile_damage = (registry.projectiles.get(projectile).damage + player_modifier.damage_modifier);
 				// check if this hit could be a crit
 				if (uniform_dist(rng) * 100 > (100 - player_modifier.crit_chance)) {
 					projectile_damage *= 2;
@@ -758,7 +780,7 @@ void WorldSystem::shoot(Entity& entity) {
 				float angle = atan2(dy, dx) - M_PI;
 				if (angle < 0)
 					angle += 2 * M_PI;
-				createProjectile(renderer, entity_object.position, angle, 350.0f, false, current_room);
+				createProjectile(renderer, entity_object.position, angle, 525.0f, false, current_room);
 				Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 				set_last_shot_time(entity);
 			}
@@ -900,11 +922,6 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		if (boss.boss_state == BOSS_ONE_STATE::FOUR_ALIVE) {
 			if (boss.boss_pos == BOSS_ONE_POS::TOP_LEFT ||
 				boss.boss_pos == BOSS_ONE_POS::TOP_RIGHT) {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(75.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(105.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
 				createProjectile(renderer, entity_object.position, radians(80.f), 350.0f, false, current_room, boss_range);
 				createProjectile(renderer, entity_object.position, radians(90.f), 350.0f, false, current_room, boss_range);
@@ -918,11 +935,6 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 				//Mix_Volume(Mix_PlayChannel(-1, enemy_shooting_sound, 0), 5);
 			}
 			else {
-				// 15 degree spread
-				/*createProjectile(renderer, entity_object.position, radians(255.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room);
-				createProjectile(renderer, entity_object.position, radians(285.f), 350.0f, false, current_room);*/
-
 				// 10 degree spread
 				createProjectile(renderer, entity_object.position, radians(260.f), 350.0f, false, current_room, boss_range);
 				createProjectile(renderer, entity_object.position, radians(270.f), 350.0f, false, current_room, boss_range);
@@ -964,7 +976,6 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 				createProjectile(renderer, entity_object.position, radians(135.f), 350.0f, false, current_room, boss_range);
 				createProjectile(renderer, entity_object.position, radians(202.5f), 350.0f, false, current_room, boss_range);
 				createProjectile(renderer, entity_object.position, radians(157.5f), 350.0f, false, current_room, boss_range);
-
 			}
 		}
 		else if (boss.boss_state == BOSS_ONE_STATE::TWO_OPPOSITE_SIDE_ALIVE_R_R) {
@@ -1020,7 +1031,6 @@ void WorldSystem::boss_one_shoot(Entity& entity, WorldObject& entity_object) {
 		float wave = 15.f;
 		if (boss.shot_pattern == 0) {
 			boss.shot_pattern++;
-
 			createProjectile(renderer, entity_object.position, radians(0.f), 350.0f, false, current_room, boss_range);
 			createProjectile(renderer, entity_object.position, radians(20.f), 350.0f, false, current_room, boss_range);
 			createProjectile(renderer, entity_object.position, radians(40.f), 350.0f, false, current_room, boss_range);
@@ -1335,7 +1345,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		}
 	}
 	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
-		final_phase_text = create_self_destruct_text(renderer, current_room);
+		final_phase_text = create_self_destruct_text(renderer, "SELF DESTRUCT ACTIVE", { window_width_px / 2 - 525, window_height_px / 2 + 150 }, { 12, 9 }, current_room);
 		text_shown = true;
 	}
 
@@ -1349,13 +1359,15 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		&& !boss_part.bot_left_alive && !boss_part.bot_right_alive
 		&& !boss_part.mother) {
 		// DROP ITEMS HERE FOR KILLING BOSS
-		createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
-		createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+		// Game ends here so items not needed
+		//createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
+		//createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
 		update_music();
 		registry.winTimers.emplace(player);
 		display_victory_screen();
+		set_player_velocity({ 0,0 });
 		std::cout << "YAYYYY :3" << std::endl;
 	}
 }
@@ -1786,7 +1798,6 @@ void WorldSystem::handleProjectilePlayer(Entity projectile, Entity player) {
 }
 
 
-
 // ==================== UPDATE FUNCTIONS ====================
 void WorldSystem::updateGameUI() {
 	// this updates health, scrap, and items
@@ -1818,17 +1829,26 @@ void WorldSystem::updateGameUI() {
 void WorldSystem::drawItemInventory() {
 	Inventory& player_inventory = registry.inventory.get(player);
 	for (auto& item : player_inventory.items) {
-		int opposite_offset = MAX_INVENTORY_SIZE - item.first - 1;
-		UISystem::createTexturedUIElement(
-			renderer,
-			vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
-			vec2(ITEM_SIZE, ITEM_SIZE),
-			"item_ui_" + std::to_string(item.first),
-			getItemTexture(player_inventory.items[item.first]),
-			SCENE_TYPE::GAME);
-		// ADD DISABLE STUFF HERE
-		// Add cross on top if diabled
+		bool found = false;
+		// check if item is already a uiElement
+		for (Entity entity : registry.uiElements.entities) {
+			if (registry.uiElements.get(entity).name == "item_ui_" + std::to_string(item.first)) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			int opposite_offset = MAX_INVENTORY_SIZE - item.first - 1;
+			UISystem::createTexturedUIElement(
+				renderer,
+				vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
+				vec2(ITEM_SIZE, ITEM_SIZE),
+				"item_ui_" + std::to_string(item.first),
+				getItemTexture(player_inventory.items[item.first]),
+				SCENE_TYPE::GAME);
+		}
 		if (item.second.disabled) {
+			int opposite_offset = MAX_INVENTORY_SIZE - item.first - 1;
 			UISystem::createTexturedUIElement(
 				renderer,
 				vec2(window_width_px - ((opposite_offset * ITEM_UI_OFFSET_X) + INITIAL_ITEM_UI_OFFSET_X), INITIAL_ITEM_UI_OFFSET_Y),
@@ -1953,7 +1973,7 @@ void WorldSystem::update_player_modifier() const {
 	}
 	Modifier& player_modifier = registry.modifiers.get(player);
 
-	player_modifier.damage_modifier_flat = new_damage_flat;
+	player_modifier.damage_modifier = new_damage_flat;
 
 	player_modifier.speed_modifier_flat = new_speed_flat;
 	player_modifier.speed_modifier_percent = new_speed_percent;
@@ -1985,7 +2005,7 @@ void WorldSystem::update_player_modifier() const {
 		player_modifier.dodge_chance = 0;
 	}
 
-	std::cout << "DF" << player_modifier.damage_modifier_flat << std::endl;
+	std::cout << "DF" << player_modifier.damage_modifier << std::endl;
 	std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
 	std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
 	std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;

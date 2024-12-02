@@ -7,7 +7,7 @@
 // ==================== CONSTANTS ==================== 
 const float ENEMY_BB_WIDTH = 98.f;
 const float ENEMY_BB_HEIGHT = 131.f;
-const float ENEMY_SPEED = 150.f;
+const float ENEMY_SPEED = 225.f;
 const float PLAYER_MAX_SPEED = 450.f;
 const float PLAYER_SIZE = 90.f;
 const int PLAYER_MAX_HEALTH = 5;
@@ -19,7 +19,6 @@ const float OLD_ROBOT_HEIGHT = 264.f;
 const float SCARECROW_WIDTH = 197.f;
 const float SCARECROW_HEIGHT = 161.2;
 
-const float DAMAGE_UPGRADE_MODIFIER = 0.15f;
 const int CRIT_DAMAGE_UPGRADE_MODIFIER = 3;
 
 const float HEAVY_HEALTH = 10;
@@ -92,8 +91,7 @@ Entity createEnemy(
 	int type = (int)rand() % 2
 );
 
-// put text on the floor
-Entity createFloorText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
+Entity createText(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 room_coord);
 
 // boss one (should be 3rd boss)
 Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord);
@@ -122,7 +120,7 @@ Entity createSparkles(RenderSystem* renderer, vec2 position, vec2 size, ivec2 ro
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 
-Entity create_self_destruct_text(RenderSystem* renderer, ivec2 current_room);
+Entity create_self_destruct_text(RenderSystem* renderer, std::string text, vec2 pos, vec2 scale, ivec2 current_room);
 
 Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, NPC_TYPE npc_type);
 

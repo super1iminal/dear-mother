@@ -213,7 +213,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	}
 	else if (render_request.used_effect == EFFECT_ASSET_ID::FONT) {
 		// let render_text() handle this
-		// text_to_render.push_back(entity);
 
 		UIElement ui_elt = registry.uiElements.get(entity);
 		WorldObject world_object = registry.worldObjects.get(entity);
@@ -419,7 +418,6 @@ void RenderSystem::draw(float elapsed_ms)
 			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
-			drawFloorText();
 		}
 		break;
 	}
@@ -478,7 +476,6 @@ void RenderSystem::draw(float elapsed_ms)
 			if (!on_screen(registry.worldObjects.get(entity).position))
 				continue;
 			drawTexturedMesh(entity, projection_2D, elapsed_ms);
-			drawFloorText();
 		}
 
 		// then draw dialogue on top of everything. simple, yipeeeeee!:
@@ -501,25 +498,15 @@ void RenderSystem::draw(float elapsed_ms)
 	// Truely render to the screen
 	drawToScreen();
 
-	drawDeathScreenText();
-
-	// render all text
-	// drawText();
-
-
-	//if (registry.crosshairs.size() > 0) {
-	//	Entity crosshair = registry.crosshairs.entities[0];
-	//	drawTexturedMesh(crosshair, projection_2D, elapsed_ms); // TODO: drawing it twice. doesn't matter rn since nothinhg happens in drawtoscreen, but 
-	//															// might need to add a check above
-	//}
+	drawPopUpText();
 	
-
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
 }
 
-void RenderSystem::drawDeathScreenText() {
+
+void RenderSystem::drawPopUpText() {
 	for (uint i = 0; i < pop_up_text_to_render.size(); i++) {
 		UIElement ui_elt = registry.uiElements.get(pop_up_text_to_render[i]);
 		WorldObject world_object = registry.worldObjects.get(pop_up_text_to_render[i]);
@@ -544,6 +531,7 @@ void RenderSystem::drawDeathScreenText() {
 	pop_up_text_to_render.clear();
 }
 
+// Doesn't look like this is used anymore
 void RenderSystem::drawFloorText() {
 	for (Entity text : floor_text_to_render) {
 		WorldObject world_object = registry.worldObjects.get(text);
@@ -589,6 +577,7 @@ void RenderSystem::drawText() {
 	}
 	text_to_render.clear();
 }
+
 
 void RenderSystem::render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans) {
 	// activate the shader program

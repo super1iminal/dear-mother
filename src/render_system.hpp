@@ -97,21 +97,34 @@ class RenderSystem {
 			textures_path("start_screen_bg.png"),
 			textures_path("help_screen.png"),
 			textures_path("shop_screen.png"),
-			textures_path("/buttons/start_button.png"),
 			textures_path("/buttons/run_button.png"),
+			textures_path("/buttons/run_button_hover.png"),
 			textures_path("/buttons/continue_button.png"),
+			textures_path("/buttons/continue_button_hover.png"),
 			textures_path("/buttons/help_button.png"),
+			textures_path("/buttons/help_button_hover.png"),
 			textures_path("/buttons/upgrade_button.png"),
+			textures_path("/buttons/upgrade_button_hover.png"),
 			textures_path("/buttons/quit_button.png"),
+			textures_path("/buttons/quit_button_hover.png"),
 			textures_path("/buttons/back_button.png"),
+			textures_path("/buttons/back_button_hover.png"),
 			textures_path("/buttons/resume_button.png"),
+			textures_path("/buttons/resume_button_hover.png"),
 			textures_path("/buttons/main_menu_button.png"),
+			textures_path("/buttons/main_menu_button_hover.png"),
 			textures_path("/buttons/save_button.png"),
+			textures_path("/buttons/save_button_hover.png"),
 			textures_path("/buttons/item_slot_button.png"),
+			textures_path("/buttons/item_slot_button_hover.png"),
 			textures_path("/buttons/damage_upgrade_button.png"),
+			textures_path("/buttons/damage_upgrade_button_hover.png"),
 			textures_path("/buttons/health_upgrade_button.png"),
+			textures_path("/buttons/health_upgrade_button_hover.png"),
 			textures_path("/buttons/crit_upgrade_button.png"),
+			textures_path("/buttons/crit_upgrade_button_hover.png"),
 			textures_path("/buttons/dodge_upgrade_button.png"),
+			textures_path("/buttons/dodge_upgrade_button_hover.png"),
 			textures_path("/anims/walk/player_robot_walk.png"),
 			textures_path("/anims/walk/enemy_robot_walk.png"),
 			textures_path("/anims/attack/enemy_robot_attack.png"),
@@ -140,8 +153,8 @@ class RenderSystem {
 			// Also potential for an interactable floor item oil spill, which the player slides across without control
 			// floor items must be kept together ====================================================================
 			textures_path("textbox.png"),
-			npc_path("old_man.png"),
-			npc_path("scarecrow.png"),
+			textures_path("/anims/idle/npc_1_anim.png"),
+			textures_path("/anims/idle/npc_2_anim.png"),
 			textures_path("/anims/walk/enemy_fly_walk.png"),
 			textures_path("/anims/attack/enemy_fly_attack.png"),
 	};
@@ -246,7 +259,7 @@ private:
 
 	void drawFloorText();
 
-	void RenderSystem::drawDeathScreenText();
+	void drawPopUpText();
 
 	void render_text(std::string text, float x, float y, float scale, const glm::vec3& color, const glm::mat4& trans);
 };

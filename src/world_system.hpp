@@ -33,6 +33,7 @@ public:
 	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 	// restart level
 	void restart_game();
+	void load_game();
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 
@@ -69,6 +70,9 @@ private:
 	void initUpgrades();
 	// initialize HUD
 	void initGameUI();
+
+	void pre_start();
+	void post_start();
 	
 
 	// ==================== MEMBER VARIABLES ====================
@@ -81,8 +85,9 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	// Shooting vars
+	// Mouse vars
 	bool left_mouse_button = false;
+	vec2 cursor_position;
 
 	// Boss one vars
 	Entity final_phase_text;
@@ -185,6 +190,7 @@ private:
 	void handleProjectileDeadly(Entity projectile, Entity deadly);
 	void handleProjectilePlayer(Entity projectile, Entity player);
 	void handlePlayerDoor(Entity entity, Entity entity_other);
+	// void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
 
 
 	// ==================== UPDATE FUNCTIONS ====================

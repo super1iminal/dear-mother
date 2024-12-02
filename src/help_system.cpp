@@ -28,10 +28,11 @@ void HelpSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		vec2(351.f, 90.f),
 		[&]() {
 			std::cout << "Back button pressed!" << std::endl;
-			scene_manager.set_scene(SCENE_TYPE::MENU);
+			scene_manager.set_scene(scene_manager.get_previous_scene());
 		},
 		"return_to_menu_button",
 		TEXTURE_ASSET_ID::BACK_BUTTON,
+		TEXTURE_ASSET_ID::BOUNDBOX_BLUE,
 		SCENE_TYPE::HELP
 	);
 
