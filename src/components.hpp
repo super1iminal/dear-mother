@@ -101,6 +101,7 @@ struct Player
 	int kills = 0;
 	int scrap = 0;
 	bool dead = false;
+	int stage = 1; // 1-indexed
 };
 
 struct Shooter

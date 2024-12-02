@@ -472,7 +472,6 @@ Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_
 // need to add to collisions
 Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation) {
 	// create an entity in order to render the floor background
-	printf("creating door at %d, %d\n", room_coord.x, room_coord.y);
 	auto door = Entity();
 	registry.gameSceneComponents.emplace(door);
 	registry.roomCoords.emplace(door, room_coord);
@@ -840,7 +839,7 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 	}
 
 	Interactable& interactable =  registry.interactables.emplace(entity);
-	interactable.range = 200.f;
+	interactable.range = size.x > size.y ? size.x : size.y;
 	interactable.interaction = [](int arg1, Entity arg2) {
 		if (registry.dialogueStates.size() == 0) {
 			Entity dialogueEntity = Entity();
@@ -1327,20 +1326,292 @@ void createBossRoomThree(RenderSystem* renderer, ivec2 coord) {
 	createBossThree(renderer, {500,500}, coord);
 }
 
-void generate_map() {
-	if (registry.map.components.size() > 0) {
-		registry.remove_all_components_of(registry.map.entities[0]);
-	}
-	auto entity = Entity();
-	registry.map.emplace(entity);
-	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.get(entity).roomMap;
-	// Test room
-	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+void generate_random_stage(int stage = 1) {
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 
+
+	std::vector<ROOM_TYPE> room_types;
+	int num_rooms;
+	if (stage == 1) {
+		room_types = {
+			ROOM_TYPE::TWO_SIMPLE,
+			ROOM_TYPE::MIDLINE_PROJ,
+			ROOM_TYPE::CORNER_MIX,
+			ROOM_TYPE::LAPS,
+			ROOM_TYPE::CHECKERBOARD,
+			ROOM_TYPE::BIG_X,
+			ROOM_TYPE::TUNNELS,
+			ROOM_TYPE::SCATTER,
+			ROOM_TYPE::FLY_LAPS,
+			ROOM_TYPE::FLY_TUNNELS
+		};
+		num_rooms = rand() % (MAX_ROOMS_S1 - MIN_ROOMS_S1 + 1) + MIN_ROOMS_S1;
+	}
+	else if (stage == 2) {
+		room_types = {
+			ROOM_TYPE::ONE_HEAVY,
+			ROOM_TYPE::CHECKERBOARD,
+			ROOM_TYPE::MIDLINE_PROJ,
+			ROOM_TYPE::ENEMY_SOCIAL,
+			ROOM_TYPE::SCATTER,
+			ROOM_TYPE::TUNNELS,
+			ROOM_TYPE::TWO_SIMPLE,
+			ROOM_TYPE::BIG_X,
+			ROOM_TYPE::BILLYBOY_ROOM,
+			ROOM_TYPE::CORNER_MIX,
+			ROOM_TYPE::FLY_TUNNELS,
+			ROOM_TYPE::LAPS,
+			ROOM_TYPE::TWO_HEAVY
+		};
+		num_rooms = rand() % (MAX_ROOMS_S2 - MIN_ROOMS_S2 + 1) + MIN_ROOMS_S2;
+	}
+	else if (stage == 3) {
+		room_types = { /// TODO: CHANGE FOR S3 ROOM TYPES
+			ROOM_TYPE::ONE_HEAVY,
+			ROOM_TYPE::CHECKERBOARD,
+			ROOM_TYPE::MIDLINE_PROJ,
+			ROOM_TYPE::ENEMY_SOCIAL,
+			ROOM_TYPE::SCATTER,
+			ROOM_TYPE::TUNNELS,
+			ROOM_TYPE::TWO_SIMPLE,
+			ROOM_TYPE::BIG_X,
+			ROOM_TYPE::BILLYBOY_ROOM,
+			ROOM_TYPE::CORNER_MIX,
+			ROOM_TYPE::FLY_TUNNELS,
+			ROOM_TYPE::LAPS,
+			ROOM_TYPE::TWO_HEAVY
+		};
+		num_rooms = rand() % (MAX_ROOMS_S3 - MIN_ROOMS_S3 + 1) + MIN_ROOMS_S3;
+	}
+
+	// Initialize random seed
+	srand(static_cast<unsigned int>(time(nullptr)));
+
+	// Start position with an empty spawn tile
+	roomMap[{ 0, 0 }] = ROOM_TYPE::EMPTY;
+
+	// Frontier for expansion
+	std::vector<std::pair<int, int>> frontier;
+	frontier.push_back({ 0, 0 });
+
+	// Number of rooms generated so far
+	int rooms_generated = 1;
+
+	// List of available ROOM_TYPEs (excluding boss and old robot rooms)
+	 
+
+	while (rooms_generated < num_rooms) {
+		// Randomly select a position from the frontier
+		int idx = rand() % frontier.size();
+		auto current_pos = frontier[idx];
+
+		// Possible neighboring positions
+		std::vector<std::pair<int, int>> neighbors = {
+			{ current_pos.first + 1, current_pos.second },
+			{ current_pos.first - 1, current_pos.second },
+			{ current_pos.first, current_pos.second + 1 },
+			{ current_pos.first, current_pos.second - 1 }
+		};
+
+		// Shuffle neighbors to randomize selection
+		std::random_shuffle(neighbors.begin(), neighbors.end());
+
+		bool room_added = false;
+		for (auto& neighbor : neighbors) {
+			if (roomMap.find(neighbor) == roomMap.end()) {
+				// Assign a random ROOM_TYPE to the new room
+				int room_type_idx = rand() % room_types.size();
+				ROOM_TYPE room_type = room_types[room_type_idx];
+
+				roomMap[neighbor] = room_type;
+
+				// Add the new position to the frontier
+				frontier.push_back(neighbor);
+
+				rooms_generated++;
+				room_added = true;
+				break;
+			}
+		}
+
+		if (!room_added) {
+			// Remove positions that cannot be expanded further
+			frontier.erase(frontier.begin() + idx);
+		}
+
+		if (frontier.empty()) {
+			// Break if no expansion is possible
+			break;
+		}
+	}
+
+	// Step 1: Add the stage-specific NPC room via Random Walk
+	// Start from the spawn room
+	std::pair<int, int> current_pos = { 0, 0 };
+	int walk_steps = rand() % 5 + 3; // Random walk of 3 to 7 steps
+
+	for (int i = 0; i < walk_steps; ++i) {
+		// Possible neighboring positions
+		std::vector<std::pair<int, int>> neighbors = {
+			{ current_pos.first + 1, current_pos.second },
+			{ current_pos.first - 1, current_pos.second },
+			{ current_pos.first, current_pos.second + 1 },
+			{ current_pos.first, current_pos.second - 1 }
+		};
+
+		// Shuffle neighbors to randomize selection
+		std::random_shuffle(neighbors.begin(), neighbors.end());
+
+		// Find an unoccupied neighbor
+		bool moved = false;
+		for (auto& neighbor : neighbors) {
+			if (roomMap.find(neighbor) == roomMap.end()) {
+				// Assign a random ROOM_TYPE to the new room
+				int room_type_idx = rand() % room_types.size();
+				ROOM_TYPE room_type = room_types[room_type_idx];
+
+				roomMap[neighbor] = room_type;
+				current_pos = neighbor;
+				moved = true;
+				break;
+			}
+			else {
+				// Move to the existing room
+				current_pos = neighbor;
+				moved = true;
+				break;
+			}
+		}
+
+		if (!moved) {
+			// If no move is possible, break the loop
+			break;
+		}
+	}
+
+	// Place the Old Robot Room at the final position
+	switch (stage) {
+	case 1:
+		roomMap[current_pos] = ROOM_TYPE::OLD_ROBOT_ROOM;
+		break;
+	case 2:
+		roomMap[current_pos] = ROOM_TYPE::BILLYBOY_ROOM;
+		break;
+	case 3:
+		roomMap[current_pos] = ROOM_TYPE::OLD_ROBOT_ROOM;
+		break;
+	}
+
+	printf("creating npc room at %d, %d", current_pos.first, current_pos.second);
+
+	// Step 2: Place the Boss Room at the Edge
+	// Find all candidate positions
+	std::vector<std::pair<int, int>> boss_room_candidates;
+
+	for (const auto& room : roomMap) {
+		auto pos = room.first;
+
+		// Possible neighboring positions
+		std::vector<std::pair<int, int>> neighbors = {
+			{ pos.first + 1, pos.second },
+			{ pos.first - 1, pos.second },
+			{ pos.first, pos.second + 1 },
+			{ pos.first, pos.second - 1 }
+		};
+
+		for (auto& neighbor : neighbors) {
+			// Check if neighbor is unoccupied
+			if (roomMap.find(neighbor) == roomMap.end()) {
+				// Check adjacent rooms to the neighbor
+				std::vector<std::pair<int, int>> neighbor_neighbors = {
+					{ neighbor.first + 1, neighbor.second },
+					{ neighbor.first - 1, neighbor.second },
+					{ neighbor.first, neighbor.second + 1 },
+					{ neighbor.first, neighbor.second - 1 }
+				};
+
+				int adjacent_rooms = 0;
+				std::pair<int, int> connected_room;
+
+				for (auto& nn : neighbor_neighbors) {
+					if (roomMap.find(nn) != roomMap.end()) {
+						adjacent_rooms++;
+						connected_room = nn;
+					}
+				}
+
+				// The neighbor is adjacent to only one room
+				if (adjacent_rooms == 1) {
+					// The connected room is not above the neighbor
+					if (!(connected_room.first == neighbor.first && connected_room.second == neighbor.second + 1)) {
+						boss_room_candidates.push_back(neighbor);
+					}
+				}
+			}
+		}
+	}
+
+	if (!boss_room_candidates.empty()) {
+		// Randomly select a candidate position
+		int idx = rand() % boss_room_candidates.size();
+		auto boss_room_pos = boss_room_candidates[idx];
+		switch (stage) {
+		case 1:
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_ONE;
+			break;
+		case 2:
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_TWO;
+			break;
+		case 3:
+			roomMap[boss_room_pos] = ROOM_TYPE::BOSS_ROOM_THREE;
+			break;
+		}
+		printf("creating boss room at %d, %d", boss_room_pos.first, boss_room_pos.second);
+	}
+	else {
+		// If no suitable position found, place boss room at a random edge
+		// (Fallback option)
+		for (const auto& room : roomMap) {
+			auto pos = room.first;
+
+			// Possible neighboring positions
+			std::vector<std::pair<int, int>> neighbors = {
+				{ pos.first + 1, pos.second },
+				{ pos.first - 1, pos.second },
+				{ pos.first, pos.second + 1 },
+				{ pos.first, pos.second - 1 }
+			};
+
+			for (auto& neighbor : neighbors) {
+				// Check if neighbor is unoccupied
+				if (roomMap.find(neighbor) == roomMap.end()) {
+					switch (stage) {
+					case 1:
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_ONE;
+						break;
+					case 2:
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_TWO;
+						break;
+					case 3:
+						roomMap[neighbor] = ROOM_TYPE::BOSS_ROOM_THREE;
+						break;
+					}
+					printf("creating boss room at %d, %d", neighbor.first, neighbor.second);
+					return;
+				}
+			}
+		}
+	}
+}
+
+	
+
+void generate_stage_one() {
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 	// FLOOR ONE
-	roomMap[{ 0,  0 }] = ROOM_TYPE::EMPTY;
+	roomMap[{ 0, 0 }] = ROOM_TYPE::EMPTY;
 	roomMap[{ 1, 0 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ -1,  0 }] = ROOM_TYPE::BOSS_ROOM_ONE; // Boss Three Temp location
+	roomMap[{ -1, 0 }] = ROOM_TYPE::BOSS_ROOM_ONE; // Boss Three Temp location
 	roomMap[{ 1, -1 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{ 1, -2 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 0, -2 }] = ROOM_TYPE::LAPS;
@@ -1350,28 +1621,31 @@ void generate_map() {
 	roomMap[{-1, -5 }] = ROOM_TYPE::SCATTER;
 	roomMap[{-2, -3 }] = ROOM_TYPE::MIDLINE_PROJ;
 	roomMap[{-3, -3 }] = ROOM_TYPE::OLD_ROBOT_ROOM;
-	roomMap[{ 1,  1 }] = ROOM_TYPE::CORNER_MIX;
-	roomMap[{ 1,  2 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ 2,  2 }] = ROOM_TYPE::BIG_X;
-	roomMap[{ 2,  3 }] = ROOM_TYPE::CORNER_MIX;
-	roomMap[{ 2,  5 }] = ROOM_TYPE::TUNNELS;
+	roomMap[{ 1, 1 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 1, 2 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 2, 2 }] = ROOM_TYPE::BIG_X;
+	roomMap[{ 2, 3 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 2, 5 }] = ROOM_TYPE::TUNNELS;
 	roomMap[{ 3, -1 }] = ROOM_TYPE::CHECKERBOARD;
-	roomMap[{ 3,  0 }] = ROOM_TYPE::SCATTER;
-	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
-	roomMap[{ 3,  3 }] = ROOM_TYPE::FLY_LAPS;
-	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 3,  5 }] = ROOM_TYPE::FLY_TUNNELS;
-	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
-	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
-	roomMap[{ 4,  2 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 4,  1 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 3, 0 }] = ROOM_TYPE::SCATTER;
+	roomMap[{ 3, 1 }] = ROOM_TYPE::BIG_X;
+	roomMap[{ 3, 3 }] = ROOM_TYPE::FLY_LAPS;
+	roomMap[{ 3, 4 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 3, 5 }] = ROOM_TYPE::FLY_TUNNELS;
+	roomMap[{ 3, 6 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4, 6 }] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{ 4, 3 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 4, 2 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4, 1 }] = ROOM_TYPE::TWO_SIMPLE;
 	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
 	roomMap[{ 6, -1 }] = ROOM_TYPE::BOSS_ROOM_ONE;
+}
 
+void generate_stage_two() {
+	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
 	// FLOOR TWO MAP
 	roomMap[{7, -1}] = ROOM_TYPE::ONE_HEAVY;
 	roomMap[{7, -2}] = ROOM_TYPE::CHECKERBOARD;
@@ -1381,7 +1655,7 @@ void generate_map() {
 	roomMap[{8, -4}] = ROOM_TYPE::TUNNELS;
 	roomMap[{8, -5}] = ROOM_TYPE::TWO_SIMPLE;
 	roomMap[{8, -6}] = ROOM_TYPE::BIG_X;
-	roomMap[{9, -5}] = ROOM_TYPE::SCARECROW_ROOM;
+	roomMap[{9, -5}] = ROOM_TYPE::BILLYBOY_ROOM;
 	roomMap[{8, -1}] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{8, -2}] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{8, 0}] = ROOM_TYPE::LAPS;
@@ -1398,7 +1672,21 @@ void generate_map() {
 
 	// BOSS TWO
 	roomMap[{8, 5}] = ROOM_TYPE::BOSS_ROOM_TWO;
+}
 
+void generate_map(int stage) {
+	if (registry.map.components.size() > 0) {
+		registry.remove_all_components_of(registry.map.entities[0]);
+	}
+	auto entity = Entity();
+	registry.map.emplace(entity);
+	registry.map.get(entity).roomMap;
+	// Test room
+	// roomMap[{-1, 0}] = ROOM_TYPE::ENEMY_SOCIAL;
+
+	assert(stage > 0 && "stage too low\n");
+	assert(stage < 4 && "stage too high\n");
+	generate_random_stage(stage);
 }
 
 void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& room, RenderSystem* renderer)
@@ -1422,7 +1710,7 @@ void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& roo
 	case ROOM_TYPE::OLD_ROBOT_ROOM:
 		createNPCRoom(renderer, coord, NPC_TYPE::OLD_ROBOT_NPC);
 		break;
-	case ROOM_TYPE::SCARECROW_ROOM:
+	case ROOM_TYPE::BILLYBOY_ROOM:
 		createNPCRoom(renderer, coord, NPC_TYPE::BILLYBOY_NPC);
 		break;
 	default: // ALL ENEMY ROOMS
@@ -1431,10 +1719,10 @@ void createRoomByType(const std::pair<const std::pair<int, int>, ROOM_TYPE>& roo
 	}
 }
 
-void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng) {
+void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, int stage) {
 
 	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		generate_map();
+		generate_map(stage);
 	}
 	// Iterating using structured bindings
 	auto roomMap = registry.map.components[0].roomMap;

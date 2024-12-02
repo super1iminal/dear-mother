@@ -57,14 +57,20 @@ void WorldSystem::init(RenderSystem* renderer_arg, GLFWwindow* window) {
 	player_shooting_sound = Mix_LoadWAV(audio_path("laserSmall_000.wav").c_str());
 	player_projectile_damage_sound = Mix_LoadWAV(audio_path("forceField_002.wav").c_str());
 	enemy_shooting_sound = Mix_LoadWAV(audio_path("laserLarge_000.wav").c_str());
+	door_change_sound = Mix_LoadWAV(audio_path("doorchange.wav").c_str());
+
+
 	post_combat_music = Mix_LoadMUS(audio_path("Factory-On-Mercury_Looping.wav").c_str());
 	combat_music = Mix_LoadMUS(audio_path("The Death of Gods Will-[AudioTrimmer.com].wav").c_str());
-	door_change_sound = Mix_LoadWAV(audio_path("doorchange.wav").c_str());
+	boss_one_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 09 Aylward and Lilura-compressed.wav").c_str());
+	boss_two_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 06 Chaos Ember Dragon-compressed.wav").c_str());
+	boss_three_music = Mix_LoadMUS(audio_path("Alex Roe - Darksign - 05 Imprisoned Guardian-compressed.wav").c_str());
+	
 
 	// Compressed Air by ThompsonMan -- https://freesound.org/s/237245/ -- License: Attribution 4.0
 
 	if (melee_sound == nullptr || player_shooting_sound == nullptr || player_projectile_damage_sound == nullptr
-		|| enemy_shooting_sound == nullptr || post_combat_music == nullptr || combat_music == nullptr || door_change_sound == nullptr) {
+		|| enemy_shooting_sound == nullptr || post_combat_music == nullptr || combat_music == nullptr || door_change_sound == nullptr || boss_one_music == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("impactMetal_medium_003.wav").c_str(),
 			audio_path("laserSmall_000.wav").c_str(),
@@ -130,11 +136,37 @@ void WorldSystem::load_game() {
 	
 }
 
-void WorldSystem::post_start() {
-	// function to use for interactable
-	auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
+void WorldSystem::go_next_stage() {
+	current_room = { 0, 0 };
+	text_shown = false;
 
-	generate_rooms(renderer, current_room, uniform_dist, rng);
+	cooldown_in_progress = false;
+
+	for (int i = registry.gameSceneWorldObjects.entities.size() - 1; i >= 0; --i) {
+		Entity entity = registry.gameSceneWorldObjects.entities[i];
+		// remove everything in the game except for player? I guess we also need to keep inventory and stuff, too...
+		if (!registry.players.has(entity)) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
+	generate_rooms(renderer, current_room, uniform_dist, rng, registry.players.get(player).stage);
+
+	// Set initial cooldown time
+	for (Entity entity : registry.shooters.entities) {
+		set_last_shot_time(entity);
+	}
+
+	updateGameUI();
+	update_music();
+	update_doors();
+}
+
+void WorldSystem::post_start() {
+	// function to use for interactable (unused)
+	// auto bound_interactable_fn = std::bind(&WorldSystem::increaseScrap, this, std::placeholders::_1);
+
+	generate_rooms(renderer, current_room, uniform_dist, rng, registry.players.get(player).stage);
 
 	// Set initial cooldown time
 	for (Entity entity : registry.shooters.entities) {
@@ -148,22 +180,12 @@ void WorldSystem::post_start() {
 	if (registry.gameLoadingHelper.components.size() > 0) {
 		registry.gameLoadingHelper.components[0].savedGame = false;
 	}
+	
+	updateGameUI();
+	update_player_modifier();
 
 	update_music();
 	update_doors();
-}
-
-void WorldSystem::update_music() {
-	if (registry.players.get(player).combat_state == COMBAT_STATE::NO_COMBAT) {
-		Mix_VolumeMusic(8);
-		Mix_FadeInMusic(post_combat_music, -1, 2500);
-	}
-	else if (registry.players.get(player).combat_state != COMBAT_STATE::NO_COMBAT) {
-		Mix_VolumeMusic(16);
-		Mix_FadeInMusic(combat_music, -1, 5000);
-	}
-
-	// TODO: can changed based on boss
 }
 
 // Update our game world
@@ -485,6 +507,31 @@ void WorldSystem::update_animations() {
 	}
 }
 
+void WorldSystem::update_music() {
+	if (registry.players.get(player).combat_state == COMBAT_STATE::NO_COMBAT) {
+		Mix_VolumeMusic(8);
+		Mix_FadeInMusic(post_combat_music, -1, 2500);
+	}
+	else if (registry.players.get(player).combat_state == COMBAT_STATE::NORMAL_COMBAT) {
+		printf("setting music to normal combat music\n");
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(combat_music, -1, 5000);
+	}
+	else if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_ONE_COMBAT) {
+		printf("setting music to boss one music\n");
+		Mix_VolumeMusic(20);
+		Mix_FadeInMusic(boss_one_music, -1, 5000);
+	}
+	else if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_TWO_COMBAT) {
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(boss_two_music, -1, 5000);
+	}
+	else if (registry.players.get(player).combat_state == COMBAT_STATE::BOSS_THREE_COMBAT) {
+		Mix_VolumeMusic(16);
+		Mix_FadeInMusic(boss_three_music, -1, 5000);
+	}
+}
+
 void WorldSystem::update_doors() {
 	for (Entity entity: registry.activeDoors.entities) {
 		RenderRequest& rr = registry.renderRequests.get(entity);
@@ -745,7 +792,9 @@ void WorldSystem::initUpgrades() {
 	player_inventory.size = PLAYER_BASE_INV_SIZE + item_slots;
 	player_modifier.damage_modifier = damage_upgrade;
 	player_health.max_health = PLAYER_MAX_HEALTH + health_upgrade;
-	player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
+	if (registry.gameLoadingHelper.components.size() < 1 || !registry.gameLoadingHelper.components[0].savedGame) {
+		player_health.curr_health = PLAYER_MAX_HEALTH + health_upgrade;
+	}
 	player_modifier.crit_chance = 1 + (crit_upgrade * CRIT_DAMAGE_UPGRADE_MODIFIER);
 	player_modifier.dodge_chance = (dodge_upgrade * 2);
 
@@ -1421,6 +1470,16 @@ void WorldSystem::set_player_velocity(vec2 velocity) {
 }
 
 void WorldSystem::set_combat_state(COMBAT_STATE cs) {
+	if (cs == COMBAT_STATE::NO_COMBAT) {
+		// reset the player's kills
+		printf("setting combast state to no combat\n");
+	}
+	else if (cs == COMBAT_STATE::NORMAL_COMBAT) {
+		printf("settinc combat state to normal combat\n");
+	}
+	else if (cs == COMBAT_STATE::BOSS_ONE_COMBAT) {
+		printf("settinc combat state to boss 1 combat\n");
+	}
 	COMBAT_STATE prev = registry.players.get(player).combat_state;
 	registry.players.get(player).combat_state = cs;
 	update_music();

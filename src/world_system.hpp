@@ -33,6 +33,7 @@ public:
 	void init(RenderSystem* renderer_arg, GLFWwindow* window);
 	// restart level
 	void restart_game();
+	void go_next_stage();
 	void load_game();
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -103,6 +104,9 @@ private:
 	Mix_Chunk* door_change_sound;
 	Mix_Music* post_combat_music;
 	Mix_Music* combat_music;
+	Mix_Music* boss_one_music;
+	Mix_Music* boss_two_music;
+	Mix_Music* boss_three_music;
 	//Music control
 	bool change_music = true;
 
