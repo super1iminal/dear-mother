@@ -11,8 +11,9 @@ class ReloadabilitySystem
 public:
     void init(RenderSystem* renderer_arg, GLFWwindow* window_arg);
     static void saveGame();
-    static void loadGame();
+    static bool loadGame();
     static void recordPlayerDeathRoom();
+    static void setSaveValidity(bool validity);
 private:
     static RenderSystem* renderer;
     GLFWwindow* window;

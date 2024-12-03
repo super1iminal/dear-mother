@@ -1,6 +1,6 @@
-item_slots,1,10,10
-health_upgrade,0,10,10
-damage_upgrade,0,10,10
-dodge_upgrade,0,10,10
-crit_upgrade,0,10,10
-scrap,25
+item_slots,0,6,1
+health_upgrade,0,5,1
+damage_upgrade,0,3,3
+dodge_upgrade,0,6,2
+crit_upgrade,0,6,2
+scrap,0

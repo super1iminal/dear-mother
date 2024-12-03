@@ -111,19 +111,34 @@ void WorldSystem::pre_start() {
 void WorldSystem::restart_game() {
 	pre_start();
 
+	ReloadabilitySystem::setSaveValidity(true);
+
 	reset_dialogue_run_status(); // dialogue-related, 
 
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 	post_start();
+
+
+	// save the game
+	// so that old saves are removed
+	ReloadabilitySystem::saveGame();
 }
 
 void WorldSystem::load_game() {
 	pre_start();
-	ReloadabilitySystem::loadGame();
-	player = registry.players.entities[0];
-	change_rooms(registry.roomCoords.get(player).position);
-	update_player_modifier();
-	post_start();
+	if (ReloadabilitySystem::loadGame()) {
+		player = registry.players.entities[0];
+		change_rooms(registry.roomCoords.get(player).position);
+		update_player_modifier();
+		post_start();
+	}
+	else {
+		if (registry.gameLoadingHelper.components.size() != 0) {
+			registry.gameLoadingHelper.components[0].savedGame = false;
+		}
+		restart_game();
+	}
+	
 	
 }
 
@@ -358,6 +373,7 @@ void WorldSystem::handle_deaths() {
 				if (!registry.deathTimers.has(entity) && !registry.players.get(entity).dead && !registry.players.get(entity).boss_one_beat) {
 					updateGameUI();
 					ReloadabilitySystem::recordPlayerDeathRoom();
+					ReloadabilitySystem::setSaveValidity(false);
 
 					Motion& player_motion = registry.motions.get(player);
 					set_player_velocity({ 0,0 });
@@ -1296,6 +1312,7 @@ void WorldSystem::display_victory_screen() {
 	victory_screen << "\t\t\t\t\t\t\t You Win!\n\n";
 	victory_screen << "Total Kills: " << p.kills << "\n\n";
 	victory_screen << "Scrap Collected: " << p.scrap << "\n\n";
+	victory_screen << "Scrap Earned: " << p.scrap << "\n\n";
 	if (player_inventory.items.size() <= 0) {
 		victory_screen << "Items Collected: None";
 	}
@@ -1331,6 +1348,7 @@ void WorldSystem::display_death_screen() {
 	death_screen << "\t\t\t\t\t\t\t I'll Be Back\n\n";
 	death_screen << "Total Kills: " << p.kills << "\n\n";
 	death_screen << "Scrap Collected: " << p.scrap << "\n\n";
+	death_screen << "Scrap Earned: " << ceil(p.scrap * 0.25) << "\n\n";
 	death_screen << "Level Reached: " << level << "\n\n"; // Could be wrong variable
 	if (player_inventory.items.size() <= 0) {
 		death_screen << "Items Collected: None";
