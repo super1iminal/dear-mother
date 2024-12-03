@@ -951,7 +951,7 @@ void WorldSystem::shoot(Entity& entity) {
 	WorldObject& entity_object = registry.worldObjects.get(entity);
 
 	if (registry.players.has(entity)) {
-		if (left_mouse_button) {
+		if (left_mouse_button && !registry.players.get(player).dead) {
 			// Apply fire rate modifier 
 			float old_fire_rate = registry.shooters.get(entity).fire_rate;
 			Modifier player_modifier = registry.modifiers.get(entity);
