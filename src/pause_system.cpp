@@ -23,9 +23,9 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 		"help_screen",
 		TEXTURE_ASSET_ID::START_MENU
 	);
-	UISystem::createButton(
+	savebutton = UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2),
+		vec2(window_width_px / 2, window_height_px / 2 + 42.f),
 		vec2(129.f, 36.f),
 		[&]() {
 			ReloadabilitySystem::saveGame();
@@ -53,7 +53,7 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 
 	UISystem::createButton(
 		renderer,
-		vec2(window_width_px / 2, window_height_px / 2 + 42.f),
+		vec2(window_width_px / 2, window_height_px / 2),
 		vec2(276.f, 48.f),
 		[&]() {
 			printf("return to menu button pressed\n");
@@ -68,7 +68,7 @@ void PauseSystem::init(RenderSystem* renderer_arg, GLFWwindow* window_arg) {
 	UISystem::createButton(
 		renderer,
 		vec2(window_width_px / 2, window_height_px / 2 - 42.f),
-		vec2(90.f, 44.f),
+		vec2(117.f, 57.2f),
 		[&]() {
 			std::cout << "Help button pressed!" << std::endl;
 			scene_manager.set_scene(SCENE_TYPE::HELP);
@@ -98,6 +98,30 @@ void PauseSystem::on_key(int key, int sc, int action, int mod) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		scene_manager.set_scene(SCENE_TYPE::GAME);
 	}
+}
+
+void PauseSystem::update_buttons() {
+	if (registry.players.components[0].combat_state != COMBAT_STATE::NO_COMBAT) {
+		registry.pendingRemoves.emplace(savebutton);
+	}
+	else {
+		if (!registry.uiButtons.has(savebutton)) {
+			savebutton = UISystem::createButton(
+				renderer,
+				vec2(window_width_px / 2, window_height_px / 2),
+				vec2(129.f, 36.f),
+				[&]() {
+					ReloadabilitySystem::saveGame();
+					scene_manager.set_scene(SCENE_TYPE::MENU);
+				},
+				"save_and_quit_button",
+				TEXTURE_ASSET_ID::SAVE_BUTTON,
+				TEXTURE_ASSET_ID::SAVE_BUTTON_HOVER,
+				SCENE_TYPE::PAUSE
+			);
+		}
+	}
+	
 }
 
 void PauseSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)

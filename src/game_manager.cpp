@@ -288,6 +288,7 @@ bool GameManager::step(float elapsed_ms, double fps)
 		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
 			pause.update_music();
 			world.set_player_velocity({ 0.f, 0.f });
+			pause.update_buttons();
 		}
 		break;
 	}
