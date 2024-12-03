@@ -64,6 +64,16 @@ const float FLOOR_ITEM_BUFFER = 23.f;
 // Item drop chance
 const float DROP_CHANCE = 25;
 
+
+// number of rooms
+const int MIN_ROOMS_S1 = 3;
+const int MAX_ROOMS_S1 = 5;
+const int MIN_ROOMS_S2 = 5;
+const int MAX_ROOMS_S2 = 7;
+const int MIN_ROOMS_S3 = 7;
+const int MAX_ROOMS_S3 = 9;
+
+
 // ==================== CREATE FUNCTIONS ====================
 
 Entity createParticle(RenderSystem* renderer, 
@@ -106,7 +116,7 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord, bool 
 Entity createFloor(RenderSystem* renderer, vec2 position, vec2 size, ivec2 room_coord, FLOOR_TYPE floor_type = FLOOR_TYPE::DEFAULT);
 
 // doors
-Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation);
+Entity createDoor(RenderSystem* renderer, ivec2 room_coord, ivec2 leads_to, DIRECTION orientation, bool stage_swtich = false);
 
 Entity createInteractable(RenderSystem* renderer, vec2 position, vec2 size, std::function<void(int)> function, int value, ivec2 room_coord);
 
@@ -149,9 +159,9 @@ void createBossRoomTwo(RenderSystem* renderer, ivec2 coord);
 
 void createBossRoomThree(RenderSystem* renderer, ivec2 coord);
 
-void generate_map();
+void generate_map(int stage = 1);
 
-void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng);
+void generate_rooms(RenderSystem* renderer, ivec2 current_room, std::uniform_real_distribution<float> uniform_dist, std::default_random_engine& rng, int stage = 1);
 
 
 

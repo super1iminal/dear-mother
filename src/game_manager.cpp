@@ -344,11 +344,8 @@ void GameManager::cleanup() {
 
 	// Remove components of each entity
 	for (Entity entity : entities_to_remove) {
-		if (registry.textBoxes.has(entity)) {
-			TextBox& text_box = registry.textBoxes.get(entity);
-			registry.remove_all_components_of(text_box.textbox_sprite);
-			registry.remove_all_components_of(text_box.textbox_text);
-
+		if (registry.removeFunctionComponents.has(entity)) {
+			registry.removeFunctionComponents.get(entity).remove_function(entity);
 		}
 		registry.remove_all_components_of(entity);
 	}
