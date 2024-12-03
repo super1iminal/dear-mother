@@ -230,6 +230,8 @@ enum class COMBAT_STATE {
 enum class NPC_TYPE {
 	OLD_ROBOT_NPC = 0,
 	SCARECROW_NPC = OLD_ROBOT_NPC + 1,
+	FINAL_DEAD = SCARECROW_NPC + 1,
+	BOSS_3_DEAD = FINAL_DEAD + 1,
 	// ...
 };
 

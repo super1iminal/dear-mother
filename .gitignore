@@ -7,3 +7,4 @@
 /.vs
 /out/build/x64-Debug
 /ext/project_path.hpp
+/data/saved_game/test.json

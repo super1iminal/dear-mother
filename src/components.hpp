@@ -9,8 +9,6 @@
 #include <iostream>
 #include <chrono>
 
-
-
 // All data relevant to the motion of entities
 struct Motion {
 	float max_speed;
@@ -95,6 +93,7 @@ struct Collision
 struct Player
 {
 	COMBAT_STATE combat_state = COMBAT_STATE::NO_COMBAT;
+	bool boss_one_dead = false;
 	bool boss_one_beat = false;
 	bool boss_two_beat = false;
 	bool boss_three_beat = false;
@@ -490,7 +489,16 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SCARECROW = OLD_MAN + 1,
 	ENEMY_FLY_WALK = SCARECROW + 1,
 	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
-	TEXTURE_COUNT = ENEMY_FLY_ATTACK + 1,
+
+	PLAYER_DEATH = ENEMY_FLY_ATTACK + 1,
+	FINAL_BOSS_DEATH = PLAYER_DEATH + 1,
+	FINAL_BOSS_DEAD = FINAL_BOSS_DEATH + 1,
+	BOSS_1_DEAD = FINAL_BOSS_DEAD + 1,
+	BOSS_1_DEATH = BOSS_1_DEAD + 1,
+	BOSS_2_DEATH = BOSS_1_DEATH + 1,
+	BOSS_2_DEAD = BOSS_2_DEATH + 1,
+
+	TEXTURE_COUNT = BOSS_2_DEAD + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
