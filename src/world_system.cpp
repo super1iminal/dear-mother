@@ -390,7 +390,7 @@ void WorldSystem::handle_collisions() {
 void WorldSystem::handleCrosshairInteractable(Entity crosshair, Entity interactable) {
 
 	// we know that the crosshair has collided with the texturedUIElement, and is colliding with it. first, we set the hover stuff for the uielement
-	if (registry.players.components[0].combat_state != COMBAT_STATE::NO_COMBAT) {
+	if (registry.players.components[0].combat_state != COMBAT_STATE::NO_COMBAT || registry.players.components[0].boss_one_beat || registry.players.components[0].boss_one_dead) {
 		return; // dont distract player
 	}
 	if (registry.hasPopUpComponents.has(interactable)) {
@@ -919,7 +919,7 @@ void WorldSystem::initGameUI() {
 		vec2(488.f, 134.f),
 		vec2(12.f, 5.f),
 		"level_ui",
-		std::to_string(level),
+		std::to_string(registry.players.get(player).stage),
 		vec3(0.4, 0.41, 0.49),
 		SCENE_TYPE::GAME);
 
@@ -1600,7 +1600,7 @@ void WorldSystem::display_death_screen() {
 	death_screen << "Total Kills: " << p.kills << "\n\n";
 	death_screen << "Scrap Collected: " << p.scrap << "\n\n";
 	death_screen << "Scrap Earned: " << ceil(p.scrap * 0.25) << "\n\n";
-	death_screen << "Level Reached: " << level << "\n\n"; // Could be wrong variable
+	death_screen << "Level Reached: " << registry.players.get(player).stage << "\n\n"; // Could be wrong variable
 	if (player_inventory.items.size() <= 0) {
 		death_screen << "Items Collected: None";
 	}
@@ -2134,10 +2134,10 @@ void WorldSystem::updateGameUI() {
 
 	//std::cout << "Max health: " << player_health_component.max_health << std::endl;
 	//std::cout << "Current health: " << player_health_component.curr_health << std::endl;
-	std::cout << "HERE5" << std::endl;
 	UIElement& scrap_elt = registry.uiElements.get(scrap_ui);
 	scrap_elt.value = std::to_string(registry.players.components[0].scrap);
-	std::cout << "HERE6" << std::endl;
+	UIElement& stage_elt = registry.uiElements.get(level_ui);
+	stage_elt.value = std::to_string(registry.players.components[0].stage);
 
 	// re render the items
 	drawItemInventory();
@@ -2226,7 +2226,9 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 			enemy_animation.frames = 18;
 			if (enemy_animation.current_frame >= 17) {
 				createNPC(renderer, { CENTER_X, 300 }, { 450, 300 }, registry.roomCoords.get(registry.bossOnes.entities[0]).position, NPC_TYPE::FINAL_DEAD);
-				registry.winTimers.emplace(player);
+				if (!registry.winTimers.has(player)) {
+					registry.winTimers.emplace(player);
+				}
 				display_victory_screen();
 				set_player_velocity({ 0,0 });
 				registry.players.components[0].boss_one_dead = true;
