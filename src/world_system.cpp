@@ -117,11 +117,6 @@ void WorldSystem::restart_game() {
 
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 	post_start();
-
-
-	// save the game
-	// so that old saves are removed
-	ReloadabilitySystem::saveGame();
 }
 
 void WorldSystem::load_game() {
@@ -391,7 +386,7 @@ void WorldSystem::handle_deaths() {
 			}
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity) && registry.players.get(player).combat_state != COMBAT_STATE::BOSS_TWO_COMBAT) {
-					if (uniform_dist(rng) * 100 > (100 - 100)) {
+					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
 					registry.players.get(player).kills++;
@@ -714,7 +709,7 @@ void WorldSystem::initGameUI() {
 	for (int i = 0; i < player_health_component.max_health; i++) {
 		Entity health_segment = UISystem::createTexturedUIElement(
 			renderer,
-			vec2(76.f + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
+			vec2(50.f + (health_segment_length / 2) + ((5 + health_segment_length) * i), (BASE_UI_HEIGHT / 2) - 3),
 			vec2(health_segment_length, HEALTH_UI_HEIGHT * 0.65),
 			"health_ui_seg_" + std::to_string(i),
 			TEXTURE_ASSET_ID::HEALTH_UI_SEGMENT,
