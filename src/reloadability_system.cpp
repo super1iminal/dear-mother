@@ -212,14 +212,34 @@ void ReloadabilitySystem::saveGame() {
 }
 
 
-void ReloadabilitySystem::loadGame() {
+bool ReloadabilitySystem::loadGame() {
+    std::ifstream validity_file(reload_path("save_one_valid.json"));
+    if (!validity_file) {
+        cout << "failed to open validity file";
+        return false;
+    }
+    json valid;
+    try {
+        validity_file >> valid;
+    }
+    catch (const json::parse_error& e) {
+        cout << "parse fail (validity): " << e.what() << std::endl;
+        return false;
+    }
+
+    if (valid["valid"] == 0) {
+        cout << "save file not valid." << endl;
+        return false;
+    }
+
     while (registry.deadlys.entities.size() > 0) {
         registry.remove_all_components_of(registry.deadlys.entities[0]);
     }
+
     std::ifstream input_file(reload_path("test.json"));
     if (!input_file) {
         cout << "failed to open file";
-        return;
+        return false;
     }
     json test;
     try {
@@ -227,7 +247,7 @@ void ReloadabilitySystem::loadGame() {
     }
     catch (const json::parse_error& e) {
         cout << "parse fail" << e.what() << std::endl;
-        return;
+        return false;
     }
     for (auto& item : test.items()) {
         json data = item.value();
@@ -345,7 +365,30 @@ void ReloadabilitySystem::loadGame() {
         }
     }
 
+    return true;
+
     // close input file?
+}
+
+void ReloadabilitySystem::setSaveValidity(bool validity) {
+    std::ifstream validity_file(reload_path("save_one_valid.json"));
+    if (!validity_file) {
+        cout << "failed to open validity file";
+        return;
+    }
+    json valid;
+    try {
+        validity_file >> valid;
+    }
+    catch (const json::parse_error& e) {
+        cout << "parse fail (validity): " << e.what() << std::endl;
+        return;
+    }
+    
+    valid["valid"] = static_cast<int>(validity);
+
+    std::ofstream output_file(reload_path("save_one_valid.json"));
+    output_file << valid;
 }
 
 

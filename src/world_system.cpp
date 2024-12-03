@@ -111,19 +111,34 @@ void WorldSystem::pre_start() {
 void WorldSystem::restart_game() {
 	pre_start();
 
+	ReloadabilitySystem::setSaveValidity(true);
+
 	reset_dialogue_run_status(); // dialogue-related, 
 
 	player = createPlayer(renderer, { window_width_px / 2, window_height_px - 200 });
 	post_start();
+
+
+	// save the game
+	// so that old saves are removed
+	ReloadabilitySystem::saveGame();
 }
 
 void WorldSystem::load_game() {
 	pre_start();
-	ReloadabilitySystem::loadGame();
-	player = registry.players.entities[0];
-	change_rooms(registry.roomCoords.get(player).position);
-	update_player_modifier();
-	post_start();
+	if (ReloadabilitySystem::loadGame()) {
+		player = registry.players.entities[0];
+		change_rooms(registry.roomCoords.get(player).position);
+		update_player_modifier();
+		post_start();
+	}
+	else {
+		if (registry.gameLoadingHelper.components.size() != 0) {
+			registry.gameLoadingHelper.components[0].savedGame = false;
+		}
+		restart_game();
+	}
+	
 	
 }
 
@@ -358,6 +373,7 @@ void WorldSystem::handle_deaths() {
 				if (!registry.deathTimers.has(entity) && !registry.players.get(entity).dead && !registry.players.get(entity).boss_one_dead) {
 					updateGameUI();
 					ReloadabilitySystem::recordPlayerDeathRoom();
+					ReloadabilitySystem::setSaveValidity(false);
 
 					Motion& player_motion = registry.motions.get(player);
 					set_player_velocity({ 0,0 });
@@ -365,6 +381,8 @@ void WorldSystem::handle_deaths() {
 					registry.players.get(entity).dead = true;
 					show_player_death(entity);
 					registry.deathTimers.emplace(entity);
+					ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel() + ceil(registry.players.components[0].scrap * 0.25));
+					display_death_screen();
 					registry.deathTimers.get(entity).counter_ms = 10000;
 				}
 				if (abs(registry.deathTimers.get(entity).counter_ms - 1000) <= 50) {
@@ -373,7 +391,7 @@ void WorldSystem::handle_deaths() {
 			}
 			else if (registry.activeDeadlys.has(entity)) {
 				if (!registry.bossOnes.has(entity) && !registry.bossTwos.has(entity) && !registry.bossThrees.has(entity) && registry.players.get(player).combat_state != COMBAT_STATE::BOSS_TWO_COMBAT) {
-					if (uniform_dist(rng) * 100 > (100 - DROP_CHANCE)) {
+					if (uniform_dist(rng) * 100 > (100 - 100)) {
 						createItem(renderer, registry.worldObjects.get(entity).position, vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 					}
 					registry.players.get(player).kills++;
@@ -1291,6 +1309,7 @@ void WorldSystem::display_victory_screen() {
 	victory_screen << "\t\t\t\t\t\t\t You Win!\n\n";
 	victory_screen << "Total Kills: " << p.kills << "\n\n";
 	victory_screen << "Scrap Collected: " << p.scrap << "\n\n";
+	victory_screen << "Scrap Earned: " << p.scrap << "\n\n";
 	if (player_inventory.items.size() <= 0) {
 		victory_screen << "Items Collected: None";
 	}
@@ -1326,6 +1345,7 @@ void WorldSystem::display_death_screen() {
 	death_screen << "\t\t\t\t\t\t\t I'll Be Back\n\n";
 	death_screen << "Total Kills: " << p.kills << "\n\n";
 	death_screen << "Scrap Collected: " << p.scrap << "\n\n";
+	death_screen << "Scrap Earned: " << ceil(p.scrap * 0.25) << "\n\n";
 	death_screen << "Level Reached: " << level << "\n\n"; // Could be wrong variable
 	if (player_inventory.items.size() <= 0) {
 		death_screen << "Items Collected: None";
@@ -1590,7 +1610,7 @@ void WorldSystem::handle_item_drop(int item_key) {
 void WorldSystem::handle_scrapping(Entity item) {
 	ItemStat item_stat = registry.itemStats.get(item);
 	registry.players.components[0].scrap += item_stat.scrap_amt;
-	ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
+	// ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+item_stat.scrap_amt);
 	remove_item(item);
 	updateGameUI();
 }
@@ -2067,14 +2087,14 @@ void WorldSystem::update_player_modifier() const {
 		player_modifier.dodge_chance = 0;
 	}
 
-	std::cout << "DF" << player_modifier.damage_modifier << std::endl;
-	std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
-	std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
-	std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;
-	std::cout << "RP" << player_modifier.range_modifier_percent << std::endl;
-	std::cout << "FRF" << player_modifier.fire_rate_modifier_flat << std::endl;
-	std::cout << "FRP" << player_modifier.fire_rate_modifier_percent << std::endl;
-	std::cout << "AM" << player_modifier.accuracy_modifier << std::endl;
-	std::cout << "CC" << player_modifier.crit_chance << std::endl;
-	std::cout << "DC" << player_modifier.dodge_chance << std::endl;
+	//std::cout << "DF" << player_modifier.damage_modifier_flat << std::endl;
+	//std::cout << "SF" << player_modifier.speed_modifier_flat << std::endl;
+	//std::cout << "SP" << player_modifier.speed_modifier_percent << std::endl;
+	//std::cout << "RF" << player_modifier.range_modifier_flat << std::endl;
+	//std::cout << "RP" << player_modifier.range_modifier_percent << std::endl;
+	//std::cout << "FRF" << player_modifier.fire_rate_modifier_flat << std::endl;
+	//std::cout << "FRP" << player_modifier.fire_rate_modifier_percent << std::endl;
+	//std::cout << "AM" << player_modifier.accuracy_modifier << std::endl;
+	//std::cout << "CC" << player_modifier.crit_chance << std::endl;
+	//std::cout << "DC" << player_modifier.dodge_chance << std::endl;
 }

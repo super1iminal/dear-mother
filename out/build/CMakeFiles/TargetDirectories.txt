@@ -1,3 +1,0 @@
-C:/Users/matts/UBC/CPSC 427/Project/Team02/out/build/CMakeFiles/dearMother.dir
-C:/Users/matts/UBC/CPSC 427/Project/Team02/out/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/matts/UBC/CPSC 427/Project/Team02/out/build/CMakeFiles/ZERO_CHECK.dir

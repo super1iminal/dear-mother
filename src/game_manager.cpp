@@ -294,6 +294,11 @@ bool GameManager::step(float elapsed_ms, double fps)
 	case SCENE_TYPE::SHOP:
 	{
 		// Update the shop screen
+		if (scene_manager.has_just_changed_and_set_just_changed_to_false()) {
+			std::cout << "updating shop csvs" << std::endl;
+			shop.getUpgradeValuesFromCSV();
+			shop.updateScrapUI();
+		}
 		break;
 	}
 	case SCENE_TYPE::TEST:
