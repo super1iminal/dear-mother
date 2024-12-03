@@ -159,6 +159,13 @@ class RenderSystem {
 			textures_path("/anims/attack/enemy_fly_attack.png"),
 			textures_path("door_leftright_closed.png"),
 			textures_path("door_updown_closed.png"),
+			textures_path("/anims/death/player-death.png"),
+			textures_path("/anims/death/final-boss-death-anim.png"),
+			textures_path("/anims/death/final-boss-dead.png"),
+			textures_path("/anims/death/boss-1-dead.png"),
+			textures_path("/anims/death/boss_1_death.png"),
+			textures_path("/anims/death/boss-2-death.png"),
+			textures_path("/anims/death/boss-2-dead.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

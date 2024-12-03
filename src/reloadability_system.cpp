@@ -38,7 +38,7 @@ void ReloadabilitySystem::saveGame() {
     save[id];
     save[id]["player"] = {
         {"combat_state", registry.players.get(entity).combat_state},
-        {"boss_one_beat", registry.players.get(entity).boss_one_beat},
+        {"boss_one_dead", registry.players.get(entity).boss_one_dead},
         {"boss_two_beat", registry.players.get(entity).boss_two_beat},
         {"scrap", registry.players.get(entity).scrap},
 		{"stage", registry.players.get(entity).stage}
@@ -216,14 +216,34 @@ void ReloadabilitySystem::saveGame() {
 }
 
 
-void ReloadabilitySystem::loadGame() {
+bool ReloadabilitySystem::loadGame() {
+    std::ifstream validity_file(reload_path("save_one_valid.json"));
+    if (!validity_file) {
+        cout << "failed to open validity file";
+        return false;
+    }
+    json valid;
+    try {
+        validity_file >> valid;
+    }
+    catch (const json::parse_error& e) {
+        cout << "parse fail (validity): " << e.what() << std::endl;
+        return false;
+    }
+
+    if (valid["valid"] == 0) {
+        cout << "save file not valid." << endl;
+        return false;
+    }
+
     while (registry.deadlys.entities.size() > 0) {
         registry.remove_all_components_of(registry.deadlys.entities[0]);
     }
+
     std::ifstream input_file(reload_path("test.json"));
     if (!input_file) {
         cout << "failed to open file";
-        return;
+        return false;
     }
     json test;
     try {
@@ -231,7 +251,7 @@ void ReloadabilitySystem::loadGame() {
     }
     catch (const json::parse_error& e) {
         cout << "parse fail" << e.what() << std::endl;
-        return;
+        return false;
     }
     for (auto& item : test.items()) {
         json data = item.value();
@@ -243,8 +263,8 @@ void ReloadabilitySystem::loadGame() {
             ivec2 room_coord = { data["roomCoord"]["position"][0], data["roomCoord"]["position"][1] };
 
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
-            registry.players.components[0].combat_state = data["player"]["combat_state"]; // update_doors is called in world system after this
-            registry.players.components[0].boss_one_beat = data["player"]["boss_one_beat"];
+            registry.players.components[0].combat_state = data["player"]["combat_state"];
+            registry.players.components[0].boss_one_dead = data["player"]["boss_one_dead"];
             registry.players.components[0].boss_two_beat = data["player"]["boss_two_beat"];
             registry.players.components[0].scrap = data["player"]["scrap"];
 			registry.players.components[0].stage = data["player"]["stage"];
@@ -282,7 +302,7 @@ void ReloadabilitySystem::loadGame() {
             int type = data["deadly"]["type"];
             if (data.contains("bossOne")) {
                 BOSS_ONE_POS boss_pos = data["bossOne"]["BOSS_ONE_POS"];
-                Entity entity = createBossOne(renderer, pos, boss_pos, room_coord);
+                Entity entity = createBossOne(renderer, pos, boss_pos, room_coord, false);
                 BossOne& boss = registry.bossOnes.get(entity);
                 boss.boss_state = data["bossOne"]["BOSS_ONE_STATE"];
                 boss.top_left_alive = data["bossOne"]["top_left_alive"];
@@ -350,7 +370,30 @@ void ReloadabilitySystem::loadGame() {
         }
     }
 
+    return true;
+
     // close input file?
+}
+
+void ReloadabilitySystem::setSaveValidity(bool validity) {
+    std::ifstream validity_file(reload_path("save_one_valid.json"));
+    if (!validity_file) {
+        cout << "failed to open validity file";
+        return;
+    }
+    json valid;
+    try {
+        validity_file >> valid;
+    }
+    catch (const json::parse_error& e) {
+        cout << "parse fail (validity): " << e.what() << std::endl;
+        return;
+    }
+    
+    valid["valid"] = static_cast<int>(validity);
+
+    std::ofstream output_file(reload_path("save_one_valid.json"));
+    output_file << valid;
 }
 
 

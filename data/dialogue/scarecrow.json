@@ -1,7 +1,7 @@
 {
     "current_run": null,
     "interacted_this_run": false,
-    "next_run": 0,
+    "next_run": 1,
     "run0": {
         "int0": {
             "next": "int1",
@@ -112,7 +112,7 @@
                 "text": "The humble scarecrow is humble..."
             }
         },
-        "next_interaction": 0,
+        "next_interaction": 3,
         "next_run": 1
     },
     "run1": {

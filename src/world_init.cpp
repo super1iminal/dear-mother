@@ -152,7 +152,7 @@ Entity createPlayer(
 	health.curr_health = curr_health;
 
 	registry.inventory.emplace(entity);
-	registry.modifiers.emplace(entity);
+	registry.modifiers.emplace(entity).damage_modifier = 5;
 	Animation& player_animation = registry.animations.emplace(entity);
 	player_animation.cols = 4;
 	player_animation.rows = 1;
@@ -274,7 +274,7 @@ Entity createEnemy(
 	return entity;
 }
 
-Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord) {
+Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, ivec2 room_coord, bool dummy) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
 	registry.roomCoords.emplace(entity, room_coord);
@@ -301,21 +301,33 @@ Entity createBossOne(RenderSystem* renderer, vec2 pos, BOSS_ONE_POS boss_pos, iv
 
 	// Manage boss states
 	registry.bossOnes.emplace(entity).boss_pos = boss_pos;
-
-	registry.shooters.emplace(entity).fire_rate = 1500.f;
+	
+	if (!dummy)
+		registry.shooters.emplace(entity).fire_rate = 1500.f;
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
 	enemy_animation.cols = 4;
 	enemy_animation.rows = 1;
 	enemy_animation.frames = 1;
 	enemy_animation.current_frame = 0;
-
-	if (boss_pos == BOSS_ONE_POS::MOTHER) {
+	
+	if (dummy) {
 		deadly.type = BOSS_ONE;
 		deadly.immune = true;
 		health.curr_health = 20;
 		worldobject.scale = vec2({ 450, 300 });
-		registry.renderRequests.insert_sorted(
+		enemy_animation.cols = 18;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::FINAL_BOSS_DEATH,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	} else if (boss_pos == BOSS_ONE_POS::MOTHER) {
+		deadly.type = BOSS_ONE;
+		deadly.immune = true;
+		health.curr_health = 20;
+		worldobject.scale = vec2({ 450, 300 });
+		registry.renderRequests.insert(
 			entity,
 			{ TEXTURE_ASSET_ID::MOTHER_FINAL_IDLE,
 				EFFECT_ASSET_ID::ANIM,
@@ -368,7 +380,7 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 
 	registry.blockers.emplace(entity);
 	// don't be fooled, type is type
-	registry.renderRequests.insert_sorted(
+	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::BOSS_TWO_IDLE,
 			EFFECT_ASSET_ID::ANIM,
@@ -377,7 +389,7 @@ Entity createBossTwo(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	return entity;
 }
 
-Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
+Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord, bool dummy) {
 	auto entity = Entity();
 	registry.gameSceneComponents.emplace(entity);
 	registry.roomCoords.emplace(entity, room_coord);
@@ -410,8 +422,15 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	deadly.type = BOSS_THREE;
 	deadly.immune = false;
 
-	auto& shooter = registry.shooters.emplace(entity);
-	shooter.fire_rate = 1000;
+	if (dummy) {
+		motion.max_speed = 0.f;
+		deadly.immune = true;
+	}
+	
+	if (!dummy) {
+		auto& shooter = registry.shooters.emplace(entity);
+		shooter.fire_rate = 1000;
+	}
 
 	Animation& enemy_animation = registry.animations.emplace(entity);
 	enemy_animation.cols = 4;
@@ -420,14 +439,23 @@ Entity createBossThree(RenderSystem* renderer, vec2 pos, ivec2 room_coord) {
 	enemy_animation.current_frame = 0;
 
 	// don't be fooled, type is type
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BOSS_THREE_WALK,
-			EFFECT_ASSET_ID::ANIM,
-			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_ORDER::ENEMY
-		});
-
+	if (dummy) {
+		enemy_animation.cols = 18;
+		enemy_animation.frames = 18;
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_2_DEATH,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	else {
+		registry.renderRequests.insert(
+			entity,
+			{ TEXTURE_ASSET_ID::BOSS_THREE_WALK,
+				EFFECT_ASSET_ID::ANIM,
+				GEOMETRY_BUFFER_ID::SPRITE });
+	}
+	
 	return entity;
 }
 
@@ -834,6 +862,16 @@ Entity createNPC(RenderSystem* renderer, vec2 pos, vec2 size, ivec2 room_coord, 
 			npc_anim.cols = 28;
 			npc_anim.frames = 28;
 			break;
+		case (NPC_TYPE::FINAL_DEAD):
+			texture_id = TEXTURE_ASSET_ID::FINAL_BOSS_DEAD;
+			npc.dialogue_path = dialogue_path("scarecrow.json");
+			npc_anim.cols = 1;
+			npc_anim.frames = 1;
+			break;
+		case (NPC_TYPE::BOSS_3_DEAD):
+			texture_id = TEXTURE_ASSET_ID::BOSS_2_DEAD;
+			npc.dialogue_path = dialogue_path("scarecrow.json");
+			break;
 		default:
 			printf("NPC type not recognized\n");
 			exit(1);
@@ -1102,10 +1140,10 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px / 2.f + (FLOOR_ITEM_SIZE * 4.f) + (FLOOR_ITEM_BUFFER * 4.f), middleY }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CORNER_MIX:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.6 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::FLY_LAPS:
 	case ROOM_TYPE::LAPS:
@@ -1117,18 +1155,18 @@ void enemyRoomGenerateFloorItems(RenderSystem* renderer, ivec2 coord, ROOM_TYPE 
 		createWall(renderer, { window_width_px * 3.f / 4.f, middleY + FLOOR_ITEM_SIZE + FLOOR_ITEM_BUFFER }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::CHECKERBOARD:
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 1.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { WALL_WIDTH + 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px - WALL_WIDTH - 4.5 * FLOOR_ITEM_SIZE, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 
-		createWall(renderer, { window_width_px / 2.f, topY - 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
-		createWall(renderer, { window_width_px / 2.f, bottomY + 1.2 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, topY - 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
+		createWall(renderer, { window_width_px / 2.f, bottomY + 1.3 * FLOOR_ITEM_SIZE }, scale, 0.f, randomFloorItem(), coord);
 		break;
 	case ROOM_TYPE::BIG_X:
 		createWall(renderer, { window_width_px / 2.f, middleY, }, scale, 0.f, randomFloorItem(), coord);
@@ -1242,13 +1280,13 @@ void createBossRoomOne(RenderSystem* renderer, ivec2 coord) {
 		createDoor(renderer, coord, { coord.x, coord.y - 1 }, DIRECTION::DOWN);
 	}
 	if (registry.gameLoadingHelper.components.size() == 0 || registry.gameLoadingHelper.components[0].savedGame == false) {
-		createBossOne(renderer, { WALL_WIDTH + 750, window_height_px * 0.4 }, BOSS_ONE_POS::TOP_LEFT, coord);
-		createBossOne(renderer, { WALL_WIDTH + 1050, window_height_px * 0.4 }, BOSS_ONE_POS::TOP_RIGHT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 750, window_height_px * 0.4 }, BOSS_ONE_POS::TOP_LEFT, coord, false);
+		createBossOne(renderer, { WALL_WIDTH + 1050, window_height_px * 0.4 }, BOSS_ONE_POS::TOP_RIGHT, coord, false);
 
-		createBossOne(renderer, { WALL_WIDTH + 750, WALL_WIDTH + BASE_UI_HEIGHT + 563 + 45 }, BOSS_ONE_POS::BOT_LEFT, coord);
-		createBossOne(renderer, { WALL_WIDTH + 1050, WALL_WIDTH + BASE_UI_HEIGHT + 563 + 45 }, BOSS_ONE_POS::BOT_RIGHT, coord);
+		createBossOne(renderer, { WALL_WIDTH + 750, WALL_WIDTH + BASE_UI_HEIGHT + 563 + 45 }, BOSS_ONE_POS::BOT_LEFT, coord, false);
+		createBossOne(renderer, { WALL_WIDTH + 1050, WALL_WIDTH + BASE_UI_HEIGHT + 563 + 45 }, BOSS_ONE_POS::BOT_RIGHT, coord, false);
 
-		createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, coord);
+		createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, coord, false);
 	}
 
 	// Decoration
@@ -1351,12 +1389,11 @@ void createBossRoomThree(RenderSystem* renderer, ivec2 coord) {
 		}
 	}
 
-	createBossThree(renderer, {500,500}, coord);
+	createBossThree(renderer, {500,500}, coord, false);
 }
 
 void generate_random_stage(int stage = 1) {
 	std::map<std::pair<int, int>, ROOM_TYPE>& roomMap = registry.map.components[0].roomMap;
-
 
 	std::vector<ROOM_TYPE> room_types;
 	int num_rooms;
@@ -1655,17 +1692,17 @@ void generate_stage_one() {
 	roomMap[{ 2, 3 }] = ROOM_TYPE::CORNER_MIX;
 	roomMap[{ 2, 5 }] = ROOM_TYPE::TUNNELS;
 	roomMap[{ 3, -1 }] = ROOM_TYPE::CHECKERBOARD;
-	roomMap[{ 3, 0 }] = ROOM_TYPE::SCATTER;
-	roomMap[{ 3, 1 }] = ROOM_TYPE::BIG_X;
-	roomMap[{ 3, 3 }] = ROOM_TYPE::FLY_LAPS;
-	roomMap[{ 3, 4 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 3, 5 }] = ROOM_TYPE::FLY_TUNNELS;
-	roomMap[{ 3, 6 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 4, 6 }] = ROOM_TYPE::CHECKERBOARD;
-	roomMap[{ 4, 3 }] = ROOM_TYPE::CORNER_MIX;
-	roomMap[{ 4, 2 }] = ROOM_TYPE::MIDLINE_PROJ;
-	roomMap[{ 4, 1 }] = ROOM_TYPE::TWO_SIMPLE;
-	roomMap[{ 4, -1 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 3,  0 }] = ROOM_TYPE::SCATTER;
+	roomMap[{ 3,  1 }] = ROOM_TYPE::BIG_X;
+	roomMap[{ 3,  3 }] = ROOM_TYPE::FLY_LAPS;
+	roomMap[{ 3,  4 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 3,  5 }] = ROOM_TYPE::LAPS;
+	roomMap[{ 3,  6 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4,  6 }] = ROOM_TYPE::CHECKERBOARD;
+	roomMap[{ 4,  3 }] = ROOM_TYPE::CORNER_MIX;
+	roomMap[{ 4,  2 }] = ROOM_TYPE::MIDLINE_PROJ;
+	roomMap[{ 4,  1 }] = ROOM_TYPE::TWO_SIMPLE;
+	roomMap[{ 4, -1 }] = ROOM_TYPE::FLY_TUNNELS;
 	roomMap[{ 5, -1 }] = ROOM_TYPE::SCATTER;
 
 	// BOSS ONE (6, -1)
