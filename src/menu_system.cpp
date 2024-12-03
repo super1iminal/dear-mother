@@ -194,4 +194,8 @@ void MenuSystem::on_key(int key, int sc, int action, int mod) {
 	// 	scene_manager.set_scene(SCENE_TYPE::GAME);
 	// 	ReloadabilitySystem::loadGame();
 	// }
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		scene_manager.set_scene(SCENE_TYPE::GAME);
+	}
 }

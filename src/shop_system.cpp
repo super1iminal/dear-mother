@@ -409,6 +409,7 @@ int ShopSystem::getScrapLevel() {
 void ShopSystem::updateScrapLevel(int updated_value) {
 	std::ifstream read_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	std::unordered_map<std::string, std::vector<int>> data;
+
 	if (read_file.is_open()) {
 		std::string line;
 		while (std::getline(read_file, line)) {
@@ -416,6 +417,8 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 			std::string tag;
 			std::string values_str;
 			std::vector<int> values;
+
+			// Read the tag
 			if (std::getline(ss, tag, ',')) {
 				while (std::getline(ss, values_str, ',')) {
 					try {
@@ -439,9 +442,10 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 	}
 	else {
 		std::cerr << "Unable to open file for reading.\n";
+		return;
 	}
 
-	// now save the updated data to the csv file
+	// Save the updated data back to the CSV file
 	std::ofstream write_file(std::string(PROJECT_SOURCE_DIR) + "/data/misc/upgrades.csv");
 	if (!write_file.is_open()) {
 		std::cerr << "Error: Could not open file for writing." << std::endl;
@@ -461,6 +465,7 @@ void ShopSystem::updateScrapLevel(int updated_value) {
 
 	write_file.close();
 }
+
 
 void ShopSystem::buyUpgrade() {
 	std::string upgrade_name = "";

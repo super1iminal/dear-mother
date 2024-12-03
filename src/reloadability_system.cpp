@@ -40,7 +40,9 @@ void ReloadabilitySystem::saveGame() {
         {"combat_state", registry.players.get(entity).combat_state},
         {"boss_one_dead", registry.players.get(entity).boss_one_dead},
         {"boss_two_beat", registry.players.get(entity).boss_two_beat},
-        {"scrap", registry.players.get(entity).scrap}
+        {"boss_three_beat", registry.players.get(entity).boss_three_beat},
+        {"scrap", registry.players.get(entity).scrap},
+		{"stage", registry.players.get(entity).stage}
     };
     if (registry.worldObjects.has(entity)) {
         WorldObject& worldObject = registry.worldObjects.get(entity);
@@ -141,6 +143,9 @@ void ReloadabilitySystem::saveGame() {
 
     // save item on floor
     for (Entity entity : registry.itemStats.entities) {
+        if (registry.lifetimes.has(entity)) {
+            continue;
+        }
         id = to_string((int)entity);
         save[id];
 
@@ -262,7 +267,9 @@ bool ReloadabilitySystem::loadGame() {
             registry.players.components[0].combat_state = data["player"]["combat_state"];
             registry.players.components[0].boss_one_dead = data["player"]["boss_one_dead"];
             registry.players.components[0].boss_two_beat = data["player"]["boss_two_beat"];
+            registry.players.components[0].boss_three_beat = data["player"]["boss_three_beat"];
             registry.players.components[0].scrap = data["player"]["scrap"];
+			registry.players.components[0].stage = data["player"]["stage"];
             registry.healthComponents.get(player).max_health = max_health;
             Inventory& inventory = registry.inventory.get(player);
 

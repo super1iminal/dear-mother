@@ -20,6 +20,7 @@ public:
 	void on_mouse_move(vec2 mouse_position);
 	void on_key(int key, int sc, int action, int mod);
 	void update_music();
+	void update_buttons();
 
 private:
 	RenderSystem* renderer;
@@ -28,6 +29,7 @@ private:
 	GLFWwindow* window;
 
 	vec2 cursor_position;
+	Entity savebutton;
 
 	Mix_Music* pause_music;
 

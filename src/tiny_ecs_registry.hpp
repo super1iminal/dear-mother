@@ -66,6 +66,9 @@ public:
 	ComponentContainer<TextBox> textBoxes; // note that this will contain 2 other entities
 	ComponentContainer<DialogueState> dialogueStates; // should be only 1 of em (don't need to save)
 	ComponentContainer<WinTimer> winTimers;
+	ComponentContainer<RemoveFunction> removeFunctionComponents; // for text boxes
+	ComponentContainer<HasPopUp> hasPopUpComponents; // for pop up message
+	ComponentContainer<PopUp> popUps;
 
 	// Set of all items
 	std::vector<ItemStat> all_items;
@@ -109,6 +112,8 @@ public:
 	FilteredComponentContainer<Active, GameScene> gameSceneActives;
 	FilteredComponentContainer<Active, Interactable> activeInteractables;
 
+	FilteredComponentContainer<Active, Door> activeDoors;
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry() :
@@ -122,7 +127,8 @@ public:
 		activeDeadlys(deadlys, activeComponents),
 		activeShooters(shooters, activeComponents),
 		gameSceneActives(activeComponents, gameSceneComponents),
-		activeInteractables(activeComponents, interactables)
+		activeInteractables(activeComponents, interactables),
+		activeDoors(activeComponents, doors)
 	{
 		registry_list.push_back(&animations);
 		registry_list.push_back(&deathTimers);
@@ -177,6 +183,9 @@ public:
 		registry_list.push_back(&textBoxes);
 		registry_list.push_back(&dialogueStates);
 		registry_list.push_back(&winTimers);
+		registry_list.push_back(&removeFunctionComponents);
+		registry_list.push_back(&hasPopUpComponents);
+		registry_list.push_back(&popUps);
 
 		// filtered components
 		registry_filtered.push_back(&gameSceneRenderRequests);
@@ -192,6 +201,7 @@ public:
 		registry_filtered.push_back(&activeShooters);
 		registry_filtered.push_back(&gameSceneActives);
 		registry_filtered.push_back(&activeInteractables);
+		registry_filtered.push_back(&activeDoors);
 
 		// denote sorted component containers
 		renderRequests.setSorted(true);

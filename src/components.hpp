@@ -100,6 +100,7 @@ struct Player
 	int kills = 0;
 	int scrap = 0;
 	bool dead = false;
+	int stage = 1; // 1-indexed
 };
 
 struct Shooter
@@ -229,6 +230,11 @@ struct Particle
 
 };
 
+struct RemoveFunction
+{
+	std::function<void(Entity)> remove_function; // used in cleanup of game manager, passed entity should be the parent entity
+};
+
 struct Blocker
 {
 
@@ -287,6 +293,7 @@ struct Door
 {
 	ivec2 leads_to; // is the room coords that the door leads to
 	DIRECTION direction;
+	bool stage_switch = false;
 	Door(ivec2 leads_to, DIRECTION direction) : leads_to(leads_to), direction(direction) {};
 };
 
@@ -315,6 +322,9 @@ struct TexturedVertex
 struct UIElement {
 	std::string name;
 	std::string value;
+};
+
+struct HasPopUp {
 };
 
 struct PendingRemove {
@@ -346,12 +356,17 @@ struct BaseUI
 };
 
 struct TextBox {
+	Entity parent; // should not delete on textbox deletion, used for getting rid of HasP
 	Entity textbox_sprite;
 	Entity textbox_text;
 };
 
 struct Crosshair {
 
+};
+
+struct PopUp {
+	// flag
 };
 
 
@@ -489,8 +504,9 @@ enum class TEXTURE_ASSET_ID { // if you add/change something here, you need to a
 	SCARECROW = OLD_MAN + 1,
 	ENEMY_FLY_WALK = SCARECROW + 1,
 	ENEMY_FLY_ATTACK = ENEMY_FLY_WALK + 1,
-
-	PLAYER_DEATH = ENEMY_FLY_ATTACK + 1,
+	DOOR_LEFT_RIGHT_CLOSED = ENEMY_FLY_ATTACK + 1,
+	DOOR_UP_DOWN_CLOSED = DOOR_LEFT_RIGHT_CLOSED + 1,
+	PLAYER_DEATH = DOOR_UP_DOWN_CLOSED + 1,
 	FINAL_BOSS_DEATH = PLAYER_DEATH + 1,
 	FINAL_BOSS_DEAD = FINAL_BOSS_DEATH + 1,
 	BOSS_1_DEAD = FINAL_BOSS_DEAD + 1,

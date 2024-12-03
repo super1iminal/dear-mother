@@ -3,6 +3,7 @@
 #include <ui_system.hpp>
 #include <render_system.hpp>
 #include <tiny_ecs_registry.hpp>
+#include <chrono>
 
 UISystem::UISystem()
 {
@@ -135,14 +136,16 @@ Entity UISystem::createSquareUIElement(
 }
 
 Entity UISystem::createTextUIElement(
-	RenderSystem* renderer, 
-	vec2 pos, 
-	vec2 scale, 
-	std::string element_name, 
-	std::string element_value, 
+	RenderSystem* renderer,
+	vec2 pos,
+	vec2 scale,
+	std::string element_name,
+	std::string element_value,
 	vec3 color,
 	SCENE_TYPE scene_type) {
-	// Store a reference to the potentially re-used mesh object
+	// Start total timing
+
+	// Part 1: Entity creation and scene component addition
 	Entity entity = Entity();
 	switch (scene_type) {
 	case SCENE_TYPE::GAME:
@@ -168,28 +171,33 @@ Entity UISystem::createTextUIElement(
 		registry.testSceneComponents.emplace(entity);
 		break;
 	}
+
+	// Part 2: Mesh retrieval and assignment
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SQUARE);
 	registry.meshPtrs.emplace(entity, &mesh);
 
-	// Setting initial position, scale, and orientation values
+	// Part 3: WorldObject component creation and initialization
 	WorldObject& worldobject = registry.worldObjects.emplace(entity);
 	worldobject.position = pos;
 	worldobject.scale = scale;
 
-	// setting value for UI
+	// Part 4: UIElement component creation and initialization
 	UIElement& ui_elt = registry.uiElements.emplace(entity);
 	ui_elt.name = element_name;
 	ui_elt.value = element_value; // the actual text to be rendered
 
+	// Part 5: Color component creation and assignment
 	vec3& ui_color = registry.colors.emplace(entity);
 	ui_color = color;
 
+	// Part 6: Render request insertion
 	registry.renderRequests.insert_sorted(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-			EFFECT_ASSET_ID::FONT,
-			GEOMETRY_BUFFER_ID::SQUARE,
-			RENDER_ORDER::UI_ELEMENT });
+		  EFFECT_ASSET_ID::FONT,
+		  GEOMETRY_BUFFER_ID::SQUARE,
+		  RENDER_ORDER::UI_ELEMENT });
+
 
 	return entity;
 }
@@ -472,7 +480,13 @@ Entity UISystem::createCrosshair(RenderSystem* renderer, TEXTURE_ASSET_ID textur
 // WHEN GETTING RID OF A TEXT BOX, GET RID OF ITS CONSTITUENT ENTITIES FIRST!
 // linebreaks automatically inserted when text is too long
 // size is the size of the text box, not the text (text scale is defined by a constant)
-Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec3 color, SCENE_TYPE scene_type, std::string text, TEXT_BOX_TYPE text_box_type) {
+Entity UISystem::createTextBox(RenderSystem * renderer, 
+	vec2 pos, 
+	vec2 size, vec3 color, 
+	SCENE_TYPE scene_type, 
+	std::string text, 
+	TEXT_BOX_TYPE text_box_type,
+	float text_size) {
 	// right now, its not a button, but it could be modified to be one
 	Entity entity = Entity();
 	switch (scene_type) {
@@ -502,7 +516,7 @@ Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec
 	
 	TextBox& textbox = registry.textBoxes.emplace(entity);
 
-	std::vector<float> widths = renderer->getCharacterWidths(text, DIALOGUE_TEXT_SCALE); // a list of the widths of each character in the string.
+	std::vector<float> widths = renderer->getCharacterWidths(text, text_size); // a list of the widths of each character in the string.
 	float line_height = renderer->get_line_height(); // height of a line of text. if the number of lines exceeds num_lines * line_height * scale
 	float max_line_width = size.x - (2.f * DIALOGUE_BOX_MARGINS);
 
@@ -579,11 +593,55 @@ Entity UISystem::createTextBox(RenderSystem * renderer, vec2 pos, vec2 size, vec
 
 	if (text_box_type == TEXT_BOX_TYPE::DEFAULT) {
 		textbox.textbox_sprite = createTexturedUIElement(renderer, pos, size, "textbox", TEXTURE_ASSET_ID::TEXT_BOX, scene_type);
-		textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+		textbox.textbox_text = createTextUIElement(renderer, text_pos, vec2(1.f, text_size), "textbox_text", formatted_text, color, scene_type);
+		registry.removeFunctionComponents.emplace(entity).remove_function = [&](Entity entity) {
+			TextBox& box = registry.textBoxes.get(entity);
+			registry.remove_all_components_of(box.textbox_sprite);
+			registry.remove_all_components_of(box.textbox_text);
+			};
 	}
 	else if (text_box_type == TEXT_BOX_TYPE::POP_UP) {
-		textbox.textbox_text = createTextPopUp(renderer, text_pos, vec2(1.f, DIALOGUE_TEXT_SCALE), "textbox_text", formatted_text, color, scene_type);
+		textbox.textbox_text = createTextPopUp(renderer, text_pos, vec2(1.f, text_size), "textbox_text", formatted_text, color, scene_type);
 	}
 
 	return entity;
+}
+
+// self contained. 
+// only works if removed through pendingRemoves (i.e. if lifetime updater in world::step deletes manually, then won't work)
+// lifetime is in milliseconds
+Entity UISystem::createTextPopUpAsher(RenderSystem* renderer,
+	vec2 pos,
+	vec2 size,
+	vec3 color,
+	SCENE_TYPE scene_type,
+	std::string text,
+	Entity parent,
+	float lifetime) {
+	// clear all popups first
+	for (Entity entity : registry.popUps.entities) {
+		registry.pendingRemoves.emplace_with_duplicates(entity);
+	}
+
+	Entity textBox = createTextBox(renderer, pos, size, color, scene_type, text, TEXT_BOX_TYPE::DEFAULT, POPUP_TEXT_SCALE);
+	TextBox& tb = registry.textBoxes.get(textBox);
+	tb.parent = parent;
+
+	registry.hasPopUpComponents.emplace(parent);
+	registry.popUps.emplace(textBox);
+	
+
+	RemoveFunction& rf = registry.removeFunctionComponents.get(textBox);
+	rf.remove_function = [&](Entity entity) {
+		TextBox& box = registry.textBoxes.get(entity);
+		registry.remove_all_components_of(box.textbox_sprite);
+		registry.remove_all_components_of(box.textbox_text);
+		registry.hasPopUpComponents.remove(box.parent);
+		};
+
+	if (lifetime > 0.f) {
+		registry.lifetimes.emplace(textBox).time_remaining_ms = lifetime;
+	}
+
+	return textBox;
 }
