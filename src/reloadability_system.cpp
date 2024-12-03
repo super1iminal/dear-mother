@@ -38,7 +38,7 @@ void ReloadabilitySystem::saveGame() {
     save[id];
     save[id]["player"] = {
         {"combat_state", registry.players.get(entity).combat_state},
-        {"boss_one_beat", registry.players.get(entity).boss_one_beat},
+        {"boss_one_dead", registry.players.get(entity).boss_one_dead},
         {"boss_two_beat", registry.players.get(entity).boss_two_beat},
         {"scrap", registry.players.get(entity).scrap}
     };
@@ -260,7 +260,7 @@ bool ReloadabilitySystem::loadGame() {
 
             auto player = createPlayer(renderer, pos, curr_health, room_coord);
             registry.players.components[0].combat_state = data["player"]["combat_state"];
-            registry.players.components[0].boss_one_beat = data["player"]["boss_one_beat"];
+            registry.players.components[0].boss_one_dead = data["player"]["boss_one_dead"];
             registry.players.components[0].boss_two_beat = data["player"]["boss_two_beat"];
             registry.players.components[0].scrap = data["player"]["scrap"];
             registry.healthComponents.get(player).max_health = max_health;
@@ -297,7 +297,7 @@ bool ReloadabilitySystem::loadGame() {
             int type = data["deadly"]["type"];
             if (data.contains("bossOne")) {
                 BOSS_ONE_POS boss_pos = data["bossOne"]["BOSS_ONE_POS"];
-                Entity entity = createBossOne(renderer, pos, boss_pos, room_coord);
+                Entity entity = createBossOne(renderer, pos, boss_pos, room_coord, false);
                 BossOne& boss = registry.bossOnes.get(entity);
                 boss.boss_state = data["bossOne"]["BOSS_ONE_STATE"];
                 boss.top_left_alive = data["bossOne"]["top_left_alive"];

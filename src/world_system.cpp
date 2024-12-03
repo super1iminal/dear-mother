@@ -370,7 +370,7 @@ void WorldSystem::handle_deaths() {
 		if (health.curr_health <= 0)
 		{
 			if (registry.players.has(entity)) {
-				if (!registry.deathTimers.has(entity) && !registry.players.get(entity).dead && !registry.players.get(entity).boss_one_beat) {
+				if (!registry.deathTimers.has(entity) && !registry.players.get(entity).dead && !registry.players.get(entity).boss_one_dead) {
 					updateGameUI();
 					ReloadabilitySystem::recordPlayerDeathRoom();
 					ReloadabilitySystem::setSaveValidity(false);
@@ -379,10 +379,10 @@ void WorldSystem::handle_deaths() {
 					set_player_velocity({ 0,0 });
 
 					registry.players.get(entity).dead = true;
-					ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel()+ ceil(registry.players.components[0].scrap * 0.25));
 					show_player_death(entity);
-					display_death_screen();
 					registry.deathTimers.emplace(entity);
+					ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel() + ceil(registry.players.components[0].scrap * 0.25));
+					display_death_screen();
 					registry.deathTimers.get(entity).counter_ms = 10000;
 				}
 				if (abs(registry.deathTimers.get(entity).counter_ms - 1000) <= 50) {
@@ -421,16 +421,13 @@ void WorldSystem::handle_deaths() {
 void WorldSystem::update_animations() {
 	updatePlayerAnimation();
 
-	// Boss two death
-	Entity& bossTwo = registry.bossTwos.entities[0];
-	RenderRequest& bossTwoRend = registry.renderRequests.get(bossTwo);
-	Animation& bossTwoAnim = registry.animations.get(bossTwo);
-	if (bossTwoAnim.current_frame >= 24) {
-		bossTwoAnim.frames = 1;
-		bossTwoAnim.cols = 1;
-		bossTwoAnim.rows = 1;
-		bossTwoAnim.current_frame = 0;
-		bossTwoRend.used_texture = TEXTURE_ASSET_ID::BOSS_1_DEAD;
+	Animation& anim = registry.animations.get(registry.bossTwos.entities[0]);
+	if (anim.current_frame >= 24) {
+		RenderRequest& rendReq = registry.renderRequests.get(registry.bossTwos.entities[0]);
+		rendReq.used_texture = TEXTURE_ASSET_ID::BOSS_1_DEAD;
+		anim.cols = 1;
+		anim.frames = 1;
+		anim.current_frame = 0;
 	}
 
 	// update enemy animations
@@ -521,7 +518,7 @@ void WorldSystem::update_crosshair_cooldown() {
 // Input callback functions
 void WorldSystem::on_mouse_button(GLFWwindow* window, int button, int action, int mods)
 {
-	if (!registry.players.get(player).dead && !registry.players.get(player).boss_one_beat) {
+	if (!registry.players.get(player).dead && !registry.players.get(player).boss_one_dead) {
 		left_mouse_button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 	}
 }
@@ -538,7 +535,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	Motion& player_motion = registry.motions.get(player);
 
 	// Handle movement keys
-	if ((key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) && !player_component.dead && !player_component.boss_one_beat) {
+	if ((key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D) && !player_component.dead && !player_component.boss_one_dead) {
 		bool up = glfwGetKey(window, GLFW_KEY_W) != GLFW_RELEASE;
 		bool left = glfwGetKey(window, GLFW_KEY_A) != GLFW_RELEASE;
 		bool down = glfwGetKey(window, GLFW_KEY_S) != GLFW_RELEASE;
@@ -561,16 +558,16 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 		}
 	}
 
-	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE && !player_component.dead && !player_component.boss_one_beat) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE && !player_component.dead && !player_component.boss_one_dead) {
 		scene_manager.set_scene(SCENE_TYPE::PAUSE);
 		//registry.players.get(player).in_combat = false;
 	}
 
 	// Interaction
-	if (action == GLFW_PRESS && key == GLFW_KEY_E && !player_component.dead && !player_component.boss_one_beat) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_E && !player_component.dead && !player_component.boss_one_dead) {
 		handle_interactions(&WorldSystem::handle_item_pickup);
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead && !player_component.boss_one_beat) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_X && !player_component.dead && !player_component.boss_one_dead) {
 		handle_interactions(&WorldSystem::handle_scrapping);
 	} 
 
@@ -583,7 +580,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	}
 
 	// Resart game after win
-	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.boss_one_beat) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE && player_component.boss_one_dead) {
 		ScreenState& screen = registry.screenStates.components[0];
 		registry.winTimers.remove(player);
 		screen.darken_screen_factor = 0;
@@ -603,7 +600,7 @@ void WorldSystem::on_key(int key, int sc, int action, int mod) {
 	}
 
 	vector<int> item_keys = { GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5, GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8 };
-	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end() && !player_component.dead && !player_component.boss_one_beat) {
+	if (action == GLFW_RELEASE && std::find(item_keys.begin(), item_keys.end(), key) != item_keys.end() && !player_component.dead && !player_component.boss_one_dead) {
 		handle_item_drop(key - GLFW_KEY_1);
 	}
 }
@@ -1129,7 +1126,7 @@ void WorldSystem::change_rooms(ivec2 new_room) {
 	registry.roomCoords.get(player).position = new_room;
 	current_room = new_room;
 	if (roomMap[{current_room.x, current_room.y}] == ROOM_TYPE::BOSS_ROOM_ONE
-		&& !registry.players.get(player).boss_one_beat) {
+		&& !registry.players.get(player).boss_one_dead) {
 		registry.players.get(registry.players.entities[0]).combat_state = COMBAT_STATE::BOSS_ONE_COMBAT;
 		update_music();
 	}
@@ -1388,8 +1385,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 	else if (boss_part.boss_pos == BOSS_ONE_POS::MOTHER) {
 		for (BossOne& b : registry.bossOnes.components) {
 			b.mother = false;
-			//createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, registry.roomCoords.get(entity).position, true);
-			createNPC(renderer, { CENTER_X, 300 }, { 450, 300 }, registry.roomCoords.get(entity).position, NPC_TYPE::FINAL_DEATH);
+			createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, registry.roomCoords.get(entity).position, true);
 		}
 	}
 	if (!text_shown && (((boss_part.top_right_alive ? 1 : 0) + (boss_part.bot_left_alive ? 1 : 0) + (boss_part.bot_right_alive ? 1 : 0) + (boss_part.top_left_alive ? 1 : 0)))==1) {
@@ -1412,11 +1408,7 @@ void WorldSystem::handle_boss_one_death(Entity& entity) {
 		//createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 		registry.players.get(player).combat_state = COMBAT_STATE::NO_COMBAT; // might not be necessary
 		registry.players.get(player).boss_one_beat = true;
-		update_music();
-		registry.winTimers.emplace(player);
-		ShopSystem::updateScrapLevel(ShopSystem::getScrapLevel() + registry.players.components[0].scrap);
-		display_victory_screen();
-		set_player_velocity({ 0,0 });
+		//std::cout << "YAYYYY :3" << std::endl;
 	}
 }
 
@@ -1526,12 +1518,6 @@ void WorldSystem::handle_boss_two_death(Entity& boss) {
 	createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
 	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
 
-	registry.animations.remove(boss);
-	WorldObject& boss_object = registry.worldObjects.get(boss);
-	boss_object.scale = { boss_object.scale.x - 57, boss_object.scale.y + 10 };
-	registry.renderRequests.get(boss).used_texture = TEXTURE_ASSET_ID::BOSS_TWO_DEAD;
-	update_music();
-
 	auto& entity = registry.bossTwos.entities[0];
 	Animation& anim = registry.animations.get(entity);
 	RenderRequest& rendReq = registry.renderRequests.get(entity);
@@ -1540,6 +1526,8 @@ void WorldSystem::handle_boss_two_death(Entity& boss) {
 	anim.cols = 25;
 	anim.rows = 1;
 	anim.current_frame = 0;
+
+	update_music();
 }
 
 void WorldSystem::handle_boss_three_death(Entity& entity) {
@@ -1548,8 +1536,14 @@ void WorldSystem::handle_boss_three_death(Entity& entity) {
 	registry.players.get(player).boss_three_beat = true;
 	createItem(renderer, vec2(CENTER_X - 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::HEALTH_PACK);
 	createItem(renderer, vec2(CENTER_X + 100, CENTER_Y), vec2(ITEM_SIZE, ITEM_SIZE), uniform_dist, rng, current_room, ITEM_TYPE::RANDOM);
+
+	WorldObject& wobj = registry.worldObjects.get(entity);
+	Entity dummyBoss = createBossThree(renderer, wobj.position, registry.roomCoords.get(entity).position, true);
+	Motion& motion = registry.motions.get(dummyBoss);
+	motion.max_speed = 0;
+
 	enable_all_items();
-	update_music();
+	//update_music();
 	//std::cout << "YAYYYY :3" << std::endl;
 }
 
@@ -1957,11 +1951,19 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 			enemy_animation.frames = 22;
 		}
 		else {
+			//createBossOne(renderer, { CENTER_X, 300 }, BOSS_ONE_POS::MOTHER, registry.roomCoords.get(enemy).position, true);
+			//registry.pendingRemoves.emplace_with_duplicates(enemy);
 			enemy_render_request.used_texture = TEXTURE_ASSET_ID::FINAL_BOSS_DEATH;
 			enemy_animation.cols = 18;
 			enemy_animation.frames = 18;
-			if (enemy_animation.current_frame == 17) {
-				enemy_animation.current_frame = 16;
+			if (enemy_animation.current_frame >= 17) {
+				createNPC(renderer, { CENTER_X, 300 }, { 450, 300 }, registry.roomCoords.get(registry.bossOnes.entities[0]).position, NPC_TYPE::FINAL_DEAD);
+				registry.winTimers.emplace(player);
+				display_victory_screen();
+				set_player_velocity({ 0,0 });
+				registry.players.components[0].boss_one_dead = true;
+				update_music();
+				registry.pendingRemoves.emplace_with_duplicates(enemy);
 			}
 		}
 	}
@@ -1975,9 +1977,20 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	}
 	else if (deadly.type == BOSS_THREE) // Boss three mother
 	{
-		enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_THREE_WALK;
-		enemy_animation.cols = 4;
-		enemy_animation.frames = 4;
+		if (!registry.players.components[0].boss_three_beat) {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_THREE_WALK;
+			enemy_animation.cols = 4;
+			enemy_animation.frames = 4;
+		}
+		else {
+			enemy_render_request.used_texture = TEXTURE_ASSET_ID::BOSS_2_DEATH;
+			enemy_animation.cols = 18;
+			enemy_animation.frames = 18;
+			if (enemy_animation.current_frame >= 17) {
+				registry.pendingRemoves.emplace_with_duplicates(enemy);
+				update_music();
+			}
+		}
 	}
 
 	if (enemy_motion.target_velocity.x != 0.f || enemy_motion.target_velocity.y != 0.f) {
@@ -1990,7 +2003,7 @@ void WorldSystem::updateEnemyAnimation(Entity enemy) {
 	else if (deadly.type == FLY_TYPE) {
 		enemy_animation.frames = 4;
 	}
-	else {
+	else if (deadly.type != BOSS_THREE) {
 		// enemy is still; use only 1 frame unless flying
 		enemy_animation.frames = 1;
 	}
