@@ -7,8 +7,6 @@
 #include <vector>
 #include <random>
 #include <chrono>
-
-#define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
 
@@ -17,26 +15,31 @@
 #include "physics_system.hpp"
 #include "ui_system.hpp"
 #include "scene_manager.hpp"
+#include "scene.hpp"
 #include "dialogue_system.hpp"
+#include "audio_system.hpp"
 
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
-class WorldSystem
+class WorldSystem : Scene
 {
 public:
 	// ==================== BASIC FUNCTIONS ====================
-	WorldSystem();
+	WorldSystem(SceneManager& manager);
 	// Releases all associated resources
 	~WorldSystem();
 	// starts the game
-	void init(RenderSystem* renderer_arg, GLFWwindow* window);
+	void init(RenderSystem* renderer_arg, GLFWwindow* window, AudioSystem* audio_arg);
 	// restart level
 	void restart_game();
 	void go_next_stage();
 	void load_game();
 	// Steps the game ahead by ms milliseconds
-	bool step(float elapsed_ms);
+	void step(float elapsed_ms);
+
+	void exit();
+	void enter();
 
 	// ==================== ACTION FUNCTIONS ==================== 
 	void set_player_velocity(vec2 velocity);
@@ -44,8 +47,6 @@ public:
 
 	// ==================== HANDLING FUNCTIONS ====================
 	// ran once per step. public ones are called from game_manager.cpp
-	// Check for collisions
-	void handle_collisions();
 	// Check for deaths
 	void handle_deaths();
 
@@ -75,6 +76,8 @@ private:
 
 	void pre_start();
 	void post_start();
+
+	AudioSystem* audio_system;
 	
 
 	// ==================== MEMBER VARIABLES ====================
@@ -94,21 +97,6 @@ private:
 	// Boss one vars
 	Entity final_phase_text;
 	bool text_shown = false;
-
-	// Audio
-	// music references
-	Mix_Chunk* melee_sound;
-	Mix_Chunk* player_shooting_sound;
-	Mix_Chunk* enemy_shooting_sound;
-	Mix_Chunk* player_projectile_damage_sound;
-	Mix_Chunk* door_change_sound;
-	Mix_Music* post_combat_music;
-	Mix_Music* combat_music;
-	Mix_Music* boss_one_music;
-	Mix_Music* boss_two_music;
-	Mix_Music* boss_three_music;
-	//Music control
-	bool change_music = true;
 
 	// Player state
 	Entity player;
@@ -211,16 +199,7 @@ private:
 	// check for interactions
 	void handle_interactions(void (WorldSystem::*func)(Entity));
 
-	// Collision handling helpers
-	void handlePlayerDeadly(Entity player, Entity deadly);
-	void handlePlayerBossOne(Entity player, Entity boss);
-	void handleActorBlocker(Entity actor, Entity blocker);
-	void handleProjectileBlocker(Entity projectile, Entity blocker);
-	void handleProjectileDeadly(Entity projectile, Entity deadly);
-	void handleProjectilePlayer(Entity projectile, Entity player);
-	void handlePlayerDoor(Entity entity, Entity entity_other);
-	void handleCrosshairTexturedUIElement(Entity crosshair, Entity texturedUIElement);
-	void handleCrosshairInteractable(Entity crosshair, Entity texturedUIElement);
+
 
 	// ==================== UPDATE FUNCTIONS ====================
 	// ran once per step. private ones are called from inside world_system.cpp

@@ -100,4 +100,3 @@ private:
 
 	vec2 cursor_position;
 };
-

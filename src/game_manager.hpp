@@ -1,17 +1,6 @@
 #pragma once
 
-// include literally everything
-#include "common.hpp"
-#include "render_system.hpp"
-#include "tiny_ecs_registry.hpp"
-#include "tiny_ecs.hpp"
 
-// game stuff
-#include "world_system.hpp"
-#include "ai_system.hpp"
-#include "physics_system.hpp"
-#include "collision_system.hpp"
-#include <reloadability_system.hpp>
 
 // ui stuff
 #include "ui_system.hpp"
@@ -29,9 +18,6 @@ class GameManager
 {
 private:
 	// Input callback functions
-	void on_key(int key, int sc, int action, int mod);
-	void on_mouse_move(vec2 pos);
-	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
 	void cleanup();
 
 	// Game systems

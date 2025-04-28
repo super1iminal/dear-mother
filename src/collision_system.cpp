@@ -420,13 +420,3 @@ void CollisionSystem::add_collisions() {
         }
     }
 }
-
-
-//for (Entity entity_uiElement : registry.uiElements.entities) { // inefficient
-//    if (registry.activeComponents.has(entity_uiElement)) {
-//        Entity base_crosshair = registry.crosshairs.entities[0];
-//        if (collides(entity_uiElement, base_crosshair)) {
-//            registry.collisions.emplace_with_duplicates(base_crosshair, entity_uiElement, COLLISION_TYPE::CROSSHAIR_TEXTURED_UI_ELEMENT);
-//        }
-//    }
-//}

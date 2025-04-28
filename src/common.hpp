@@ -4,6 +4,8 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <memory>
+#include <array>
 
 // glfw (OpenGL)
 #define NOMINMAX

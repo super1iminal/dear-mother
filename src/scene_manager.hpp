@@ -1,5 +1,16 @@
 #pragma once
+// include literally everything
+#include "common.hpp"
+#include "render_system.hpp"
+#include "tiny_ecs_registry.hpp"
+#include "tiny_ecs.hpp"
 
+// game stuff
+#include "world_system.hpp"
+#include "ai_system.hpp"
+#include "physics_system.hpp"
+#include "collision_system.hpp"
+#include <reloadability_system.hpp>
 
 // WHEN ADDING A SCENE:
 // 1. Add the scene to the SCENE_TYPE enum
@@ -14,43 +25,26 @@
 // there may be more steps I don't remember
 // 10. add the scene to the switch statement in RenderSystem (render_system.cpp)
 
-enum SCENE_TYPE {
-	GAME = 0,
-	MENU = GAME + 1,
-	HELP = MENU + 1,
-	PAUSE = HELP + 1,
-	SHOP = PAUSE + 1,
-	TEST = SHOP + 1,
-	DIALOGUE = TEST + 1,
-	SCENE_COUNT = DIALOGUE + 1
-};
+class Scene;
 
 class SceneManager
 {
 private:
-	SCENE_TYPE previous_scene;
-	SCENE_TYPE current_scene;
-	bool just_changed; // used in game manager for scene transitions
+	std::unique_ptr<Scene> current_scene; // pointer to the current scene object
+	GLFWwindow* window; // pointer to the GLFW window
 
 public:
-	SceneManager();
-	// Releases all associated resources
+	SceneManager(GLFWwindow* gl_window);
 	~SceneManager();
 
-	void set_scene(SCENE_TYPE scene);
-	SCENE_TYPE get_scene() { return current_scene; };
-	bool has_just_changed_and_set_just_changed_to_false() { 
-		if (just_changed) {
-			just_changed = false;
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	void set_just_changed(bool changed) { just_changed = changed; }
-	SCENE_TYPE get_previous_scene() { return previous_scene; }
-	
+	void set_scene(std::unique_ptr<Scene> scene);
+
+    // scene actions
+	void step(float elapsed_ms);
+	void render(float elapsed_ms);
+	void on_key(int key, int sc, int action, int mod);
+	void on_mouse_button(GLFWwindow* window, int button, int action, int mods);
+	void on_mouse_move(vec2 mouse_position);
 };
 
 extern SceneManager scene_manager;

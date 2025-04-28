@@ -26,27 +26,9 @@ bool GameManager::init()
 		getchar();
 		return false;
 	}
-	// Setting callbacks to member functions (that's why the redirect is needed)
-	// Input is handled using GLFW, for more info see
-	// http://www.glfw.org/docs/latest/input_guide.html
-	glfwSetWindowUserPointer(window, this);
-	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((GameManager*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
-	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((GameManager*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
-	auto on_mouse_button = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((GameManager*)glfwGetWindowUserPointer(wnd))->on_mouse_button(wnd, _0, _1, _2); };
-	glfwSetKeyCallback(window, key_redirect);
-	glfwSetCursorPosCallback(window, cursor_pos_redirect);
-	glfwSetMouseButtonCallback(window, on_mouse_button);
 
 	// initialize SDL, MIX and music!
 	// Loading music and sounds with SDL
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		exit(1);
-	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		exit(1);
-	}
 
 	// Initialize renderer
 	renderer.init(window);
@@ -133,11 +115,6 @@ void GameManager::on_key(int key, int sc, int action, int mod) {
 
 void GameManager::on_mouse_move(vec2 pos) {
 	// Update the position of the crosshair
-	for (Entity crosshair : registry.crosshairs.entities) {
-		WorldObject& crosshair_object = registry.worldObjects.get(crosshair);
-		if (pos.x > 0 && pos.x < window_width_px && pos.y > 0 && pos.y < window_height_px)
-			crosshair_object.position = pos;
-	}
 	switch (scene_manager.get_scene()) {
 	case SCENE_TYPE::GAME:
 	{
